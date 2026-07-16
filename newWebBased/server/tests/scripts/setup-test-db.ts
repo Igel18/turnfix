@@ -1,7 +1,7 @@
 /**
  * Test Database Setup Script
  * 
- * Creates the test database `turnfix_test`, applies the Prisma schema,
+ * Creates the test database `turnfix_test_db`, applies the Prisma schema,
  * and seeds it with realistic test data.
  * 
  * This runs automatically via Jest globalSetup, but can also be invoked
@@ -14,9 +14,9 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Load test environment
-dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), override: true });
 
-const DB_NAME = process.env.DATABASE_NAME || 'turnfix_test';
+const DB_NAME = process.env.DATABASE_NAME || 'turnfix_test_db';
 const DB_USER = process.env.DATABASE_USER || 'postgres';
 const DB_PASSWORD = process.env.DATABASE_PASSWORD || '';
 const DB_HOST = process.env.DATABASE_HOST || 'localhost';

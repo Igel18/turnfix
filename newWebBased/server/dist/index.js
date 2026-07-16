@@ -27,12 +27,26 @@ const path_1 = require("path");
 // This ensures PM2 (which sets cwd to project root) still finds the .env file
 // IMPORTANT: override: true ensures that after a DB switch + PM2 restart,
 // the updated .env values take precedence over any cached PM2 environment variables
-(0, dotenv_1.config)({ path: (0, path_1.resolve)(__dirname, '../.env'), override: true });
+const requestedEnvFile = process.env.TURNFIX_ENV_FILE || '.env';
+const envFilePath = (0, path_1.isAbsolute)(requestedEnvFile)
+    ? requestedEnvFile
+    : (0, path_1.resolve)(__dirname, '..', requestedEnvFile);
+(0, dotenv_1.config)({ path: envFilePath, override: true });
+if (process.env.TURNFIX_RUNTIME_PORT) {
+    process.env.PORT = process.env.TURNFIX_RUNTIME_PORT;
+}
 console.log('🚀 Starting TurnFix server...');
 // Debug: Log database URL availability (mask the actual value for security)
 const dbUrl = process.env.DATABASE_URL;
 if (dbUrl) {
-    const dbName = dbUrl.match(/\/([^?]+)\?/)?.[1] || 'unknown';
+    const dbName = (() => {
+        try {
+            return new URL(dbUrl).pathname.replace(/^\//, '') || 'unknown';
+        }
+        catch {
+            return 'unknown';
+        }
+    })();
     console.log(`🔧 DATABASE_URL configured (database: ${dbName})`);
 }
 else {

@@ -9,7 +9,7 @@
 
 import { 
   FORMULA_VARIABLES, 
-  calculateFormula
+  calculateFinalScoreFromFieldValues
 } from '@/utils/formulaUtils';
 import { debugLog } from '@/utils/debug';
 import type { DisciplineField } from '@/types/ScoreCapture.types';
@@ -17,6 +17,11 @@ import type { DisciplineField } from '@/types/ScoreCapture.types';
 interface UseFormulaCalculationReturn {
   parseFormulaDisplay: (formula: string, fields: DisciplineField[], finalFieldName: string) => string | null;
   evaluateFormula: (formula: string, fieldValues: {[key: string]: number}, fields?: DisciplineField[]) => number;
+  calculateFinalScoreFromFieldMap: (
+    formula: string | null | undefined,
+    fields: Array<Pick<DisciplineField, 'id' | 'name' | 'sortOrder' | 'isFinalScore' | 'isStartingScore'>>,
+    fieldValues: Record<number, string | number | null | undefined>
+  ) => number | null;
 }
 
 export function useFormulaCalculation(): UseFormulaCalculationReturn {
@@ -71,42 +76,56 @@ export function useFormulaCalculation(): UseFormulaCalculationReturn {
       return 0;
     }
 
-    // Build map of symbols to values (A → 6.0, B → 3.5)
-    const symbolValueMap: {[key: string]: number} = {};
-    
-    if (fields && fields.length > 0) {
-      // Use field sort order to assign symbols
-      const sortedFields = [...fields]
-        .filter(f => !f.isFinalScore)
-        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-      
-      sortedFields.forEach((field, index) => {
-        if (index < FORMULA_VARIABLES.length && fieldValues[field.name] !== undefined) {
-          const symbol = FORMULA_VARIABLES[index];
-          symbolValueMap[symbol] = fieldValues[field.name];
-          
-          debugLog(`[useFormulaCalculation] ${symbol} = ${field.name} (sortOrder: ${field.sortOrder}) = ${fieldValues[field.name]}`);
-        }
-      });
-    } else {
-      // No fields provided, use field order from fieldValues keys
-      const availableFields = Object.keys(fieldValues);
-      availableFields.forEach((fieldName, index) => {
-        if (index < FORMULA_VARIABLES.length && fieldValues[fieldName] !== undefined) {
-          symbolValueMap[FORMULA_VARIABLES[index]] = fieldValues[fieldName];
-        }
-      });
-    }
+    const calculationFields = fields && fields.length > 0
+      ? fields.map(field => ({
+          fieldId: field.id,
+          fieldName: field.name,
+          value: fieldValues[field.name] ?? null,
+          sortOrder: field.sortOrder,
+          isFinalScore: field.isFinalScore,
+          isStartingScore: field.isStartingScore,
+        }))
+      : Object.entries(fieldValues).map(([fieldName, value], index) => ({
+          fieldName,
+          value,
+          sortOrder: index,
+          isFinalScore: false,
+          isStartingScore: false,
+        }));
 
-    debugLog('[useFormulaCalculation] Formula evaluation:', { formula, fieldValues, symbolValueMap });
+    debugLog('[useFormulaCalculation] Formula evaluation:', { formula, fieldValues, calculationFields });
 
-    // Use centralized calculation function
-    const result = calculateFormula(formula, symbolValueMap);
+    const result = calculateFinalScoreFromFieldValues(formula, calculationFields);
     return result !== null ? result : 0;
+  };
+
+  const calculateFinalScoreFromFieldMap = (
+    formula: string | null | undefined,
+    fields: Array<Pick<DisciplineField, 'id' | 'name' | 'sortOrder' | 'isFinalScore' | 'isStartingScore'>>,
+    fieldValues: Record<number, string | number | null | undefined>
+  ): number | null => {
+    const calculationFields = fields.map(field => {
+      const rawValue = fieldValues[field.id];
+      const numericValue = rawValue === '' || rawValue === undefined || rawValue === null
+        ? null
+        : Number(rawValue);
+
+      return {
+        fieldId: field.id,
+        fieldName: field.name,
+        value: numericValue !== null && !Number.isNaN(numericValue) ? numericValue : null,
+        sortOrder: field.sortOrder,
+        isFinalScore: field.isFinalScore,
+        isStartingScore: field.isStartingScore,
+      };
+    });
+
+    return calculateFinalScoreFromFieldValues(formula, calculationFields);
   };
 
   return {
     parseFormulaDisplay,
-    evaluateFormula
+    evaluateFormula,
+    calculateFinalScoreFromFieldMap
   };
 }

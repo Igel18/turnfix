@@ -10,6 +10,11 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
+import {
+  type EventScoringMode,
+  getEventScoringModeByCompetitionId,
+  shouldUseFormulaCalculation,
+} from '../utils/eventScoringMode';
 
 // Import scoring sub-router
 import scoringRouter from './scoresScoring';
@@ -126,6 +131,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       console.log('📋 [Scores API] Sample result:', { id: results[0].id, participantid: results[0].participantid, disciplineid: results[0].disciplineid });
     }
 
+    const scoringModeByCompetition = new Map<number, EventScoringMode>();
+
     // Load jury results for each score
     const resultsWithJuryData = await Promise.all(results.map(async (result: any) => {
       if (!result.id) return result;
@@ -133,6 +140,17 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       // Initialize formula for this result
       let formula: string | null = null;           // Linked formula from tfx_formeln (multi-field)
       let disciplineFormula: string | null = null;  // Discipline's own var_formel (built-in, applied at ranking time)
+
+      const competitionIdForMode = result.competitionid ? parseInt(result.competitionid) : null;
+      let scoringMode: EventScoringMode = 'formula_based';
+      if (competitionIdForMode && !Number.isNaN(competitionIdForMode)) {
+        if (!scoringModeByCompetition.has(competitionIdForMode)) {
+          const mode = await getEventScoringModeByCompetitionId(competitionIdForMode);
+          scoringModeByCompetition.set(competitionIdForMode, mode);
+        }
+        scoringMode = scoringModeByCompetition.get(competitionIdForMode) || 'formula_based';
+      }
+      const formulasEnabled = shouldUseFormulaCalculation(scoringMode);
       
       try {
         console.log('🔍 [Server] Loading jury results for wertungenId:', result.id);
@@ -216,7 +234,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         }
         
         // Load formula information for this discipline (always load for display purposes)
-        if (disciplineId) {
+        if (disciplineId && formulasEnabled) {
           try {
             const formulaQuery = `
               SELECT 
@@ -258,7 +276,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         }
         
         // Calculate and save final score if needed
-        if (needsEndwertCalculation && formula && endwertFieldId) {
+        if (needsEndwertCalculation && formulasEnabled && formula && endwertFieldId) {
           try {
             console.log('🧮 [Server] Calculating final score with formula:', formula);
             
@@ -365,6 +383,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         
         return {
           ...result,
+          scoringMode,
           formula,
           disciplineFormula,
           juryResults: filteredJuryResults.map((jr: any) => ({
@@ -418,6 +437,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       status: result.status,
       formula: result.formula || null,
       disciplineFormula: result.disciplineFormula || null,
+      scoringMode: result.scoringMode || 'formula_based',
       participant: {
         firstName: result.var_vorname,
         lastName: result.var_nachname

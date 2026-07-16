@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import dotenv from 'dotenv';
 
-// Load test environment so DATABASE_URL points at turnfix_test
-dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
+// Load test environment so DATABASE_URL points at the dedicated test DB.
+dotenv.config({ path: path.resolve(__dirname, '../.env.test'), override: true });
 
 // Global test setup — runs once per test file
 let prisma: PrismaClient;

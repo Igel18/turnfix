@@ -30,6 +30,16 @@ export interface ParsedFormula {
   hasParentheses: boolean;
 }
 
+export interface ScoreCalculationFieldInput {
+  fieldId?: number;
+  fieldName?: string;
+  fieldShortName?: string;
+  value: number | null;
+  sortOrder?: number | null;
+  isFinalScore?: boolean;
+  isStartingScore?: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -386,6 +396,68 @@ export function buildFieldSymbolsMap(
   });
 
   return symbolsMap;
+}
+
+/**
+ * Sum all non-final, non-starting field values.
+ */
+export function sumNonFinalFieldValues(fields: ScoreCalculationFieldInput[]): number {
+  return fields
+    .filter(field => !field.isFinalScore && !field.isStartingScore)
+    .reduce((sum, field) => sum + (field.value ?? 0), 0);
+}
+
+/**
+ * Calculate a final score from field inputs.
+ *
+ * Behavior:
+ * - No formula: sum all non-final, non-starting fields.
+ * - Formula present: map fields to formula symbols and evaluate centrally.
+ * - Lowercase single-variable formulas like "1*x" fall back to the single
+ *   non-final field when no explicit x/y/z mapping exists.
+ */
+export function calculateFinalScoreFromFieldValues(
+  formula: string | null | undefined,
+  fields: ScoreCalculationFieldInput[]
+): number | null {
+  const relevantFields = [...fields]
+    .filter(field => !field.isFinalScore && !field.isStartingScore)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+  if (!formula || formula.trim() === '') {
+    return sumNonFinalFieldValues(relevantFields);
+  }
+
+  const calculationInputs = relevantFields.map(field => ({
+    fieldName: field.fieldName,
+    fieldShortName: field.fieldShortName,
+    performance: field.value,
+    isFinalScore: false,
+    isStartingScore: false,
+    sortOrder: field.sortOrder ?? undefined,
+  }));
+
+  const fieldsMap = buildFieldSymbolsMap(calculationInputs, formula);
+  const valuesMap: Record<string, number> = {};
+
+  Object.values(fieldsMap).forEach(field => {
+    if (field.value !== null) {
+      valuesMap[field.symbol] = field.value;
+    }
+  });
+
+  const symbols = extractFormulaSymbols(formula);
+  const isSingleLowercaseVariable =
+    symbols.length === 1 &&
+    /^[a-z]$/.test(symbols[0] || '') &&
+    relevantFields.length === 1 &&
+    valuesMap[symbols[0]] === undefined;
+
+  if (isSingleLowercaseVariable) {
+    valuesMap[symbols[0]] = relevantFields[0]?.value ?? 0;
+  }
+
+  return calculateFormula(formula, valuesMap);
 }
 
 // ---------------------------------------------------------------------------

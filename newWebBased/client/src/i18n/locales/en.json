@@ -793,6 +793,12 @@
       "locationPlaceholder": "Select a location...",
       "description": "Description",
       "descriptionPlaceholder": "Optional description",
+      "scoringMode": {
+        "label": "Scoring mode",
+        "formulaBased": "Formula calculation (default)",
+        "finalOnly": "Final score only input",
+        "help": "Controls whether final scores are entered directly or calculated from field values for this import."
+      },
       "cancel": "Cancel",
       "import": "Import",
       "importing": "Importing...",
@@ -806,6 +812,10 @@
         "clubsUpdate": "Existing clubs will be updated if found",
         "participantsUpdate": "Existing participants will be updated if found",
         "noDisciplineGuessing": "Disciplines are only assigned when explicitly listed in the XML file. Otherwise, suggestions will be shown."
+      },
+      "errors": {
+        "databaseSetupHintTitle": "Check database configuration",
+        "databaseSetupHint": "Open Settings > Database Configuration, launch the setup wizard, and run the database connection and schema creation steps."
       },
       "progress": {
         "parsing": "Parsing XML file...",

@@ -1,8 +1,8 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Load test environment so DATABASE_URL points at turnfix_test
-dotenv.config({ path: path.resolve(__dirname, '.env.test') });
+// Load test environment so DATABASE_URL points at the dedicated test DB.
+dotenv.config({ path: path.resolve(__dirname, '.env.test'), override: true });
 
 /** @type {import('jest').Config} */
 module.exports = {

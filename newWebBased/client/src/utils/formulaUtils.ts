@@ -12,6 +12,7 @@ export {
   FORMULA_VARIABLES,
   applyBuiltInFormula,
   buildFieldSymbolsMap,
+  calculateFinalScoreFromFieldValues,
   calculateFormula,
   detectFormulaType,
   extractFormulaSymbols,
@@ -20,7 +21,8 @@ export {
   getFormulaSymbol,
   isSubtractionField,
   parseFormula,
+  sumNonFinalFieldValues,
   validateFormula,
 } from '@turnfix/shared';
 
-export type { FormulaField, ParsedFormula } from '@turnfix/shared';
+export type { FormulaField, ParsedFormula, ScoreCalculationFieldInput } from '@turnfix/shared';

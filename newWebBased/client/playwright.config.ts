@@ -94,10 +94,10 @@ export default defineConfig({
   /* Auto-start backend + frontend servers before tests */
   webServer: [
     {
-      command: 'node dist/index.js',
+      command: 'node scripts/start-e2e-stack.js',
       cwd: '../server',
       port: 3001,
-      reuseExistingServer: allowServerReuse || !process.env.CI,
+      reuseExistingServer: allowServerReuse,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -106,7 +106,7 @@ export default defineConfig({
       command: 'node src/index.js',
       cwd: '../jury-server',
       port: 3002,
-      reuseExistingServer: allowServerReuse || !process.env.CI,
+      reuseExistingServer: allowServerReuse,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -115,7 +115,7 @@ export default defineConfig({
       command: 'npx vite',
       cwd: '.',
       port: 5173,
-      reuseExistingServer: allowServerReuse || !process.env.CI,
+      reuseExistingServer: allowServerReuse,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',

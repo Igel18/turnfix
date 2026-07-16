@@ -188,6 +188,16 @@ describe('checkGenderAgeMismatch', () => {
     expect(result.severity).toBe('error')
     expect(result.details).toHaveLength(2)
   })
+
+  it('normalizes reversed birth-year bounds (yer_von/yer_bis) in SQL', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([{ c: 0 }])
+    await checkGenderAgeMismatch(1)
+
+    const calls = mockQueryRawUnsafe.mock.calls as any[]
+    const firstQuery = String(calls[0]?.[0] || '')
+    expect(firstQuery).toContain('LEAST(wk.yer_von, COALESCE(wk.yer_bis, wk.yer_von))')
+    expect(firstQuery).toContain('GREATEST(wk.yer_von, COALESCE(wk.yer_bis, wk.yer_von))')
+  })
 })
 
 // ============================================================================

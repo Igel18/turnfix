@@ -10,14 +10,24 @@ import type { DisciplineField } from '@/types/ScoreCapture.types';
 // Mock formulaUtils
 vi.mock('@/utils/formulaUtils', () => ({
   FORMULA_VARIABLES: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
-  calculateFormula: vi.fn((formula: string, symbolValues: Record<string, number>) => {
-    // Simple mock implementation: evaluate basic formulas
+  calculateFinalScoreFromFieldValues: vi.fn((formula: string, fields: Array<{ fieldName?: string; value: number | null; sortOrder?: number | null; isFinalScore?: boolean; isStartingScore?: boolean }>) => {
+    const relevantFields = [...fields]
+      .filter(field => !field.isFinalScore && !field.isStartingScore)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+    if (!formula) {
+      return relevantFields.reduce((sum, field) => sum + (field.value ?? 0), 0);
+    }
+
     try {
       let expr = formula;
-      for (const [key, val] of Object.entries(symbolValues)) {
-        expr = expr.replace(new RegExp(`\\b${key}\\b`, 'g'), val.toString());
+      relevantFields.forEach((field, index) => {
+        const variable = String.fromCharCode(65 + index);
+        expr = expr.replace(new RegExp(`\\b${variable}\\b`, 'g'), String(field.value ?? 0));
+      });
+      if (expr.includes('x') && relevantFields.length === 1) {
+        expr = expr.replace(/\bx\b/g, String(relevantFields[0]?.value ?? 0));
       }
-      // Safe eval for test formulas like "(10 + 6) - 3.5"
       const result = Function(`"use strict"; return (${expr})`)();
       return typeof result === 'number' && !isNaN(result) ? result : null;
     } catch {
@@ -141,7 +151,7 @@ describe('useFormulaCalculation', () => {
 
     it('returns 0 when calculateFormula returns null', async () => {
       const formulaUtils = await import('@/utils/formulaUtils');
-      vi.mocked(formulaUtils.calculateFormula).mockReturnValueOnce(null);
+      vi.mocked(formulaUtils.calculateFinalScoreFromFieldValues).mockReturnValueOnce(null);
 
       const { result } = renderHook(() => useFormulaCalculation());
       const score = result.current.evaluateFormula('INVALID', { 'x': 1 });
@@ -177,6 +187,51 @@ describe('useFormulaCalculation', () => {
         fields
       );
       expect(score).toBe(7.5);
+    });
+
+    it('supports lowercase single-variable formulas with one field', () => {
+      const { result } = renderHook(() => useFormulaCalculation());
+      const fields: DisciplineField[] = [
+        makeField({ id: 10, name: 'Wertung', sortOrder: 1 }),
+      ];
+
+      const score = result.current.evaluateFormula('1*x', { Wertung: 8.75 }, fields);
+      expect(score).toBe(8.75);
+    });
+  });
+
+  describe('calculateFinalScoreFromFieldMap', () => {
+    it('calculates from field-id keyed values', () => {
+      const { result } = renderHook(() => useFormulaCalculation());
+      const fields: DisciplineField[] = [
+        makeField({ id: 1, name: 'D', sortOrder: 1 }),
+        makeField({ id: 2, name: 'E', sortOrder: 2 }),
+        makeField({ id: 3, name: 'Endwert', sortOrder: 3, isFinalScore: true }),
+      ];
+
+      const score = result.current.calculateFinalScoreFromFieldMap('A + B', fields, {
+        1: '5.2',
+        2: '3.8',
+        3: '999',
+      });
+
+      expect(score).toBe(9);
+    });
+
+    it('falls back to sum when no formula is defined', () => {
+      const { result } = renderHook(() => useFormulaCalculation());
+      const fields: DisciplineField[] = [
+        makeField({ id: 1, name: 'D', sortOrder: 1 }),
+        makeField({ id: 2, name: 'E', sortOrder: 2 }),
+        makeField({ id: 3, name: 'Endwert', sortOrder: 3, isFinalScore: true }),
+      ];
+
+      const score = result.current.calculateFinalScoreFromFieldMap(null, fields, {
+        1: '4.0',
+        2: 5.5,
+      });
+
+      expect(score).toBe(9.5);
     });
   });
 });

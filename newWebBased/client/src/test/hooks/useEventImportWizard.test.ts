@@ -277,6 +277,37 @@ describe('useEventImportWizard – auto-advance', () => {
     expect(result.current.importState).toBe('completed');
   });
 
+  it('sends selected scoringMode in import form data', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(successImportResponse), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }) as Response,
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    setEventName(result);
+
+    act(() => {
+      result.current.setImportEventData(d => ({ ...d, scoringMode: 'final_only' }));
+      result.current.setImportFiles([makeFile()]);
+    });
+
+    await act(async () => {
+      result.current.goNextFromFileSelection();
+      await new Promise(r => setTimeout(r, 50));
+    });
+
+    expect(fetchSpy).toHaveBeenCalled();
+    const [, init] = fetchSpy.mock.calls[0] || [];
+    const body = init?.body as FormData;
+    expect(body.get('scoringMode')).toBe('final_only');
+    fetchSpy.mockRestore();
+  });
+
   it('auto-advances to results on import error', async () => {
     server.use(
       http.post('/api/events/import-gymnet', () =>

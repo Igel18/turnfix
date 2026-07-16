@@ -21,23 +21,27 @@ interface TeamScoreTableProps {
     name: string;
     isFinalScore: boolean;
   }>;
+  formula?: string | null;
   maxAttempts: number;
   inputMask: string;
   loading?: boolean;
   onScoreChange: (attempt: number, fieldId: number, value: string) => void;
   onSaveScore: (attempt: number) => Promise<void>;
   scoreMatrix: { [key: string]: string };
+  calculateFinalScore: (attempt: number) => number | null;
 }
 
 export const TeamScoreTable = ({
   team,
   disciplineFields,
+  formula: _formula,
   maxAttempts,
   inputMask,
   loading,
   onScoreChange,
   onSaveScore,
-  scoreMatrix
+  scoreMatrix,
+  calculateFinalScore
 }: TeamScoreTableProps) => {
   const { t } = useTranslation();
 
@@ -54,15 +58,9 @@ export const TeamScoreTable = ({
     return scoreMatrix[key] || '';
   };
 
-  // Calculate final score for an attempt
-  const calculateFinalScore = (attempt: number): string => {
-    const values = scoreFields
-      .map(field => parseFloat(getScoreValue(attempt, field.id)) || 0)
-      .filter(v => v > 0);
-    
-    if (values.length === 0) return '';
-    const sum = values.reduce((a, b) => a + b, 0);
-    return sum.toFixed(3);
+  const getFinalScoreDisplay = (attempt: number): string => {
+    const result = calculateFinalScore(attempt);
+    return result === null ? '' : result.toFixed(3);
   };
 
   // Handle blur event to save score
@@ -179,7 +177,7 @@ export const TeamScoreTable = ({
                 {finalField && (
                   <td className="px-4 py-3 whitespace-nowrap bg-blue-50/50">
                     <div className="w-20 px-2 py-1 text-sm font-semibold text-gray-900">
-                      {calculateFinalScore(attempt)}
+                      {getFinalScoreDisplay(attempt)}
                     </div>
                   </td>
                 )}

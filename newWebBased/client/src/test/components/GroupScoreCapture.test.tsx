@@ -17,6 +17,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../msw/server';
 import { renderWithProviders } from '../renderWithProviders';
+import { calculateFinalScoreFromFieldValues } from '@turnfix/shared';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -258,24 +259,23 @@ describe('GroupScoreCapture', () => {
   });
 
   describe('Score Calculation Logic', () => {
-    it('should calculate final score as sum of non-final components', () => {
-      // Direct logic test — extracted from GroupScoreCapture.calculateFinalScore
-      const fields = [
-        { id: 1, isFinalScore: false },
-        { id: 2, isFinalScore: false },
-        { id: 3, isFinalScore: true },
-      ];
-      const components = [
-        { fieldId: 1, value: 5.5 },
-        { fieldId: 2, value: 4.3 },
-        { fieldId: 3, value: null }, // Final score field should be excluded
-      ];
+    it('should calculate final score via centralized helper when no formula is set', () => {
+      const finalScore = calculateFinalScoreFromFieldValues('', [
+        { fieldId: 1, fieldName: 'D-Note', value: 5.5, sortOrder: 1, isFinalScore: false, isStartingScore: false },
+        { fieldId: 2, fieldName: 'E-Note', value: 4.3, sortOrder: 2, isFinalScore: false, isStartingScore: false },
+        { fieldId: 3, fieldName: 'Endwert', value: null, sortOrder: 3, isFinalScore: true, isStartingScore: false },
+      ]);
 
-      const values = components
-        .filter(c => !fields.find(f => f.id === c.fieldId && f.isFinalScore))
-        .map(c => c.value || 0);
+      expect(finalScore).toBeCloseTo(9.8);
+    });
 
-      const finalScore = values.reduce((sum, val) => sum + val, 0);
+    it('should calculate linked formulas via centralized helper', () => {
+      const finalScore = calculateFinalScoreFromFieldValues('A + B', [
+        { fieldId: 1, fieldName: 'D-Note', value: 5.5, sortOrder: 1, isFinalScore: false, isStartingScore: false },
+        { fieldId: 2, fieldName: 'E-Note', value: 4.3, sortOrder: 2, isFinalScore: false, isStartingScore: false },
+        { fieldId: 3, fieldName: 'Endwert', value: null, sortOrder: 3, isFinalScore: true, isStartingScore: false },
+      ]);
+
       expect(finalScore).toBeCloseTo(9.8);
     });
 

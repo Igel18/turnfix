@@ -17,6 +17,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { server } from '../msw/server';
 import { renderWithProviders } from '../renderWithProviders';
+import { calculateFinalScoreFromFieldValues } from '@turnfix/shared';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -293,23 +294,23 @@ describe('TeamScoreCapture', () => {
   });
 
   describe('Score Save Logic', () => {
-    it('should calculate final score as sum of non-final field values', () => {
-      const fields = mockDisciplineFields;
-      const scoreFields = fields.filter(f => !f.isFinalScore);
-      expect(scoreFields).toHaveLength(2); // D-Note, E-Note
+    it('should calculate final score via centralized helper when no formula is set', () => {
+      const finalScore = calculateFinalScoreFromFieldValues('', [
+        { fieldId: 1000, fieldName: 'D-Note', value: 5.5, sortOrder: 1, isFinalScore: false, isStartingScore: false },
+        { fieldId: 1001, fieldName: 'E-Note', value: 4.3, sortOrder: 2, isFinalScore: false, isStartingScore: false },
+        { fieldId: 1002, fieldName: 'Endwert', value: null, sortOrder: 3, isFinalScore: true, isStartingScore: false },
+      ]);
 
-      const scoreMatrix: Record<string, string> = {
-        'team-1-attempt-1-field-1000': '5.5',
-        'team-1-attempt-1-field-1001': '4.3',
-      };
+      expect(finalScore).toBeCloseTo(9.8);
+    });
 
-      const components = scoreFields.map(field => {
-        const key = `team-1-attempt-1-field-${field.id}`;
-        const value = parseFloat(scoreMatrix[key] || '0');
-        return { fieldId: field.id, value: value > 0 ? value : null };
-      }).filter(c => c.value !== null);
+    it('should calculate linked formulas via centralized helper', () => {
+      const finalScore = calculateFinalScoreFromFieldValues('A + B', [
+        { fieldId: 1000, fieldName: 'D-Note', value: 5.5, sortOrder: 1, isFinalScore: false, isStartingScore: false },
+        { fieldId: 1001, fieldName: 'E-Note', value: 4.3, sortOrder: 2, isFinalScore: false, isStartingScore: false },
+        { fieldId: 1002, fieldName: 'Endwert', value: null, sortOrder: 3, isFinalScore: true, isStartingScore: false },
+      ]);
 
-      const finalScore = components.reduce((sum, c) => sum + (c.value || 0), 0);
       expect(finalScore).toBeCloseTo(9.8);
     });
 

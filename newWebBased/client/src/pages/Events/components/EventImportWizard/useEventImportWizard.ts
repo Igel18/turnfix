@@ -120,6 +120,7 @@ export function useEventImportWizard({
       if (importEventData.endDate) fd.append('endDate', importEventData.endDate)
       if (importEventData.locationId) fd.append('locationId', importEventData.locationId)
       if (importEventData.description) fd.append('description', importEventData.description.trim())
+      fd.append('scoringMode', importEventData.scoringMode)
 
       const response = await fetch('/api/events/import-gymnet', {
         method: 'POST',

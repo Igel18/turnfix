@@ -1002,6 +1002,114 @@ d.) Spaltenbezeichnung muss einheitlich sein (mal steht alter, mal Geburtsdatum 
 135. [Refactoring] AddParticipantModal.tsx 
 In dieser Datei ist ziemlich viel Code, der auch in der Klasse AddParticipantModal drin sein sollte weil mit beiden UIs eine Person zur DB hinzugefügt werden kann. Hier sollten wahrscheinlich utils verwenden, was wir ja bisher so gemacht haben... 
 
+136. [Feature] Beim Import auswählbar zu machen ob man Einzelwerte eingeben möchte. Pragmatisch und workflow-freundlich:
+Im Import-Wizard einen zusätzlichen Schritt „Wertungsmodus“ einbauen.
+Default per Auto-Mapping setzen (z. B. aus GymNet-Disziplin + vorhandenem Profil).
+Admin kann vor Abschluss überschreiben: Endwert oder Formelprofil.
+Ergebnis im Import-Review pro Disziplin sichtbar machen.
+Nach Import weiter editierbar in Disziplin-/Event-Konfiguration.
+
+Im Import-Wizard einen zusätzlichen Schritt „Wertungsmodus“ einbauen.
+Default per Auto-Mapping setzen (z. B. aus GymNet-Disziplin + vorhandenem Profil).
+Admin kann vor Abschluss überschreiben: Endwert oder Formelprofil.
+Ergebnis im Import-Review pro Disziplin sichtbar machen.
+Nach Import weiter editierbar in Disziplin-/Event-Konfiguration.
+-> Erledigt ✅
+
+137. Beim Import der XML kommt es zu Fehlern: 
+Warnungen
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (9-10Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (9-10Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (9-10Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (9-10Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (9-10Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (9-10Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (11-12Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (11-12Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (11-12Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (9-10Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (11-12Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (13-14Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (13-14Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (13-14Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (13-14Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf w (7-8Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (1-6Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (1-6Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (1-6Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (13-14Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (7-8Jahre)" (weiblich): Disziplin "Boden" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Boden", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (7-8Jahre)" (weiblich): Disziplin "Reck" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Reck", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 3-Kampf w (7-8Jahre)" (weiblich): Disziplin "Sprung" ist nur für männlich zugelassen — Zuweisung übersprungen
+Disziplin="Sprung", erwartet nach wedDisNr: männlich
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (17-18Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+[discipline] Wettkampf "Turn10 Basisstufe Gerät 4-Kampf m (7-8Jahre)": Keine Disziplinen in XML — manuelle Zuweisung erforderlich
+Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10® Basis, Minitrampolin Turn10® Basis, Reck/St-Barren Turn10® Basis, Sprung Turn10® Basis
+
+Grund ist wahrscheinlich, dass keine Teilnehmer in diesen Wettkämpfen drin sind und daher auch keine Disziplinen hinzugefügt werden können. 
+Die Meldung ist daher ok, sollte aber den Grund enthalten (wenn dieser ausfindig gemacht werden kann). 
+
+138. [Bug] Beim Import kann kein Veranstaltungsort ausgewählt werden, erst beim nachträglichen editieren. TDD
+
+139. [Bug] Nach dem Import von dem 69. Schüler und Jugendturnfest sind oft 6 Geräte mit einem Wettkampf verknüpft, obwohl das im XML nicht so drin zu sein scheint. TDD -> Liegt an den Zuordnungsvorschlägen. Wird mit 140 gefixt. 
+
+140. [Feature] Beim Import der XML wäre es doch gut, wenn man jeden Wettkampf einmal durch geht / anschaut und die Vorschläge für die Disziplinen anzeigt und dann korrigiert. Also ob die Disziplin passt und ob der Wettkampf passt. ggf. dann mit den auto-imports. Wie wäre sowas?
+
+141. [Bug] Beim Wettkampf editieren "Gruppe setzen" wird zwar die Disziplin Gruppe selektiert, aber die anderen ggf. bereits selektierten Diszplinen nicht 
+deselektiert. 
+
+142. Die TurnFix Tray app muss als admin ausgeführt werden, da man sonst keine Services starten / stoppen kann 
+
+143. [Bug] Beim Import eines Wettkampfs mit der Disziplin 140 wedDisNr erwartet er männlich, ist aber in der DB mit w=true und m=false hinterlegt! TDD! 
+-> Erledigt ✅
+
+144. Beim dem DB Wizard / Setup sollte bei den Disziplingruppen folgende mitkommen: Turn10 3-Kampf w, Turn10 3-Kampf m, Turn10 4-Kampf w, Turn10 4-Kampf m. 
+
+145. [Feature] Mehrfachselektion von Wettkämpfen und editieren davon 
+
+146. Doppelte Disziplinen und Barren als (w) 
+
+147. auf der Seite competitions muss man immer links / rechts scrollen... Die 1. Spalte könnte man doch schmäler machen. 
+
+148. Manche Riegenbezeichnungen nicht auf den Etiketten. 
+-> 🚀 In Arbeit 
+
+149. Etiketten default maße: 
+oben / unten 8 
+rechts / links 3 
+höhe 15
+
+150. Im letzten Setup gibt es 2 Probleme: 
+a.) Das setup läuft ohne probleme durch. Wenn jetzt eine veranstaltung versucht wird zu importieren kommt die fehlermeldung "Import fehlgeschlagen: XML import failed: Invalid prisma.$queryRawUnsafe() invocation: Database not available does not exist on the database server at localhost" Das ist auch vollkommen richtig. Aber eine Abhilfemaßnahme sollte mit angezeigt werden, da es ja die möglichkeit gibt in den Anwendungseinstellungen unter Datenbankkonfiguration den Setup-Assistent zu durchlaufen.  
+b.) wird der Setup-Assistent gestartet kommt es im Step 3 Schema erstellen zu dem Fehler "Command failed: npx prisma db push --schema="c:\... Siehe bild. 
+-> Erledigt ✅ | Import zeigt jetzt einen Hinweis auf den Setup-Assistenten an; der Schema-Schritt nutzt die lokale Prisma-CLI statt `npx` und ist getestet.
 
 🚀 In Arbeit (unvollständig)
 #	Titel
@@ -1027,6 +1135,31 @@ In dieser Datei ist ziemlich viel Code, der auch in der Klasse AddParticipantMod
 108	Improvement: Status "Gedruckt" automatisch setzen beim PDF-Export	niedrig
 123	Modale Dialoge → Wizard (Disziplin, Wettkampf, GymNet-Import)	niedrig
 TD-01	Technische Schuld: "Pause"-Erkennung per Name-Regex in ScheduleMatrixView.tsx	niedrig
+
+
+TD-02 TD-Import-Scoring-Kopplung (hoch) 
+Beschreibung: Import legt Disziplinen an, aber der Wertungsmodus ist nicht als erster Klassenbürger im Importprozess modelliert.
+Risiko: Nacharbeit nach Import, inkonsistente Defaults je Seite.
+Fundstellen: index.tsx:4, index.tsx:449, Configuration.tsx:1089
+-> Erledigt ✅
+
+TD-03 TD-Formellogik mehrfach implementiert (hoch)
+Beschreibung: Formel-/Endwert-Logik ist auf Disziplinverwaltung, ScoreCapture, ScoreCaptureV2 und GroupTeamScoring verteilt.
+Risiko: unterschiedliche Ergebnisse je Erfassungsweg.
+Fundstellen: DisciplinesUnified.tsx:367, useFormulaCalculation.ts:62, ScoringPanel.tsx:175, TeamScoreCapture.tsx:300
+-> Erledigt ✅
+
+TD-04 TD-Uneinheitliche Persistenzpfade (mittel-hoch)
+Beschreibung: Scores werden über mehrere Endpunkte/Flows gespeichert (value-save, field-save, group/team save).
+Risiko: Validierung/Audit/Plausi verhalten sich nicht überall gleich.
+Fundstellen: useScoreActions.ts:163, useScoreActions.ts:216, GroupScoreCapture.tsx:175, TeamScoreCapture.tsx:316
+
+TD-05 TD-SoC-Verstoß in zentralen Seiten (mittel)
+Beschreibung: Mehrere große Dateien > 600 Zeilen, teils UI + Workflow + API + Berechnung in einer Einheit.
+Risiko: hoher Änderungsaufwand, Regressionen.
+Fundstellen: Configuration, EventManagement, DisciplinesUnified, EventImportModal
+
+TD-06 Offen bleibt noch ein angrenzender Punkt: die Auflösung von int_formelid per API-Fetch ist weiterhin an mehreren Stellen separat vorhanden. Die reine Berechnungslogik ist jetzt zentralisiert, die Formel-Resolver-Logik noch nicht vollständig. Wenn du willst, ziehe ich das als nächsten Schritt auch noch in eine gemeinsame Hook/Utility zusammen.
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀
