@@ -19,6 +19,7 @@
 #   .\run-pipeline.ps1 -SkipE2ETests           # Nur Playwright überspringen
 #   .\run-pipeline.ps1 -SkipInstaller          # Kein Installer
 #   .\run-pipeline.ps1 -SkipDownload           # Node.js/NSSM nicht neu laden
+#   .\run-pipeline.ps1 -UpdateBrowserslistDb   # caniuse-lite aktiv aktualisieren
 #   .\run-pipeline.ps1 -SkipTests -SkipDownload  # Nur bauen + Installer
 #
 # Voraussetzungen:
@@ -32,7 +33,8 @@ param(
     [switch]$SkipE2ETests,    # Nur Playwright überspringen
     [switch]$SkipBuild,       # npm-Build überspringen
     [switch]$SkipInstaller,   # Installer-Schritt überspringen
-    [switch]$SkipDownload     # Node.js/NSSM-Download überspringen (an build-installer.ps1 weitergegeben)
+    [switch]$SkipDownload,    # Node.js/NSSM-Download überspringen (an build-installer.ps1 weitergegeben)
+    [switch]$UpdateBrowserslistDb # caniuse-lite vor Client-Build aktualisieren (optional)
 )
 
 $ErrorActionPreference = "Stop"
@@ -114,10 +116,17 @@ Invoke-Step -Name "Build Shared (@turnfix/shared)" -Skip:$SkipBuild -Action {
 
 # ── 2. Build Server + Client ──────────────────────────────────────────────
 Invoke-Step -Name "Build Server + Client" -Skip:$SkipBuild -Action {
-    # Browserslist-Datenbank aktualisieren (caniuse-lite), damit Vite/PostCSS
-    # aktuelle Browser-Targets kennt und keine Warnung ausgibt.
-    Set-Location $ClientDir
-    npx update-browserslist-db@latest --yes 2>&1 | Out-Null
+    # Optional, da npx je nach Netzwerk/Registry hängen kann.
+    if ($UpdateBrowserslistDb) {
+        Set-Location $ClientDir
+        Write-Host "  ℹ️  Aktualisiere Browserslist DB (optional) ..." -ForegroundColor DarkGray
+        try {
+            npx update-browserslist-db@latest --yes
+        }
+        catch {
+            Write-Host "  ⚠️  Browserslist-Update übersprungen: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
 
     Set-Location $WebDir
     npm run build
