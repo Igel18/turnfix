@@ -555,6 +555,11 @@ begin
     // Kill lingering node.exe/nssm.exe processes attached to these services
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "SERVICES eq TurnFixServer"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "SERVICES eq TurnFixJuryServer"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    // Kill tray process to release scripts\TurnFixTray.exe lock during upgrades
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM "TurnFixTray.exe"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('taskkill TurnFixTray.exe: ' + IntToStr(ResultCode));
+    // Legacy PowerShell tray variant (if still running)
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "WindowTitle eq TurnFix*" /IM powershell.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     Sleep(2000);
   end;
 
@@ -681,6 +686,7 @@ begin
     AppPath := ExpandConstant('{app}');
     
     // Kill tray icon process
+    Exec('taskkill', '/F /IM TurnFixTray.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     Exec('taskkill', '/F /FI "WindowTitle eq TurnFix*" /IM powershell.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     
     // Remove tray icon autostart shortcut

@@ -1116,6 +1116,10 @@ a.) wurde schon mal das setup ausgeführt läuft ggf. bereits die TurnFix Tray e
 b.) wir haben in punkt 150 ein problem mit dem erstellen des Schema versucht zu beheben. Das hat nicht funktioniert. in 150 war die Fehlermeldung der befehl "npx" ist falsch geschrieben oder konnte nicht gefunden werden. jetzt ist es Der Befehl "node" ist entweder falsch geschrieben oder konnte nicht gefunden werden. Das sollte eigentlich über einen Testfall abgedeckt werden... 
 c.) resultierend aus b.) kommt beim import einer XML wieder eine Fehlermeldung "...Relation tfx_veranstaltungen existiert nicht...". Das sollte eigentlich auch mit 150 a.) behoben werden. 
 TDD
+-> Erledigt ✅ | Installer stoppt TurnFixTray.exe vor Datei-Update; DB-Setup nutzt explizit Node+Prisma-CLI (ohne PATH-Abhängigkeit) und bricht bei fehlendem Node mit Fehlercode ab; Smoke-Test deckt den Node-fehlt-Fall explizit ab.
+
+152. Es wäre gut, wenn ich den build mittels runpipeline.ps1 starte, und da dann ja auch die E2E tests ausgeführt werden, wenn davor auch die Dienste TurnFix und TurnFix Jury beendet werden. 
+
 
 🚀 In Arbeit (unvollständig)
 #	Titel
