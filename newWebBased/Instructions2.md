@@ -1111,6 +1111,12 @@ a.) Das setup läuft ohne probleme durch. Wenn jetzt eine veranstaltung versucht
 b.) wird der Setup-Assistent gestartet kommt es im Step 3 Schema erstellen zu dem Fehler "Command failed: npx prisma db push --schema="c:\... Siehe bild. 
 -> Erledigt ✅ | Import zeigt jetzt einen Hinweis auf den Setup-Assistenten an; der Schema-Schritt nutzt die lokale Prisma-CLI statt `npx` und ist getestet.
 
+151. also beim Setup gibt es ein paar probleme: 
+a.) wurde schon mal das setup ausgeführt läuft ggf. bereits die TurnFix Tray exe. Diese muss zuerst beendet oder beendet & deinstalliert werden. Sonst kommt das Setup nicht weiter. Wenn ich mittels Taskmanager die exe beende geht es weiter. 
+b.) wir haben in punkt 150 ein problem mit dem erstellen des Schema versucht zu beheben. Das hat nicht funktioniert. in 150 war die Fehlermeldung der befehl "npx" ist falsch geschrieben oder konnte nicht gefunden werden. jetzt ist es Der Befehl "node" ist entweder falsch geschrieben oder konnte nicht gefunden werden. Das sollte eigentlich über einen Testfall abgedeckt werden... 
+c.) resultierend aus b.) kommt beim import einer XML wieder eine Fehlermeldung "...Relation tfx_veranstaltungen existiert nicht...". Das sollte eigentlich auch mit 150 a.) behoben werden. 
+TDD
+
 🚀 In Arbeit (unvollständig)
 #	Titel
 72	PDF Export – Wettkampfnummer bei Teilnehmer- & Riegenlistenexport (Tests fehlen)
