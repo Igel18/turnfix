@@ -3353,7 +3353,12 @@
       "appliedTitle": "Riegeneinteilung erfolgreich!",
       "appliedMessage": "{{participants}} Teilnehmer wurden auf {{squads}} Riegen verteilt.",
       "keepExistingInfo": "{{squads}} bestehende Riegen mit {{assigned}} Teilnehmern werden beibehalten."
-    }
+    },
+    "generateSquadDisciplines": "Squad-Disziplinen generieren",
+    "generating": "Wird generiert...",
+    "generateSuccess": "Erfolgreich {{created}} neue Squad-Disziplin-Kombinationen generiert ({{total}} insgesamt)",
+    "generateFailed": "Fehler beim Generieren von Squad-Disziplinen",
+    "generateError": "Fehler beim Generieren von Squad-Disziplinen"
   },
   "competitions": {
     "title": "Wettkampfverwaltung",

@@ -48,6 +48,7 @@ const SquadManagementUnified: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
   const [isAutoAssignOpen, setIsAutoAssignOpen] = useState(false);
+  const [isGeneratingSquadDisciplines, setIsGeneratingSquadDisciplines] = useState(false);
 
   // Wizard state
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -159,6 +160,38 @@ const SquadManagementUnified: React.FC = () => {
   const handleExportPDF = () => {
     if (!selectedEvent) return;
     exportSquadsPDF({ squads, selectedEvent, t });
+  };
+
+  // Generate squad-discipline combinations
+  const handleGenerateSquadDisciplines = async () => {
+    if (!eventId) return;
+    
+    setIsGeneratingSquadDisciplines(true);
+    try {
+      const response = await fetch(`/api/squad-disciplines/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: parseInt(eventId) })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Generate failed:', error);
+        alert(t('squadManagement.generateFailed') || `Failed to generate: ${error.error}`);
+        return;
+      }
+      
+      const result = await response.json();
+      alert(
+        t('squadManagement.generateSuccess') ||
+        `Generated ${result.created} new squad-discipline combinations (${result.total} total)`
+      );
+    } catch (error) {
+      console.error('Error generating squad-disciplines:', error);
+      alert(t('squadManagement.generateError') || 'Error generating squad-disciplines');
+    } finally {
+      setIsGeneratingSquadDisciplines(false);
+    }
   };
 
   // Open wizard for editing a squad
@@ -353,13 +386,23 @@ const SquadManagementUnified: React.FC = () => {
         setIsWizardOpen(true);
       }}
       customActions={
-        <button
-          onClick={() => setIsAutoAssignOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
-        >
-          <SparklesIcon className="h-4 w-4" />
-          {t('squadManagement.autoAssign.button')}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsAutoAssignOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+          >
+            <SparklesIcon className="h-4 w-4" />
+            {t('squadManagement.autoAssign.button')}
+          </button>
+          <button
+            onClick={handleGenerateSquadDisciplines}
+            disabled={isGeneratingSquadDisciplines}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+          >
+            <SparklesIcon className="h-4 w-4" />
+            {isGeneratingSquadDisciplines ? t('squadManagement.generating') || 'Generating...' : t('squadManagement.generateSquadDisciplines') || 'Generate Squad-Disciplines'}
+          </button>
+        </div>
       }
       showExportCSV={true}
       onExportCSV={() => console.log('Export CSV clicked')}

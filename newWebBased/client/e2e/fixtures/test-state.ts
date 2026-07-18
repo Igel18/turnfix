@@ -202,6 +202,15 @@ export async function apiDelete(request: APIRequestContext, path: string) {
   return { status: response.status(), body: await response.json().catch(() => ({})) };
 }
 
+/** PUT from API and return { status, body } */
+export async function apiPut(request: APIRequestContext, path: string, data: unknown) {
+  const response = await request.put(`${API_BASE}${path}`, {
+    data,
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return { status: response.status(), body: await response.json().catch(() => ({})) };
+}
+
 /** Set EventContext in localStorage (required for event-aware pages) */
 export async function setEventContext(
   page: import('@playwright/test').Page,

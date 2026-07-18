@@ -3316,7 +3316,12 @@
       "appliedTitle": "Squad assignment successful!",
       "appliedMessage": "{{participants}} participants have been assigned to {{squads}} squads.",
       "keepExistingInfo": "{{squads}} existing squads with {{assigned}} participants will be preserved."
-    }
+    },
+    "generateSquadDisciplines": "Generate Squad-Disciplines",
+    "generating": "Generating...",
+    "generateSuccess": "Successfully generated {{created}} new squad-discipline combinations ({{total}} total)",
+    "generateFailed": "Failed to generate squad-disciplines",
+    "generateError": "Error generating squad-disciplines"
   },
   "competitions": {
     "title": "Competition Management",
