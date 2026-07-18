@@ -392,7 +392,9 @@ test.describe('Load Test: Concurrent Browser Sessions', () => {
       const startTime = Date.now();
       await Promise.all(
         pageObjects.map((page, i) =>
-          page.goto(urls[i], { waitUntil: 'networkidle', timeout: 30_000 })
+          // Use domcontentloaded here because score-capture keeps background
+          // requests open under load, making networkidle flaky.
+          page.goto(urls[i], { waitUntil: 'domcontentloaded', timeout: 30_000 })
         )
       );
       const elapsed = Date.now() - startTime;
