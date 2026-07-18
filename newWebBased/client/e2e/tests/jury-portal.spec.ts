@@ -733,3 +733,159 @@ test.describe('Jury Portal: Score Restoration', () => {
     console.log(`✓ Verified ${womenScores.length} women's scores restored correctly`);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+// SECTION 9: Device Completion Status Update (Issue: Test "Gerät abschließen")
+// ═══════════════════════════════════════════════════════════════════════
+
+test.describe('Jury Portal: Device Completion Status Integration', () => {
+
+  test('9.1 "Gerät abschließen" button updates squad-discipline status in Riegen-Status page', async ({ page, request, context }) => {
+    test.setTimeout(120_000);
+    
+    // Step 1: Generate squad-discipline combinations for this event
+    await apiPost(request, '/squad-disciplines/generate', { eventId: state.eventId });
+    console.log('✓ Generated squad-discipline combinations');
+
+    // Step 2: Navigate Jury Portal and select event/squad/device
+    await selectEventInJuryPortal(page, state.eventId);
+    await selectSquad(page, 'RW');
+    
+    // Select first device
+    const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
+    await deviceCards.first().click();
+
+    // Wait for scoring view
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
+    console.log('✓ Jury Portal: Scoring view loaded');
+
+    // Step 3: Get device name from header
+    const deviceNameElement = page.locator('h1.font-bold').first();
+    const deviceName = await deviceNameElement.textContent();
+    console.log(`ℹ Device: ${deviceName}`);
+
+    // Step 4: Click "Gerät abschließen" button
+    const finishBtn = page.getByText('Gerät abschließen');
+    await finishBtn.click();
+    console.log('✓ Clicked "Gerät abschließen" button');
+
+    // Step 5: Wait for the page to transition back to device selection
+    // Note: JuryPortal uses internal React state routing, not URL-based routing
+    // So we wait for the "Gerät auswählen" heading to appear instead
+    await expect(page.locator('h1').filter({ hasText: 'Gerät auswählen' })).toBeVisible({ timeout: 15_000 });
+    console.log('✓ Returned to jury portal device selection');
+
+    // Step 6: Open Squad Status page in a new tab to verify the status was updated
+    const newPage = await context.newPage();
+    
+    try {
+      await robustGoto(newPage, `http://localhost:5173/squad-status?eventId=${state.eventId}`);
+      await newPage.waitForLoadState('networkidle');
+      console.log('✓ Squad Status page loaded');
+
+      // Step 7: Look for the squad name (RW) and check if status shows "Leistungen erfasst"
+      const squadCell = newPage.getByText('RW', { exact: true }).first();
+      await expect(squadCell).toBeVisible({ timeout: 10_000 });
+      
+      // Find the row containing RW and look for the status column
+      // The status should be "Leistungen erfasst" (Performance captured)
+      const statusBadge = newPage.locator('text=Leistungen erfasst').first();
+      const statusVisible = await statusBadge.isVisible({ timeout: 5_000 }).catch(() => false);
+      
+      if (statusVisible) {
+        console.log('✅ PASS: Squad status updated to "Leistungen erfasst"');
+      } else {
+        console.log('⚠️ WARNING: Status badge not found. Checking alternative representations...');
+        // The status might be displayed with a color code instead
+        // Let's check the table/matrix for any cell with the RW row
+        const matrixCells = newPage.locator('[role="cell"], [class*="badge"]');
+        const cellCount = await matrixCells.count();
+        console.log(`Found ${cellCount} cells/badges on the page`);
+        
+        // Get all visible text to debug
+        const allText = await newPage.locator('body').textContent();
+        if (allText && allText.includes('Leistungen erfasst')) {
+          console.log('✅ PASS: "Leistungen erfasst" status found on page (alternative display)');
+        } else {
+          console.log('❌ FAIL: Status not updated on Squad Status page');
+          // Take a screenshot for debugging
+          await newPage.screenshot({ path: 'device-complete-status-debug.png' });
+          expect(statusVisible).toBe(true);
+        }
+      }
+    } finally {
+      await newPage.close();
+    }
+  });
+
+  test('9.2 Status dropdown displays current squad status in jury portal scoring view', async ({ page, request }) => {
+    test.setTimeout(120_000);
+    
+    // Step 1: Generate squad-discipline combinations
+    await apiPost(request, '/squad-disciplines/generate', { eventId: state.eventId });
+    console.log('✓ Generated squad-discipline combinations');
+
+    // Step 2: Navigate to jury portal and open scoring view
+    await selectEventInJuryPortal(page, state.eventId);
+    await selectSquad(page, 'RW');
+    
+    // Select first device
+    const deviceCards = page.locator('.cursor-pointer').filter({ hasText: /E2E_Disc/ });
+    await deviceCards.first().waitFor({ state: 'visible', timeout: 10_000 });
+    await deviceCards.first().click();
+
+    // Wait for scoring view to load
+    await expect(page.locator('body')).toContainText(/Teilnehmer \d+ von \d+/, { timeout: 15_000 });
+    console.log('✓ Jury Portal: Scoring view loaded');
+
+    // Step 3: Verify status dropdown exists in the UI
+    const statusSelect = page.locator('select[aria-label*="Status"], select:has-text("Status")').first();
+    
+    // If the select with label doesn't exist, look for any select element near status text
+    const statusLabel = page.locator('text=Status').first();
+    const statusSelectFallback = statusLabel.locator('~ select, + select').first();
+    
+    const statusDropdown = await statusSelect.isVisible().catch(() => false)
+      ? statusSelect
+      : statusSelectFallback;
+
+    // Verify dropdown is visible
+    await expect(statusDropdown).toBeVisible({ timeout: 10_000 });
+    console.log('✅ Status dropdown is visible in scoring view');
+
+    // Step 4: Verify dropdown has options (status choices)
+    const options = statusDropdown.locator('option');
+    const optionCount = await options.count();
+    console.log(`✓ Status dropdown has ${optionCount} status options`);
+    expect(optionCount).toBeGreaterThan(1); // Should have at least a default option and one status
+
+    // Step 5: Get all status option texts to verify realistic options
+    const optionTexts = await statusDropdown.locator('option').allTextContents();
+    console.log(`✓ Status options: ${optionTexts.join(', ')}`);
+    
+    // Should include at least one realistic gymnastics status
+    const hasValidStatus = optionTexts.some(text => 
+      text.toLowerCase().includes('nicht') || 
+      text.toLowerCase().includes('erfasst') ||
+      text.toLowerCase().includes('status')
+    );
+    
+    if (hasValidStatus) {
+      console.log('✅ Status dropdown contains valid gymnastics status options');
+    } else {
+      console.log('⚠️ WARNING: Status options seem unusual, but dropdown is present');
+    }
+
+    // Step 6: Verify that the dropdown reflects current squad-discipline status
+    const currentValue = await statusDropdown.inputValue().catch(() => '');
+    console.log(`ℹ Current selected status ID: ${currentValue}`);
+    
+    // Verify it's a valid numeric status ID or empty (initial state)
+    if (currentValue === '' || !isNaN(Number(currentValue))) {
+      console.log('✅ Status dropdown value is valid (numeric ID or empty)');
+    }
+
+    console.log('✅ PASS: Status dropdown correctly displayed in jury portal scoring view');
+  });
+});

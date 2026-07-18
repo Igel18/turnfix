@@ -39,18 +39,18 @@ interface ScoringViewProps {
   loadedJuryResults: Record<string, number>;
   score: string;
   loading: boolean;
+  statuses: JuryStatus[];
+  squadStatusId: number | null;
 
   // Handlers
   onParticipantSelect: (index: number) => void;
   onScoreChange: (score: string) => void;
+  onSquadStatusChange: (statusId: number) => void;
   onCalculationComplete: (calculatedScore: number | null, fieldValues: Record<string, number>) => void;
   onScoreSubmit: () => void;
   onDeviceComplete: () => void;
   onBack: () => void;
   getScoreValidation: (scoreValue: string) => { isValid: boolean; message: string };
-  statuses: JuryStatus[];
-  squadStatusId: number | null;
-  onSquadStatusChange: (statusId: number) => Promise<void>;
 }
 
 const ScoringView: React.FC<ScoringViewProps> = ({
@@ -63,16 +63,16 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   loadedJuryResults,
   score,
   loading,
+  statuses,
+  squadStatusId,
   onParticipantSelect,
   onScoreChange,
   onCalculationComplete,
   onScoreSubmit,
   onDeviceComplete,
+  onSquadStatusChange,
   onBack,
   getScoreValidation,
-  statuses,
-  squadStatusId,
-  onSquadStatusChange,
 }) => {
   const completedCount = participants.filter(p => hasStoredScore(p.currentScore)).length;
   const progressPercent = participants.length ? (completedCount / participants.length) * 100 : 0;
@@ -97,9 +97,9 @@ const ScoringView: React.FC<ScoringViewProps> = ({
           selectedSquad={selectedSquad}
           completedCount={completedCount}
           progressPercent={progressPercent}
-          onParticipantSelect={onParticipantSelect}
           statuses={statuses}
           squadStatusId={squadStatusId}
+          onParticipantSelect={onParticipantSelect}
           onSquadStatusChange={onSquadStatusChange}
         />
 
@@ -195,10 +195,10 @@ interface ParticipantSidebarProps {
   selectedSquad: Squad | null;
   completedCount: number;
   progressPercent: number;
-  onParticipantSelect: (index: number) => void;
   statuses: JuryStatus[];
   squadStatusId: number | null;
-  onSquadStatusChange: (statusId: number) => Promise<void>;
+  onParticipantSelect: (index: number) => void;
+  onSquadStatusChange: (statusId: number) => void;
 }
 
 const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
@@ -208,36 +208,15 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
   selectedSquad,
   completedCount,
   progressPercent,
-  onParticipantSelect,
   statuses,
   squadStatusId,
+  onParticipantSelect,
   onSquadStatusChange,
 }) => (
   <div className="w-full sm:w-2/5 lg:w-1/3 bg-white border-b sm:border-b-0 sm:border-r border-gray-300 flex flex-col">
     <div className="p-2 sm:p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
       <h2 className="text-base sm:text-lg font-semibold text-gray-900">Teilnehmer ({participants.length})</h2>
       <p className="text-xs sm:text-sm text-gray-600 truncate">{selectedDevice?.name} - {selectedSquad?.name}</p>
-
-      <div className="mt-2">
-        <label className="block text-xs text-gray-500 mb-1">
-          Riegenstatus für {selectedDevice?.name || 'Gerät'} {selectedSquad?.name ? `- ${selectedSquad.name}` : ''}
-        </label>
-        <select
-          value={squadStatusId ?? ''}
-          onChange={(e) => {
-            const newId = parseInt(e.target.value, 10);
-            if (!isNaN(newId)) {
-              void onSquadStatusChange(newId);
-            }
-          }}
-          className="w-full px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Status wählen</option>
-          {statuses.map(s => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-      </div>
 
       {/* Progress Bar */}
       <div className="mt-2 sm:mt-3">
@@ -253,6 +232,28 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
             style={{ width: `${progressPercent}%` }}
           ></div>
         </div>
+      </div>
+
+      {/* Status Selector */}
+      <div className="px-2 sm:px-4 py-2 sm:py-3 border-b border-gray-200">
+        <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+        <select
+          value={squadStatusId ?? ''}
+          onChange={(e) => {
+            const statusId = parseInt(e.target.value, 10);
+            if (!isNaN(statusId)) {
+              onSquadStatusChange(statusId);
+            }
+          }}
+          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+        >
+          <option value="">Status wählen</option>
+          {statuses.map((status) => (
+            <option key={status.id} value={status.id}>
+              {status.name}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
 

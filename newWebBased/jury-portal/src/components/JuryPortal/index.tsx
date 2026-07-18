@@ -186,6 +186,8 @@ const JuryPortal: React.FC = () => {
       loadedJuryResults={data.loadedJuryResults}
       score={data.score}
       loading={data.loading}
+      statuses={data.statuses}
+      squadStatusId={squadStatusId}
       onParticipantSelect={(index) => {
         data.setCurrentParticipantIndex(index);
         // Score is set by the useEffect in useJuryData that watches currentParticipantIndex
@@ -215,11 +217,9 @@ const JuryPortal: React.FC = () => {
       }}
       onScoreSubmit={handleScoreSubmit}
       onDeviceComplete={handleDeviceComplete}
+      onSquadStatusChange={handleSquadStatusChange}
       onBack={() => setStep('device')}
       getScoreValidation={getScoreValidation}
-      statuses={data.statuses}
-      squadStatusId={squadStatusId}
-      onSquadStatusChange={handleSquadStatusChange}
     />
   );
 };
