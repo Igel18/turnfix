@@ -43,6 +43,42 @@ export function useResultsData(
   const [isLoading, setIsLoading] = useState(true);
   const [competitions, setCompetitions] = useState<any[]>([]);
 
+  const fetchAllScores = async (): Promise<any[]> => {
+    if (!eventId) return [];
+
+    const pageSize = 1000;
+    let offset = 0;
+    const allScores: any[] = [];
+
+    while (true) {
+      const scoresParams = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: offset.toString(),
+        eventId,
+        _cb: Date.now().toString()
+      });
+
+      // Note: squadName is intentionally NOT passed here. The Results page must
+      // always show ALL scores for the event regardless of navigation context.
+      if (selectedCompetition) scoresParams.append('competitionId', selectedCompetition);
+
+      const scoresData = await apiGet(`/scores?${scoresParams}`);
+      const pageResults = scoresData?.results || [];
+      allScores.push(...pageResults);
+
+      const hasMoreFromPagination = Boolean(scoresData?.pagination?.hasMore);
+      const hasMoreByPageSize = pageResults.length === pageSize;
+
+      if (!hasMoreFromPagination && !hasMoreByPageSize) {
+        break;
+      }
+
+      offset += pageSize;
+    }
+
+    return allScores;
+  };
+
   const fetchCompetitions = async (): Promise<any[]> => {
     if (!eventId) return [];
 
@@ -88,20 +124,7 @@ export function useResultsData(
         return;
       }
 
-      const scoresParams = new URLSearchParams({ 
-        limit: '1000',
-        eventId,
-        _cb: Date.now().toString()
-      });
-      // Note: squadName is intentionally NOT passed here. The Results page must
-      // always show ALL scores for the event regardless of which squad is in the
-      // URL (it's navigation context only, not a results filter). Passing squadName
-      // caused the server to filter WHERE var_riege = ? and silently hid scores
-      // for participants in other squads. (Fixed: Item 90)
-      if (selectedCompetition) scoresParams.append('competitionId', selectedCompetition);
-
-      const scoresData = await apiGet(`/scores?${scoresParams}`);
-      const scores = scoresData.results || [];
+      const scores = await fetchAllScores();
 
       const disciplinesData = await apiGet('/disciplines');
       const disciplineMap = new Map<number, string>();

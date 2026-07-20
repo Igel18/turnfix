@@ -227,9 +227,24 @@ router.put('/:squadName/:disciplineId/status', async (req, res) => {
       return res.status(404).json({ error: 'Squad-discipline combination not found' })
     }
 
-    // Emit Socket.IO event to notify clients of status update
-    const { io } = require('../index')
-    io.emit('squad-status-updated', { eventId: Number(eventId), squadName, disciplineId })
+    // Emit Socket.IO event to notify clients of status update.
+    // Emission must never break the API response path.
+    try {
+      const numericEventId = Number(eventId)
+      const numericDisciplineId = Number(disciplineId)
+      const payload = {
+        eventId: numericEventId,
+        squadName,
+        disciplineId: numericDisciplineId,
+        statusId,
+        updatedAt: Date.now()
+      }
+
+      io.emit('squad-status-updated', payload)
+      io.to(`competition-${numericEventId}`).emit('squad-status-updated', payload)
+    } catch (emitError) {
+      console.error('Socket emit failed for squad-status-updated:', emitError)
+    }
 
     res.json({
       success: true,

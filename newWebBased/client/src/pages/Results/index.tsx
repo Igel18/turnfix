@@ -194,6 +194,16 @@ const Results = () => {
     fetchCertificateLayouts()
   }
 
+  const handleExportCSV = async () => {
+    await fetchEventRanking(competitions)
+    exportResultsCSV()
+  }
+
+  const handleExportPDF = async () => {
+    await fetchEventRanking(competitions)
+    exportResultsPDF()
+  }
+
   // Handle certificate generation
   const handleGenerateCertificates = () => {
     // Sort participants by rank: desc = last place first (default), asc = 1st place first
@@ -249,9 +259,9 @@ const Results = () => {
       onToggleFilters={toggleResultsFilters}
       filterSection={filterSectionJSX}
       showExportCSV={true}
-      onExportCSV={exportResultsCSV}
+      onExportCSV={() => void handleExportCSV()}
       showExportPDF={true}
-      onExportPDF={exportResultsPDF}
+      onExportPDF={() => void handleExportPDF()}
       showPrint={true}
       onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
       printLabel={t('results.printCertificates')}

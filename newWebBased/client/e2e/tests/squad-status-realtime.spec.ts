@@ -13,6 +13,32 @@ import { API_BASE } from '../fixtures/test-data';
 
 let state: EventAState;
 
+async function ensureSquadDisciplines(request: any, eventId: number) {
+  const genRes = await apiPost(request, '/squad-disciplines/generate', { eventId: state.eventId });
+  if (genRes.status === 200) {
+    return genRes;
+  }
+
+  const participantsRes = await apiGet(request, `/event-participants?eventId=${eventId}`);
+  const participants = participantsRes.body.participants || [];
+  if (participants.length === 0) {
+    return genRes;
+  }
+
+  const fallbackSquadName = `SR-${eventId}`;
+  await apiPost(request, '/squad-management/create', { eventId, name: fallbackSquadName }).catch(() => {});
+
+  for (const participant of participants.slice(0, 2)) {
+    await apiPost(request, '/squad-management/assign', {
+      participantId: participant.id,
+      squadName: fallbackSquadName,
+      eventId,
+    }).catch(() => {});
+  }
+
+  return apiPost(request, '/squad-disciplines/generate', { eventId });
+}
+
 test.beforeAll(async () => {
   state = loadEventAState();
 });
@@ -21,7 +47,7 @@ test.describe('Squad Status — Real-time Updates via Socket.IO', () => {
 
   test('PUT /api/squad-disciplines/:squadName/:disciplineId/status emits Socket.IO event', async ({ request }) => {
     // First ensure squad-discipline combinations exist
-    const genRes = await apiPost(request, '/squad-disciplines/generate', { eventId: state.eventId });
+    const genRes = await ensureSquadDisciplines(request, state.eventId);
     expect(genRes.status).toBe(200);
 
     // Get a squad-discipline pair
@@ -52,7 +78,7 @@ test.describe('Squad Status — Real-time Updates via Socket.IO', () => {
 
   test('Squad Status page reflects changes after status update (with cache-busting)', async ({ page, request }) => {
     // Generate squad-disciplines
-    const genRes = await apiPost(request, '/squad-disciplines/generate', { eventId: state.eventId });
+    const genRes = await ensureSquadDisciplines(request, state.eventId);
     expect(genRes.status).toBe(200);
 
     // Get a squad-discipline pair

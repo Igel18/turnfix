@@ -1118,8 +1118,40 @@ c.) resultierend aus b.) kommt beim import einer XML wieder eine Fehlermeldung "
 TDD
 -> Erledigt ✅ | Installer stoppt TurnFixTray.exe vor Datei-Update; DB-Setup nutzt explizit Node+Prisma-CLI (ohne PATH-Abhängigkeit) und bricht bei fehlendem Node mit Fehlercode ab; Smoke-Test deckt den Node-fehlt-Fall explizit ab.
 
-152. Es wäre gut, wenn ich den build mittels runpipeline.ps1 starte, und da dann ja auch die E2E tests ausgeführt werden, wenn davor auch die Dienste TurnFix und TurnFix Jury beendet werden. 
+152. [Feature] Es wäre gut, wenn ich den build mittels runpipeline.ps1 starte, und da dann ja auch die E2E tests ausgeführt werden, wenn davor auch die Dienste TurnFix und TurnFix Jury beendet werden. 
 
+153. [Bug] Beim Erstellen des Zeitplan über den Assistent gibt es im Schritt "Generieren" keinen Button um weiter zu drücken. TDD 
+
+154. [Bug] Teilnehmer die "Nicht teilnehmen" tauchen trotzdem auf manchen Listen (Riegenliste) auf. TDD
+
+155. [Feature] Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Ggf. auch für jeden Durchgang eine eigene überschrift mit 
+
+156. [Bug] Die Live Wertungen tauchen immer 2x auf TDD.
+
+157. [Feature] In den Live Wertungen wäre es gut wenn auch der Riegenstatus angezeigt wird. (An/Abschaltbar) TDD.
+
+158. [Bug] Layout editor: es ist nicht möglich den Veranstaltungsnamen, Datum als DB-Feld hinzuzufügen. Beim Speichern kommt immer eine Fehlermeldung... Das liegt an den Ebenen, wenn mehr wie 10 ebenen existieren,kommt es zum Fehler. 
+Es wird als Veranstaltungsname aber der Wettkampfname eingetragen. TDD.
+
+159. In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
+
+160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
+
+161. [bug] Export des XML mit den Ergebnissen lässt sich nicht im GymNet importieren. TDD.
+Das liegt wohl daran, dass in der GymNet xml viele Ids drin sind, die nicht ins TurnFix importiert werden. Daher können diese auch nicht exportiert werden. 
+Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml vom Import öffnen. Dann wird eine Kopie davon erstellt als "Results". Dann können alle Ergebnisse direkt in diese Datei geschrieben werden, mit matching der Teilnehmer per name, vorname, verein, alter; matching der Disziplinen per name
+
+162. [Bug] Kritisch!!! Wenn es einen Wettkampf gibt mit vielen Teilnehmern (300 z.B.) dann werden auf der Ergebnisseite nicht alle Results geladen. Das ist sehr kritisch, da man dann denkt es wären keine Wertungen vorhanden. Wird nur nach dem Einzelnen Wettkampf gefiltert sind die Wertungen vorhanden. 
+🚀 In Arbeit
+
+163.   2 failed
+	[tests] › e2e\tests\squad-status-realtime.spec.ts:22:3 › Squad Status — Real-time Updates via Socket.IO › PUT /api/squad-disciplines/:squadName/:disciplineId/status emits Socket.IO event 
+	[tests] › e2e\tests\squad-status-realtime.spec.ts:53:3 › Squad Status — Real-time Updates via Socket.IO › Squad Status page reflects changes after status update (with cache-busting) 
+-> Erledigt ✅ | Socket-Emit im PUT-Endpoint robust gemacht (kein dynamisches require mehr, numerische IDs im Payload, room+global emit, emit-guard ohne API-Fehler). Spec erneut ausgeführt: grün.
+
+164. [Feature] wenn man eine Seite öffnet (z.B. Wettkampfergebnisse) gibt es immer die Möglichkeit mit dem Button "Verwaltungszentrale" zurück in die Management UI zu springen. Dies ist aber häufig ein Umweg. Daher wäre es schön, wenn auf ALLEN UI-Seiten an der Linken Seite die Management UI Buttons der aktuellen Rubrik (Datenverwaltung, Veranstaltungsaufbau, Wettkampftag, Ergbenisse) zur Verfügung stehen. 
+
+165. [Feature] Das Jury-Portal benötigt wie auch die Ergebnisansicht dieses "Live-Update"
 
 🚀 In Arbeit (unvollständig)
 #	Titel
