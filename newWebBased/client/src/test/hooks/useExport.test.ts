@@ -1,6 +1,87 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useExport } from '@/pages/Results/hooks/useExport';
+
+const {
+  addSectionTitleMock,
+  addPDFHeaderFooterMock,
+  autoTableMock,
+  jsPdfSaveMock
+} = vi.hoisted(() => ({
+  addSectionTitleMock: vi.fn(),
+  addPDFHeaderFooterMock: vi.fn(),
+  autoTableMock: vi.fn(),
+  jsPdfSaveMock: vi.fn()
+}));
+
+const createMockDoc = () => ({
+  internal: {
+    pageSize: {
+      width: 297,
+      height: 210,
+      getWidth: () => 297,
+      getHeight: () => 210,
+    },
+    getCurrentPageInfo: () => ({ pageNumber: 1 }),
+    getNumberOfPages: () => 1,
+  },
+  setFontSize: vi.fn(),
+  setFont: vi.fn(),
+  setTextColor: vi.fn(),
+  setFillColor: vi.fn(),
+  setDrawColor: vi.fn(),
+  text: vi.fn(),
+  line: vi.fn(),
+  rect: vi.fn(),
+  save: jsPdfSaveMock,
+  setPage: vi.fn(),
+});
+
+let currentDoc = createMockDoc();
+
+vi.mock('jspdf', () => ({
+  default: vi.fn().mockImplementation(() => currentDoc),
+}));
+
+vi.mock('jspdf-autotable', () => ({
+  default: autoTableMock
+}));
+
+vi.mock('@/utils/pdfUtils', () => ({
+  addPDFHeaderFooter: addPDFHeaderFooterMock,
+  getUnifiedTableStyles: vi.fn(() => ({})),
+  addSectionTitle: addSectionTitleMock,
+  drawRankingBadge: vi.fn()
+}));
+
+vi.mock('@/utils/pdfStyles', () => ({
+  pdfColors: {
+    background: { header: [240, 248, 255] },
+    ranking: { gold: [255, 215, 0], silver: [192, 192, 192], bronze: [205, 127, 50] },
+    text: { primary: [0, 0, 0] }
+  },
+  applyTableHeaderStyle: vi.fn(),
+  applyFormulaStyle: vi.fn()
+}));
+
+vi.mock('@/utils/pdfIcons', () => ({
+  preloadIconsForPDF: vi.fn(async () => new Map()),
+  addIconToPDF: vi.fn()
+}));
+
+vi.mock('@/utils/headerLabels', () => ({
+  getUnifiedResultsHeaderLabels: vi.fn(() => ({
+    rank: 'Platz',
+    startNumber: 'Start-Nr.',
+    name: 'Name',
+    club: 'Verein',
+    age: 'Alter',
+    total: 'Gesamt'
+  }))
+}));
+
+vi.mock('@/utils/disciplineIcons', () => ({
+  getDisciplineShortName: vi.fn((discipline: string) => discipline)
+}));
 
 vi.mock('@/contexts/EventContext', () => ({
   useEvent: () => ({ selectedEvent: null })
@@ -18,6 +99,11 @@ describe('useExport GymNet XML', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    addSectionTitleMock.mockClear();
+    addPDFHeaderFooterMock.mockClear();
+    autoTableMock.mockClear();
+    jsPdfSaveMock.mockClear();
+    currentDoc = createMockDoc();
 
     if (typeof window.URL.createObjectURL !== 'function') {
       Object.defineProperty(window.URL, 'createObjectURL', {
@@ -64,6 +150,8 @@ describe('useExport GymNet XML', () => {
   });
 
   it('requests GymNet XML endpoint and downloads returned file', async () => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+
     const clickSpy = vi.fn();
     const createObjectURLSpy = vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:test');
     const revokeObjectURLSpy = vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
@@ -74,7 +162,7 @@ describe('useExport GymNet XML', () => {
           href: '',
           download: '',
           click: clickSpy
-        } as HTMLAnchorElement;
+        } as unknown as HTMLAnchorElement;
       }
       return originalCreateElement(tagName);
     });
@@ -113,5 +201,34 @@ describe('useExport GymNet XML', () => {
     expect(createObjectURLSpy).toHaveBeenCalledWith(blob);
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:test');
+  });
+
+  it('uses ranking competition name for filtered PDF export when single-competition groups are empty', async () => {
+    const { resolveCompetitionExportName } = await import('../../pages/Results/hooks/useExport');
+
+    const competitionName = resolveCompetitionExportName(
+      '9',
+      [
+        {
+          id: 1,
+          name: 'Sophie Beispielkind',
+          club: 'SV Beispiel',
+          startNumber: 1,
+          age: 10,
+          gender: 'weiblich',
+          startet_nicht: false,
+          scores: {},
+          juryResults: {},
+          formulas: {},
+          totalScore: 37.5,
+          rank: 1,
+          competitionId: 9,
+          competitionName: 'AK 10 weiblich (Nr. 7)'
+        }
+      ],
+      []
+    );
+
+    expect(competitionName).toBe('AK 10 weiblich (Nr. 7)');
   });
 });

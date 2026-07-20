@@ -48,6 +48,24 @@ interface UseExportProps {
   formatScore: (score: number) => string
 }
 
+export const resolveCompetitionExportName = (
+  selectedCompetition: string,
+  ranking: Participant[],
+  competitionGroups: CompetitionGroup[]
+) => {
+  const rankingMatch = ranking.find(participant => participant.competitionId?.toString() === selectedCompetition)
+  if (rankingMatch?.competitionName?.trim()) {
+    return rankingMatch.competitionName.trim()
+  }
+
+  const groupMatch = competitionGroups.find(group => group.competitionId.toString() === selectedCompetition)
+  if (groupMatch?.competitionName?.trim()) {
+    return groupMatch.competitionName.trim()
+  }
+
+  return `Competition ${selectedCompetition}`
+}
+
 export const useExport = ({
   eventId,
   eventName,
@@ -622,7 +640,7 @@ export const useExport = ({
     if (selectedCompetition) {
       // Single competition export
       if (ranking.length === 0) return
-      const competitionName = competitionGroups.find(g => g.competitionId.toString() === selectedCompetition)?.competitionName || `Competition ${selectedCompetition}`
+      const competitionName = resolveCompetitionExportName(selectedCompetition, ranking, competitionGroups)
       void exportSingleCompetitionPDF(ranking, competitionName)
     } else {
       // All competitions export

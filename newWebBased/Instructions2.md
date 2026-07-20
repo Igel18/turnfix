@@ -1130,6 +1130,7 @@ d.) In der Zeitplan Tabelle muss je Bahn die Geräte dargestellt werden.
 
 155. [Feature] Zeitplanung: 
 Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Beste Lösung wie ich finde: Für jeden Durchgang eine eigene Überschrift mit den Geräten die in dem Durchgang dran sind. Alle anderen gar nicht darstellen. 
+🚀 In Arbeit 
 
 156. [Bug] Die Live Wertungen tauchen immer 2x auf TDD.
 
@@ -1137,8 +1138,10 @@ Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, 
 
 158. [Bug] Layout editor: werden Felder mehr als 10 Ebenen hinzugefügt kommt es beim Speichern des Layout zum Fehler. Dies sollte begrenzt werden, damit der Fehler unterbunden wird. 
 Wird das DB Element Veranstaltung hinzugefügt wird als Veranstaltungsname aber der Wettkampfname eingetragen. TDD.
+🚀 In Arbeit 
 
 159. [Bug] In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
+🚀 In Arbeit 
 
 160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
 
