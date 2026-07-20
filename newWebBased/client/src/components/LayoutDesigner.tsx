@@ -3,6 +3,7 @@ import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { DATABASE_FIELD_DESCRIPTIONS, getDatabaseFieldDescription } from '@/pages/CertificateLayouts'
 import { resolveImageUrl, isLocalFilePath, isUploadingPath, extractFilename } from '@/utils/imageUrlUtils'
 import { useTranslation } from 'react-i18next'
+import { MAX_LAYOUT_LAYER, clampLayoutLayer, getDefaultLayoutLayer } from '@/utils/layoutLayerUtils'
 import { 
   TrashIcon, 
   DocumentTextIcon,
@@ -27,22 +28,6 @@ interface LayoutField {
   int_align: number;
   int_layer: number;
 }
-
-export const MAX_LAYOUT_LAYER = 10;
-export const MAX_LAYOUT_FIELD_COUNT = MAX_LAYOUT_LAYER + 1;
-
-export const clampLayoutLayer = (layer: number) => {
-  if (!Number.isFinite(layer)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(MAX_LAYOUT_LAYER, Math.floor(layer)));
-};
-
-export const getNextLayoutLayer = (fields: LayoutField[]) => {
-  const currentMaxLayer = fields.reduce((maxLayer, field) => Math.max(maxLayer, field.int_layer), -1);
-  return currentMaxLayer + 1;
-};
 
 interface Layout {
   int_layoutid: number;
@@ -223,12 +208,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
   // Add new field
   const addField = async (type: number) => {
-    const nextLayer = getNextLayoutLayer(fields);
-
-    if (nextLayer > MAX_LAYOUT_LAYER) {
-      alert(t('layoutDesigner.maxLayersReached'));
-      return;
-    }
+    const defaultLayer = getDefaultLayoutLayer(selectedField);
 
     const newField: LayoutField = {
       int_layout_felderid: getNextTempId(),
@@ -241,7 +221,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       rel_h: type === 2 ? 0.2 : 0.05, // Better aspect ratio for images (1.5:1)
       var_value: type === 1 ? 'Sample Text' : '',
       int_align: 0,
-      int_layer: nextLayer
+      int_layer: defaultLayer
     };
 
     // Set aspect ratio lock for new image fields by default

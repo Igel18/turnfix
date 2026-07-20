@@ -1142,6 +1142,7 @@ Wird das DB Element Veranstaltung hinzugefügt wird als Veranstaltungsname aber 
 
 159. [Bug] In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
 🚀 In Arbeit 
+	2. RundeIst das richtig, dass in dem Layout nur 11 Felder in den Ebenen 0-10 vorhanden sein können? Ist die Limitierung im Backend oder der DB? 10 Ebenen wäre ok, aber es muss möchlich sein mehr felder anzulegen ggf. in der gleichen ebene. 
 
 160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
 
