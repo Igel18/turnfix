@@ -9,6 +9,8 @@ import {
   calculateRoundTime,
   buildConflictCells,
   buildRoundTimeMap,
+  getSessionSquads,
+  getSessionVisibleColumns,
 } from '../../pages/TimePlanning/components/ScheduleMatrixView';
 
 // ── addMinutesToTime ──────────────────────────────────────────────────────────
@@ -266,5 +268,41 @@ describe('buildRoundTimeMap', () => {
     const result = buildRoundTimeMap(3, sg, 3, 20);
     expect(result.size).toBe(3);
     expect(result.get(3)).toBe('09:18');
+  });
+});
+
+describe('getSessionSquads', () => {
+  it('returns only the squads of the current session', () => {
+    const result = getSessionSquads(2, [
+      { session: 1, squads: [{ name: 'wBlu' } as any] },
+      { session: 2, squads: [{ name: 'mRot' } as any, { name: 'mGruen' } as any] },
+    ], ['wBlu', 'mRot', 'mGruen']);
+
+    expect(result).toEqual(['mRot', 'mGruen']);
+  });
+
+  it('falls back to the global squads when no session match exists', () => {
+    expect(getSessionSquads(3, [{ session: 1, squads: [{ name: 'wBlu' } as any] }], ['wBlu', 'mRot'])).toEqual(['wBlu', 'mRot']);
+  });
+});
+
+describe('getSessionVisibleColumns', () => {
+  const columns = [
+    { kind: 'discipline', id: 1, name: 'Boden' },
+    { kind: 'discipline', id: 2, name: 'Sprung' },
+    { kind: 'discipline', id: 3, name: 'Reck' },
+  ];
+
+  it('filters visible columns to the current session disciplines', () => {
+    const result = getSessionVisibleColumns(columns, { '2': [2, 3] }, 2);
+
+    expect(result).toEqual([
+      { kind: 'discipline', id: 2, name: 'Sprung' },
+      { kind: 'discipline', id: 3, name: 'Reck' },
+    ]);
+  });
+
+  it('falls back to all columns when no session mapping exists', () => {
+    expect(getSessionVisibleColumns(columns, undefined, 2)).toEqual(columns);
   });
 });

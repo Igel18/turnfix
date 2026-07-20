@@ -87,5 +87,6 @@ export interface MatrixData {
   availableDisciplines: MatrixDiscipline[]
   assignments: MatrixAssignment[]
   squads: string[]
+  sessionDisciplineIds?: Record<string, number[]>
   maxRound: number
 }

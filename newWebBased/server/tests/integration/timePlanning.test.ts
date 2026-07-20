@@ -102,6 +102,67 @@ describe('Time Planning API', () => {
     });
   });
 
+  describe('GET /api/time-planning/matrix', () => {
+    it('should return session-specific discipline ids for each round', async () => {
+      const sport = await prisma.tfx_sport.findFirstOrThrow();
+      const disciplineA = await prisma.tfx_disziplinen.create({
+        data: {
+          int_sportid: sport.int_sportid,
+          var_name: `Matrix Disc A ${Date.now()}`,
+          var_kurz1: 'MDA',
+        }
+      });
+      const disciplineB = await prisma.tfx_disziplinen.create({
+        data: {
+          int_sportid: sport.int_sportid,
+          var_name: `Matrix Disc B ${Date.now()}`,
+          var_kurz1: 'MDB',
+        }
+      });
+      TestUtils.trackCreated('disciplines', disciplineA.int_disziplinenid);
+      TestUtils.trackCreated('disciplines', disciplineB.int_disziplinenid);
+
+      const secondCompetition = await TestUtils.createTestCompetition({
+        name: `Test Competition TP 2 ${Date.now()}`,
+        int_veranstaltungenid: testEvent.int_veranstaltungenid,
+      });
+
+      await prisma.tfx_wettkaempfe.update({
+        where: { int_wettkaempfeid: testCompetition.int_wettkaempfeid },
+        data: { int_durchgang: 1 },
+      });
+      await prisma.tfx_wettkaempfe.update({
+        where: { int_wettkaempfeid: secondCompetition.int_wettkaempfeid },
+        data: { int_durchgang: 2 },
+      });
+
+      await prisma.tfx_wettkaempfe_x_disziplinen.create({
+        data: {
+          int_wettkaempfeid: testCompetition.int_wettkaempfeid,
+          int_disziplinenid: disciplineA.int_disziplinenid,
+          int_sortierung: 1,
+        }
+      });
+      await prisma.tfx_wettkaempfe_x_disziplinen.create({
+        data: {
+          int_wettkaempfeid: secondCompetition.int_wettkaempfeid,
+          int_disziplinenid: disciplineB.int_disziplinenid,
+          int_sortierung: 1,
+        }
+      });
+
+      const response = await request(app)
+        .get('/api/time-planning/matrix')
+        .query({ eventId: testEvent.int_veranstaltungenid })
+        .expect(200);
+
+      expect(response.body.sessionDisciplineIds).toEqual({
+        '1': [disciplineA.int_disziplinenid],
+        '2': [disciplineB.int_disziplinenid],
+      });
+    });
+  });
+
   describe('GET /api/time-planning/bahnen', () => {
     it('should return Bahnen (lanes) for an event', async () => {
       const response = await request(app)

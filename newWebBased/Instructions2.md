@@ -1166,6 +1166,9 @@ Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml 
       case 10: return 'Turnerbund'
       case 11: return 'Deutschland'
 
+168. [Refactoring] Die Schedule Matrix view.tsx ist ja recht groß. die könnte refactored werden genauso wie die timeplanning.ts
+
+
 🚀 In Arbeit (unvollständig)
 #	Titel
 72	PDF Export – Wettkampfnummer bei Teilnehmer- & Riegenlistenexport (Tests fehlen)

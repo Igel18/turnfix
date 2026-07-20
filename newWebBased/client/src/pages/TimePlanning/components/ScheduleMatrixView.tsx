@@ -27,6 +27,7 @@ import {
   reorderColumns,
   colKey,
   type StoredColumn,
+  type AnyColumn,
   type DisciplineColumn,
 } from '../matrixColumnHelpers';
 
@@ -140,6 +141,43 @@ export function buildConflictCells(assignments: { disciplineId: number; round: n
     }
   }
   return result;
+}
+
+export function getSessionSquads(
+  sessionNumber: number | null,
+  sessionGroups: Pick<SessionGroup, 'session' | 'squads'>[] | undefined,
+  fallbackSquads: string[]
+): string[] {
+  if (sessionNumber === null || !sessionGroups || sessionGroups.length === 0) {
+    return fallbackSquads;
+  }
+
+  const sessionGroup = sessionGroups.find(group => group.session === sessionNumber);
+  return sessionGroup?.squads.map(squad => squad.name) ?? fallbackSquads;
+}
+
+export function getSessionVisibleColumns(
+  columns: AnyColumn[],
+  sessionDisciplineIds: Record<string, number[]> | undefined,
+  sessionNumber: number | null
+): AnyColumn[] {
+  if (sessionNumber === null || !sessionDisciplineIds) {
+    return columns;
+  }
+
+  const allowedDisciplineIds = sessionDisciplineIds[String(sessionNumber)];
+  if (!allowedDisciplineIds || allowedDisciplineIds.length === 0) {
+    return columns;
+  }
+
+  const allowed = new Set(allowedDisciplineIds);
+  return columns.filter(column => {
+    if (column.kind === 'pause') {
+      return true;
+    }
+
+    return allowed.has(column.id);
+  });
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -395,6 +433,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const { squads } = matrixData;
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
+  const hasMultipleSessions = Boolean(sessionGroups && sessionGroups.length > 1);
 
   // Per-session rotation intervals based on max squad size × exercise duration.
   // Falls back to the fixed rotationIntervalMinutes when no sessionGroups are available.
@@ -515,12 +554,13 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                {t('timePlanning.matrix.time')}
-              </th>
-              {localColumns.map(col => {
+          {!hasMultipleSessions && (
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  {t('timePlanning.matrix.time')}
+                </th>
+                {localColumns.map(col => {
                 const key = colKey(col);
                 const isDragging = dragColKey === key;
                 const isDragOver = dragOverColKey === key;
@@ -557,8 +597,8 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                   );
                 }
 
-                return (
-                  <th
+                  return (
+                    <th
                     key={key}
                     draggable
                     onDragStart={e => handleColDragStart(e, key)}
@@ -591,11 +631,12 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                         </button>
                       )}
                     </div>
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+          )}
           <tbody className="bg-white divide-y divide-gray-200">
             {Array.from({ length: localMaxRound }, (_, i) => i + 1).map((round, idx) => {
               const roundTime = getRoundTime(round);
@@ -603,15 +644,13 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
               const prevRoundTime = idx > 0 ? getRoundTime(round - 1) : null;
               const prevSessionInfo = prevRoundTime ? getSessionForTime(prevRoundTime) : null;
               const isNewSession = sessionInfo !== null && sessionInfo.session !== prevSessionInfo?.session;
-              // Only offer squads that belong to this Durchgang; fall back to global list.
-              const sessionSquads: string[] = sessionInfo
-                ? ((sessionGroups ?? []).find(sg => sg.session === sessionInfo.session)?.squads.map(s => s.name) ?? squads)
-                : squads;
+              const visibleColumns = getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, sessionInfo?.session ?? null);
+              const sessionSquads = getSessionSquads(sessionInfo?.session ?? null, sessionGroups, squads);
               return (
                 <React.Fragment key={round}>
                   {isNewSession && (
                     <tr className="bg-blue-600 text-white">
-                      <td colSpan={localColumns.length + 1} className="px-4 py-2 font-semibold text-sm">
+                      <td colSpan={visibleColumns.length + 1} className="px-4 py-2 font-semibold text-sm">
                         {t('timePlanning.round', 'Durchgang')} {sessionInfo!.session}
                         <span className="ml-3 font-normal opacity-90 text-xs">
                           {t('timePlanning.startTime', 'Startzeit')}: {sessionInfo!.startTime}
@@ -619,11 +658,62 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                       </td>
                     </tr>
                   )}
+                  {hasMultipleSessions && isNewSession && (
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                        {t('timePlanning.matrix.time')}
+                      </th>
+                      {visibleColumns.map(col => {
+                        const key = colKey(col);
+                        if (col.kind === 'pause') {
+                          return null;
+                        }
+                        const isDragging = dragColKey === key;
+                        const isDragOver = dragOverColKey === key;
+                        return (
+                          <th
+                            key={key}
+                            draggable
+                            onDragStart={e => handleColDragStart(e, key)}
+                            onDragOver={e => handleColDragOver(e, key)}
+                            onDrop={e => handleColDrop(e, key)}
+                            onDragEnd={handleColDragEnd}
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] select-none transition-colors ${
+                              isDragging
+                                ? 'opacity-40 bg-blue-50'
+                                : isDragOver
+                                ? 'bg-blue-100 border-l-2 border-blue-400'
+                                : 'cursor-grab hover:bg-gray-100'
+                            }`}
+                          >
+                            <div className="flex items-center gap-1">
+                              <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-gray-800">{col.shortName || col.name}</div>
+                                {col.shortName && col.name !== col.shortName && (
+                                  <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{col.name}</div>
+                                )}
+                              </div>
+                              {isDisciplineRemovable(col) && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleRemoveUnlinkedColumn(col.id); }}
+                                  className="text-gray-300 hover:text-red-500 transition-colors ml-1 flex-shrink-0 leading-none"
+                                  title={t('timePlanning.matrix.removeUnlinked')}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  )}
                   <tr className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
                       {roundTime}
                     </td>
-                    {localColumns.map(col => {
+                    {visibleColumns.map(col => {
                       if (col.kind === 'pause') {
                         return (
                           <td key={colKey(col)} className="px-3 py-2 bg-gray-50 border-x border-gray-100" />

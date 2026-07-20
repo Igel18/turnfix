@@ -604,10 +604,22 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       select: {
         int_disziplinenid: true,
         int_sortierung: true,
+        tfx_wettkaempfe: { select: { int_durchgang: true } },
         tfx_disziplinen: { select: { var_name: true, var_kurz1: true } },
       },
       orderBy: { int_sortierung: 'asc' },
     });
+    const sessionDisciplineMap = new Map<number, { id: number; sort: number }[]>();
+    for (const row of disciplineRows) {
+      const session = row.tfx_wettkaempfe?.int_durchgang ?? 1;
+      if (!sessionDisciplineMap.has(session)) {
+        sessionDisciplineMap.set(session, []);
+      }
+      sessionDisciplineMap.get(session)!.push({
+        id: row.int_disziplinenid,
+        sort: row.int_sortierung ?? 0,
+      });
+    }
     const seenDiscIds = new Set<number>();
     const disciplines = disciplineRows
       .filter(d => { if (seenDiscIds.has(d.int_disziplinenid)) return false; seenDiscIds.add(d.int_disziplinenid); return true; })
@@ -616,6 +628,22 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
         name: d.tfx_disziplinen?.var_name || '',
         shortName: d.tfx_disziplinen?.var_kurz1 || '',
       }));
+    const sessionDisciplineIds = Object.fromEntries(
+      Array.from(sessionDisciplineMap.entries()).map(([session, rows]) => {
+        const seenIds = new Set<number>();
+        const ids = rows
+          .sort((left, right) => left.sort - right.sort)
+          .map(row => row.id)
+          .filter(id => {
+            if (seenIds.has(id)) {
+              return false;
+            }
+            seenIds.add(id);
+            return true;
+          });
+        return [String(session), ids];
+      })
+    );
 
     // Existing matrix cell assignments — deduplicated to remove legacy
     // int_runde=NULL rows that may coexist with explicit int_runde=1 rows.
@@ -664,7 +692,7 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       : 0;
     const maxRound = Math.max(maxAssignedRound, squads.length, 1);
 
-    res.json({ disciplines, availableDisciplines, assignments, squads, maxRound });
+    res.json({ disciplines, availableDisciplines, assignments, squads, sessionDisciplineIds, maxRound });
   } catch (error) {
     console.error('Error fetching matrix data:', error);
     res.status(500).json({ error: 'Failed to fetch matrix data' });
