@@ -28,6 +28,22 @@ interface LayoutField {
   int_layer: number;
 }
 
+export const MAX_LAYOUT_LAYER = 10;
+export const MAX_LAYOUT_FIELD_COUNT = MAX_LAYOUT_LAYER + 1;
+
+export const clampLayoutLayer = (layer: number) => {
+  if (!Number.isFinite(layer)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(MAX_LAYOUT_LAYER, Math.floor(layer)));
+};
+
+export const getNextLayoutLayer = (fields: LayoutField[]) => {
+  const currentMaxLayer = fields.reduce((maxLayer, field) => Math.max(maxLayer, field.int_layer), -1);
+  return currentMaxLayer + 1;
+};
+
 interface Layout {
   int_layoutid: number;
   var_name: string;
@@ -207,6 +223,13 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
   // Add new field
   const addField = async (type: number) => {
+    const nextLayer = getNextLayoutLayer(fields);
+
+    if (nextLayer > MAX_LAYOUT_LAYER) {
+      alert(t('layoutDesigner.maxLayersReached'));
+      return;
+    }
+
     const newField: LayoutField = {
       int_layout_felderid: getNextTempId(),
       int_layoutid: layout.int_layoutid,
@@ -218,7 +241,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       rel_h: type === 2 ? 0.2 : 0.05, // Better aspect ratio for images (1.5:1)
       var_value: type === 1 ? 'Sample Text' : '',
       int_align: 0,
-      int_layer: fields.length
+      int_layer: nextLayer
     };
 
     // Set aspect ratio lock for new image fields by default
@@ -269,6 +292,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     }
     if ('rel_h' in validatedUpdates) {
       validatedUpdates.rel_h = Math.max(0.001, Math.min(1, validatedUpdates.rel_h!));
+    }
+    if ('int_layer' in validatedUpdates) {
+      validatedUpdates.int_layer = clampLayoutLayer(validatedUpdates.int_layer!);
     }
     
     const updatedFields = fields.map(field => 
@@ -1218,9 +1244,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     <input
                       type="number"
                       min="0"
-                      max="10"
+                      max={MAX_LAYOUT_LAYER}
                       value={selectedField.int_layer}
-                      onChange={(e) => updateField(selectedField.int_layout_felderid, { int_layer: Number(e.target.value) })}
+                      onChange={(e) => updateField(selectedField.int_layout_felderid, { int_layer: clampLayoutLayer(Number(e.target.value)) })}
                       className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                     />
                     <div className="mt-1 text-xs text-gray-500">

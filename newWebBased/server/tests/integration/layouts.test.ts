@@ -227,6 +227,25 @@ describe('Layouts (Certificate) API', () => {
       testField = response.body;
     });
 
+    it('should reject a layout field above the layer limit', async () => {
+      const fieldData = {
+        type: 1,
+        font: 'Arial 12',
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 30,
+        value: 'Too Deep',
+        align: 0,
+        layer: 11
+      };
+
+      await request(app)
+        .post(`/api/layouts/${testLayout.int_layoutid}/fields`)
+        .send(fieldData)
+        .expect(400);
+    });
+
     it('should update a layout field', async () => {
       // Create field first
       const created = await prisma.tfx_layout_felder.create({

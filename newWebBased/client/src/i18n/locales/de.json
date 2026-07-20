@@ -2955,6 +2955,7 @@
     "layer": "Ebene (Z-Index)",
     "layerBackground": "Niedrigere Zahlen = Hintergrund (0, 1, 2)",
     "layerForeground": "Höhere Zahlen = Vordergrund (8, 9, 10)",
+    "maxLayersReached": "Es können maximal 10 Ebenen angelegt werden.",
     "font": "Schriftart",
     "deleteField": "Feld löschen",
     "fieldTypes": {

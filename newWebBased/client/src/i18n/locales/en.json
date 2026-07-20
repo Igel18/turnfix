@@ -2921,6 +2921,7 @@
     "layer": "Layer (Z-Index)",
     "layerBackground": "Lower numbers = Background (0, 1, 2)",
     "layerForeground": "Higher numbers = Foreground (8, 9, 10)",
+    "maxLayersReached": "A maximum of 10 layers can be created.",
     "font": "Font",
     "deleteField": "Delete Field",
     "fieldTypes": {

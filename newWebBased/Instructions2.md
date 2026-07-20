@@ -1120,20 +1120,25 @@ TDD
 
 152. [Feature] Es wäre gut, wenn ich den build mittels runpipeline.ps1 starte, und da dann ja auch die E2E tests ausgeführt werden, wenn davor auch die Dienste TurnFix und TurnFix Jury beendet werden. 
 
-153. [Bug] Beim Erstellen des Zeitplan über den Assistent gibt es im Schritt "Generieren" keinen Button um weiter zu drücken. TDD 
+153. [Bug] Zeitplanung: 
+a.) Beim Erstellen des Zeitplan über den Assistent gibt es im Schritt "Generieren" keinen Button um weiter zu drücken. TDD 
+b.) Bei den Bahnzuordnungen (Rotation) scheint es so, dass einige Wettkämpfe fehlen 
+c.) Bei den Rotationen Übersicht muss die Anzahl der Rotationen der Anzahl der Geräte entsprechen. Es werden aber immer nur 3 Rotationen angezeigt. 
+d.) In der Zeitplan Tabelle muss je Bahn die Geräte dargestellt werden. 
 
 154. [Bug] Teilnehmer die "Nicht teilnehmen" tauchen trotzdem auf manchen Listen (Riegenliste) auf. TDD
 
-155. [Feature] Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Ggf. auch für jeden Durchgang eine eigene überschrift mit 
+155. [Feature] Zeitplanung: 
+Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Beste Lösung wie ich finde: Für jeden Durchgang eine eigene Überschrift mit den Geräten die in dem Durchgang dran sind. Alle anderen gar nicht darstellen. 
 
 156. [Bug] Die Live Wertungen tauchen immer 2x auf TDD.
 
 157. [Feature] In den Live Wertungen wäre es gut wenn auch der Riegenstatus angezeigt wird. (An/Abschaltbar) TDD.
 
-158. [Bug] Layout editor: es ist nicht möglich den Veranstaltungsnamen, Datum als DB-Feld hinzuzufügen. Beim Speichern kommt immer eine Fehlermeldung... Das liegt an den Ebenen, wenn mehr wie 10 ebenen existieren,kommt es zum Fehler. 
-Es wird als Veranstaltungsname aber der Wettkampfname eingetragen. TDD.
+158. [Bug] Layout editor: werden Felder mehr als 10 Ebenen hinzugefügt kommt es beim Speichern des Layout zum Fehler. Dies sollte begrenzt werden, damit der Fehler unterbunden wird. 
+Wird das DB Element Veranstaltung hinzugefügt wird als Veranstaltungsname aber der Wettkampfname eingetragen. TDD.
 
-159. In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
+159. [Bug] In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
 
 160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
 
@@ -1142,7 +1147,7 @@ Das liegt wohl daran, dass in der GymNet xml viele Ids drin sind, die nicht ins 
 Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml vom Import öffnen. Dann wird eine Kopie davon erstellt als "Results". Dann können alle Ergebnisse direkt in diese Datei geschrieben werden, mit matching der Teilnehmer per name, vorname, verein, alter; matching der Disziplinen per name
 
 162. [Bug] Kritisch!!! Wenn es einen Wettkampf gibt mit vielen Teilnehmern (300 z.B.) dann werden auf der Ergebnisseite nicht alle Results geladen. Das ist sehr kritisch, da man dann denkt es wären keine Wertungen vorhanden. Wird nur nach dem Einzelnen Wettkampf gefiltert sind die Wertungen vorhanden. 
-🚀 In Arbeit
+-> Erledigt ✅  
 
 163.   2 failed
 	[tests] › e2e\tests\squad-status-realtime.spec.ts:22:3 › Squad Status — Real-time Updates via Socket.IO › PUT /api/squad-disciplines/:squadName/:disciplineId/status emits Socket.IO event 
@@ -1152,6 +1157,14 @@ Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml 
 164. [Feature] wenn man eine Seite öffnet (z.B. Wettkampfergebnisse) gibt es immer die Möglichkeit mit dem Button "Verwaltungszentrale" zurück in die Management UI zu springen. Dies ist aber häufig ein Umweg. Daher wäre es schön, wenn auf ALLEN UI-Seiten an der Linken Seite die Management UI Buttons der aktuellen Rubrik (Datenverwaltung, Veranstaltungsaufbau, Wettkampftag, Ergbenisse) zur Verfügung stehen. 
 
 165. [Feature] Das Jury-Portal benötigt wie auch die Ergebnisansicht dieses "Live-Update"
+
+166. [Feature] Auf der Veranstaltungsübersicht sollte es eine Statistik über die Anzahl der Teilnehmer geben, die Krank gemeldet sind. Zudem wie viele Teilnehmer in welchem Wettkampf waren. 
+
+167. [Feature] in Layout Editor sind Verband, Land und Gau Hard coded. Das lässt sich eigentlich über den Verein ableiten: 
+      useCertificates.ts 
+	  case 9: return 'Turngau'
+      case 10: return 'Turnerbund'
+      case 11: return 'Deutschland'
 
 🚀 In Arbeit (unvollständig)
 #	Titel

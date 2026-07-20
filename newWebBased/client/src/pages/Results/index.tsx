@@ -219,7 +219,8 @@ const Results = () => {
       selectedPaperFormat,
       competitions,
       selectedCompetition,
-      eventName
+      eventName,
+      selectedEvent?.var_location || ''
     ).then(() => {
       setShowCertificateModal(false)
       setCertificatesToPrint([])

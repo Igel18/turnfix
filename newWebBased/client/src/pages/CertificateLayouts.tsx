@@ -235,6 +235,11 @@ const CertificateLayouts: React.FC = () => {
       
       // Then, if there are fields, save them too
       if (layout.fields && layout.fields.length > 0) {
+        const maxLayer = layout.fields.reduce((currentMax, field) => Math.max(currentMax, field.int_layer), -1)
+        if (maxLayer > 10 || layout.fields.length > 11) {
+          throw new Error(t('layoutDesigner.maxLayersReached'))
+        }
+
         console.log('Saving fields:', layout.fields)
         
         for (const field of layout.fields) {
