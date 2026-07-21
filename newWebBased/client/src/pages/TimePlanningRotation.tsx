@@ -6,11 +6,13 @@ import {
   forwardRef,
 } from "react";
 import { apiPut, invalidateCache } from "../utils/api";
+import { squadBelongsToRound, squadMatchesCompetition } from "./TimePlanning/rotationUtils";
 
 export interface Squad {
   name: string;
   participantCount: number;
-  competitionId: number;
+  competitionId?: number;
+  competitionIds?: number[];
 }
 
 export interface Device {
@@ -125,7 +127,7 @@ const TimePlanningRotation = forwardRef<
   const currentRoundSquads = useMemo(() => {
     const compIds = new Set(currentRoundCompetitions.map((c) => c.id));
     // Include squads that have a competition in this round
-    return squads.filter((s) => compIds.has(s.competitionId));
+    return squads.filter((s) => squadBelongsToRound(s, compIds));
   }, [squads, currentRoundCompetitions]);
 
   // Map competitions to their current Bahn (only for selected round)
@@ -140,12 +142,12 @@ const TimePlanningRotation = forwardRef<
       totalSquads: squads.length,
       currentRoundSquads: sqs.length,
       competitionsWithBahn: comps.filter(c => c.int_bahn).length,
-      squadsWithCompetition: sqs.filter(s => s.competitionId).length,
-      squadsWithValidCompetition: sqs.filter(s => s.competitionId > 0).length,
-      squadsWithNoCompetition: sqs.filter(s => s.competitionId === -1).length,
+      squadsWithCompetition: sqs.filter(s => (s.competitionId && s.competitionId > 0) || (Array.isArray(s.competitionIds) && s.competitionIds.length > 0)).length,
+      squadsWithValidCompetition: sqs.filter(s => (s.competitionId && s.competitionId > 0) || (Array.isArray(s.competitionIds) && s.competitionIds.some(id => id > 0))).length,
+      squadsWithNoCompetition: sqs.filter(s => (!s.competitionId || s.competitionId <= 0) && (!Array.isArray(s.competitionIds) || s.competitionIds.length === 0)).length,
       squadNames: sqs.map(s => s.name),
       competitionNames: comps.map(c => c.name),
-      squadCompetitionMapping: sqs.map(s => ({ squad: s.name, competitionId: s.competitionId, participants: s.participantCount }))
+      squadCompetitionMapping: sqs.map(s => ({ squad: s.name, competitionId: s.competitionId, competitionIds: s.competitionIds, participants: s.participantCount }))
     });
     
     if (!comps.length) {
@@ -160,19 +162,13 @@ const TimePlanningRotation = forwardRef<
       const bahn = comp.int_bahn || 1;
       
       // Find ALL squads for this competition
-      const squadsForComp = sqs.filter((s) => s.competitionId === comp.id);
+      const squadsForComp = sqs.filter((s) => squadMatchesCompetition(s, comp.id));
       
       console.log(`🔍 Competition ${comp.id} "${comp.name}":`, {
         bahn,
         squadsFound: squadsForComp.length,
-        squads: squadsForComp.map(s => ({ name: s.name, participants: s.participantCount, competitionId: s.competitionId }))
+        squads: squadsForComp.map(s => ({ name: s.name, participants: s.participantCount, competitionId: s.competitionId, competitionIds: s.competitionIds }))
       });
-      
-      // Only add competitions that have at least one squad with participants
-      if (squadsForComp.length === 0 || squadsForComp.every(s => s.participantCount === 0)) {
-        console.log('⚠️ Skipping competition without squads or participants:', comp.id, comp.name);
-        return; // Skip this competition
-      }
       
       const competitionWithSquads: CompetitionWithSquads = {
         competition: comp,

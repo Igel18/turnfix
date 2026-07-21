@@ -367,22 +367,36 @@ export default function TimePlanning() {
                 eventId={eventId}
                 onDataChange={refetch}
                 squads={squads.map(s => {
-                  let competitionId = -1;
+                  const mappedCompetitionIds: number[] = [];
+
                   if (Array.isArray((s as any).competitionIds) && (s as any).competitionIds.length > 0) {
-                    competitionId = (s as any).competitionIds[0];
-                    console.log('✅ Squad mapped via competitionIds:', s.name, '→', competitionId);
-                  } else if (Array.isArray(s.competitions) && s.competitions.length > 0) {
-                    const compObj = competitions.find(c => c.name === s.competitions[0]);
-                    if (compObj) {
-                      competitionId = compObj.id;
-                      console.log('✅ Squad mapped via name:', s.name, '→', competitionId);
-                    } else {
-                      console.warn('⚠️ Competition not found for squad:', s.name, 'competition name:', s.competitions[0]);
+                    for (const id of (s as any).competitionIds) {
+                      if (Number.isFinite(id) && id > 0) {
+                        mappedCompetitionIds.push(id);
+                      }
                     }
+                    console.log('✅ Squad mapped via competitionIds:', s.name, '→', mappedCompetitionIds);
+                  } else if (Array.isArray(s.competitions) && s.competitions.length > 0) {
+                    for (const competitionName of s.competitions) {
+                      const compObj = competitions.find(c => c.name === competitionName);
+                      if (compObj) {
+                        mappedCompetitionIds.push(compObj.id);
+                      } else {
+                        console.warn('⚠️ Competition not found for squad:', s.name, 'competition name:', competitionName);
+                      }
+                    }
+                    console.log('✅ Squad mapped via name:', s.name, '→', mappedCompetitionIds);
                   } else {
                     console.warn('⚠️ Squad has no competitions:', s.name);
                   }
-                  return { name: s.name, participantCount: s.participantCount, competitionId };
+
+                  const uniqueIds = Array.from(new Set(mappedCompetitionIds));
+                  return {
+                    name: s.name,
+                    participantCount: s.participantCount,
+                    competitionId: uniqueIds[0] ?? -1,
+                    competitionIds: uniqueIds,
+                  };
                 })}
                 devices={(() => {
                   if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
