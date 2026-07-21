@@ -184,6 +184,20 @@ describe('useScoreValidation', () => {
       expect(result.current.filteredParticipants[0].id).toBe(1);
     });
 
+    it('excludes participants with startet_nicht=true from score input', () => {
+      const participants = [
+        makeParticipant({ id: 1, firstname: 'Anna', startet_nicht: false }),
+        makeParticipant({ id: 2, firstname: 'Berta', startet_nicht: true }),
+        makeParticipant({ id: 3, firstname: 'Clara' }),
+      ];
+
+      const { result } = renderHook(() =>
+        useScoreValidation({ ...defaultProps, participants })
+      );
+
+      expect(result.current.filteredParticipants.map(p => p.id)).toEqual([1, 3]);
+    });
+
     it('returns empty array when participants is not an array', () => {
       const { result } = renderHook(() =>
         useScoreValidation({ ...defaultProps, participants: null as any })

@@ -379,6 +379,23 @@ describe('exportSquadsPDF', () => {
       const row: string[] = autoTableCalls[0].body[0];
       expect(row[3]).toBe('Boden (Nr. 10), Sprung (Nr. 11)');
     });
+
+    it('excludes participants with startet_nicht=true from exported table', () => {
+      const included = { ...makeParticipant(1), firstname: 'Startet', lastname: 'Ja', startet_nicht: false };
+      const excluded = { ...makeParticipant(2), firstname: 'Startet', lastname: 'Nein', startet_nicht: true };
+
+      const squad: Squad = {
+        ...makeSquad(1, 2),
+        participants: [included as any, excluded as any],
+      };
+
+      exportSquadsPDF({ squads: [squad], selectedEvent: makeEvent(), t: makeT() });
+
+      expect(autoTableCalls.length).toBe(1);
+      const rows: string[][] = autoTableCalls[0].body;
+      expect(rows).toHaveLength(1);
+      expect(rows[0][0]).toBe('Startet Ja');
+    });
   });
 
   // ── Consistent yPosition on new pages ────────────────────────

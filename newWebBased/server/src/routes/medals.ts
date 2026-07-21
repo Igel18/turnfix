@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { getMedalTypeValues } from '../utils/configurationHelpers';
+import { isActiveStarter } from '../utils/participantFilters';
 
 const router = express.Router();
 
@@ -201,7 +202,7 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
     // First, collect ALL clubs that have participants in ANY competition
     for (const competition of competitions) {
       const allParticipants = competition.tfx_wertungen
-        .filter(w => w.tfx_teilnehmer?.tfx_vereine); // Only participants with valid club
+        .filter(w => isActiveStarter(w) && w.tfx_teilnehmer?.tfx_vereine); // Only active starters with valid club
       
       allParticipants.forEach(wertung => {
         const clubId = wertung.tfx_teilnehmer!.tfx_vereine!.int_vereineid;
@@ -230,7 +231,7 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
       
       // Calculate total scores for each participant
       const participantScores = competition.tfx_wertungen
-        .filter(w => w.tfx_teilnehmer?.tfx_vereine) // Only participants with valid club
+        .filter(w => isActiveStarter(w) && w.tfx_teilnehmer?.tfx_vereine) // Only active starters with valid club
         .map(wertung => {
           // Calculate total score from jury results and wertungen details
           const juryScores = wertung.tfx_jury_results.reduce((sum, result) => 
@@ -287,7 +288,7 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
       const clubStarters = new Map<number, number>();
       // Include ALL participants, not just medal winners
       competition.tfx_wertungen
-        .filter(w => w.tfx_teilnehmer?.tfx_vereine)
+        .filter(w => isActiveStarter(w) && w.tfx_teilnehmer?.tfx_vereine)
         .forEach(wertung => {
           const clubId = wertung.tfx_teilnehmer!.tfx_vereine!.int_vereineid;
           clubStarters.set(clubId, (clubStarters.get(clubId) || 0) + 1);

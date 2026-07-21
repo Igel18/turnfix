@@ -1126,7 +1126,8 @@ b.) Bei den Bahnzuordnungen (Rotation) scheint es so, dass einige Wettkämpfe fe
 c.) Bei den Rotationen Übersicht muss die Anzahl der Rotationen der Anzahl der Geräte entsprechen. Es werden aber immer nur 3 Rotationen angezeigt. 
 d.) In der Zeitplan Tabelle muss je Bahn die Geräte dargestellt werden. 
 
-154. [Bug] Teilnehmer die "Nicht teilnehmen" tauchen trotzdem auf manchen Listen (Riegenliste) auf. TDD
+154. [Bug] Teilnehmer die "Nicht teilnehmen" tauchen trotzdem auf manchen Listen (Riegenliste) auf. Bitte prüf das mittels TDD dass die Teilnehmer dann nur noch in der Liste der "Veranstaltungsteilnehmer" sichtbar sind. In keiner Riegenliste, in keiner Ergebnisliste, kein Medallienspiegel, keine Wertungseingabe und in keinem PDF das daraus exportiert werden kann. 
+-> Erledigt ✅
 
 155. [Feature] Zeitplanung: 
 Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Beste Lösung wie ich finde: Für jeden Durchgang eine eigene Überschrift mit den Geräten die in dem Durchgang dran sind. Alle anderen gar nicht darstellen. 
@@ -1138,11 +1139,11 @@ Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, 
 
 158. [Bug] Layout editor: werden Felder mehr als 10 Ebenen hinzugefügt kommt es beim Speichern des Layout zum Fehler. Dies sollte begrenzt werden, damit der Fehler unterbunden wird. 
 Wird das DB Element Veranstaltung hinzugefügt wird als Veranstaltungsname aber der Wettkampfname eingetragen. TDD.
-🚀 In Arbeit 
+-> Erledigt ✅
 
 159. [Bug] In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
-🚀 In Arbeit 
-	2. RundeIst das richtig, dass in dem Layout nur 11 Felder in den Ebenen 0-10 vorhanden sein können? Ist die Limitierung im Backend oder der DB? 10 Ebenen wäre ok, aber es muss möchlich sein mehr felder anzulegen ggf. in der gleichen ebene. 
+Ist das richtig, dass in dem Layout nur 11 Felder in den Ebenen 0-10 vorhanden sein können? Ist die Limitierung im Backend oder der DB? 10 Ebenen wäre ok, aber es muss möchlich sein mehr felder anzulegen ggf. in der gleichen ebene. 
+-> Erledigt ✅
 
 160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
 
@@ -1173,6 +1174,19 @@ Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml 
 168. [Refactoring] Die Schedule Matrix view.tsx ist ja recht groß. die könnte refactored werden genauso wie die timeplanning.ts
 
 169. [Feature] Zeitplanung: wenn man bei der Zeitplanung eine Session mit vielen Wettkämpfen hat, ist es mühselig auf jedem wettkampf die Startzeit zu ändern. hier wäre ein Multiselect sehr schön. oder man ändert die Zeit auf der Sesstion für alle Wettkämpfe... 
+
+170. [Feature] Zeitplanung: In der Zuordnung der Bahnen sollte über den Bahnen immer die Summe aller Teilnehmer stehen. 
+
+171. [Bug] Zeitplanung: Werden Wettkämpfe von einer Bahn in eine andere verschoben, wechselt die UI immer in Durchgang 1
+
+172. [Feature/Bug] Zeitplanung: In der Zeitplanung werden im Reiter Rotation Bahnen zugeordnet. Jetzt bedeutet das, dass eigentlich jede Bahn ein eigenes Gerät und ein eigene Kampfgerich hat. Somit muss in der Zeitplan Tabelle zu erst der Durchang auftauchen, das passt schon. Danach stehen die Geräte die in diesem Durchgang geturnt werden, das passt auch, aber Die Geräteauswahl muss für jede Bahn erfolgen können! 
+
+173. [Bug] Zeitplanung: Wenn ich eine Bahn habe die Wettkämpfe mit 3 Geräten hat, dann gibt es unten in der Rotationsübersicht aktuell noch 4 Rotationen. Das stimmt nicht... Die Anzahl der Rotationen ist immer von der max. Anzahl der Geräte abhängig, die in der Bahn drin sind. 
+
+174. [prüfen] Suchfeld: Bei sehr vielen Teilnehmern wird im Suchfeld oft kein Ergebnis angezeigt. Falls es da irgendein mechanismus gibt, der verhindert dass nach allen gesucht wird oder nach einer Zeit abgebrochen wird, sollte das geändert werden. Gerne darf das auch bisschen dauern. 
+
+175. [Feature] Riegeneinteilung: Für die Riegeneinteilung wird i.d.r. die Meldematrix heran gezogen. Nun sind das ja zwei verschiedene Ansichten / UIs. Folgende idee: Bei der Riegeneinteilung einen separaten Reiter machen (vgl. Zeitplanung Durchgänge / Rotationen) der die Meldematrix anzeigt. 
+Wenn man hier jetzt auf eine Zelle klickt (entweder in der Matrix-> Verein/Wettkampf oder auf die Summe) soll sich ein Pop-Up Menü öffnen um diese einer Riege zuzuordnen (vgl. Wizard Riegeneinteilung). Entweder eine neue Riege erstellen, oder eine vorhandene verwenden. Zudem soll es möglich sein alle Teilnehmer dieser Riege zuzuordnen oder nur einzelne bzw. eine Anzahl x. 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

@@ -35,4 +35,35 @@ describe('useScoreData', () => {
       expect.stringMatching(/^\/scores\?eventId=42&limit=1000&_cb=\d+$/)
     );
   });
+
+  it('filters participants with startet_nicht=true from score capture data', async () => {
+    const { apiGet } = await import('@/utils/api');
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            { id: 1, firstname: 'Anna', startet_nicht: false },
+            { id: 2, firstname: 'Berta', startet_nicht: true },
+            { id: 3, firstname: 'Clara' }
+          ]
+        } as any;
+      }
+      if (url.startsWith('/squad-management?')) return { squads: [] } as any;
+      if (url.startsWith('/competitions?')) return [] as any;
+      if (url === '/discipline-fields') return [] as any;
+      if (url.startsWith('/scores?')) return { results: [] } as any;
+      if (url.startsWith('/statuses?')) return { statuses: [] } as any;
+      if (url.startsWith('/squad-disciplines?')) return { squadDisciplines: [] } as any;
+      return {} as any;
+    });
+
+    const { result } = renderHook(() => useScoreData({ eventId: '42' }));
+
+    await act(async () => {
+      await result.current.loadInitialData();
+    });
+
+    expect(result.current.participants.map(p => p.id)).toEqual([1, 3]);
+  });
 });
