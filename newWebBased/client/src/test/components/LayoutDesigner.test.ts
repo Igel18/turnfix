@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clampLayoutLayer, getDefaultLayoutLayer, getNextLayoutLayer, MAX_LAYOUT_LAYER } from '../../utils/layoutLayerUtils'
+import { clampLayoutLayer, getDefaultLayoutLayer, getNextLayoutLayer, MAX_LAYOUT_LAYER, shouldClearLayoutSelection } from '../../utils/layoutLayerUtils'
 
 describe('LayoutDesigner layer helpers', () => {
   it('clamps layers to the supported range', () => {
@@ -18,5 +18,11 @@ describe('LayoutDesigner layer helpers', () => {
     expect(getDefaultLayoutLayer(null)).toBe(0)
     expect(getDefaultLayoutLayer({ int_layer: 7 } as any)).toBe(7)
     expect(getDefaultLayoutLayer({ int_layer: 99 } as any)).toBe(MAX_LAYOUT_LAYER)
+  })
+
+  it('only clears the selection when the canvas background is clicked', () => {
+    const sharedTarget = {} as EventTarget
+    expect(shouldClearLayoutSelection(sharedTarget, sharedTarget)).toBe(true)
+    expect(shouldClearLayoutSelection({} as EventTarget, {} as EventTarget)).toBe(false)
   })
 })

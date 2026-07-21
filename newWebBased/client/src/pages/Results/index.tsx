@@ -80,7 +80,8 @@ const Results = () => {
     isLoading,
     fetchCompetitions,
     fetchEventRanking
-  } = useResultsData(eventId, selectedCompetition)
+  } = useResultsData(eventId, selectedCompetition, selectedEvent?.var_eventname || '')
+
 
   // Helpers Hook - Formatting utilities
   const {

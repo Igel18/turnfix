@@ -3,7 +3,7 @@ import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { DATABASE_FIELD_DESCRIPTIONS, getDatabaseFieldDescription } from '@/pages/CertificateLayouts'
 import { resolveImageUrl, isLocalFilePath, isUploadingPath, extractFilename } from '@/utils/imageUrlUtils'
 import { useTranslation } from 'react-i18next'
-import { MAX_LAYOUT_LAYER, clampLayoutLayer, getDefaultLayoutLayer } from '@/utils/layoutLayerUtils'
+import { MAX_LAYOUT_LAYER, clampLayoutLayer, getDefaultLayoutLayer, shouldClearLayoutSelection } from '@/utils/layoutLayerUtils'
 import { 
   TrashIcon, 
   DocumentTextIcon,
@@ -874,6 +874,11 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                 <div 
                   ref={canvasRef}
                   className="relative bg-white shadow-2xl flex-shrink-0"
+                  onClick={(e) => {
+                    if (shouldClearLayoutSelection(e.target, e.currentTarget)) {
+                      setSelectedField(null);
+                    }
+                  }}
                   style={{ 
                     width: `${canvasSize.width * zoom}px`, 
                     height: `${canvasSize.height * zoom}px`

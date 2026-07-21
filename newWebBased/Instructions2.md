@@ -1172,6 +1172,7 @@ Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml 
 
 168. [Refactoring] Die Schedule Matrix view.tsx ist ja recht groß. die könnte refactored werden genauso wie die timeplanning.ts
 
+169. [Feature] Zeitplanung: wenn man bei der Zeitplanung eine Session mit vielen Wettkämpfen hat, ist es mühselig auf jedem wettkampf die Startzeit zu ändern. hier wäre ein Multiselect sehr schön. oder man ändert die Zeit auf der Sesstion für alle Wettkämpfe... 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

@@ -20,3 +20,7 @@ export const getNextLayoutLayer = (fields: LayoutFieldLike[]) => {
 export const getDefaultLayoutLayer = (selectedField: LayoutFieldLike | null) => {
   return selectedField ? clampLayoutLayer(selectedField.int_layer) : 0;
 };
+
+export const shouldClearLayoutSelection = (target: EventTarget | null, currentTarget: EventTarget | null) => {
+  return target === currentTarget;
+};

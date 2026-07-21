@@ -31,7 +31,8 @@ interface UseResultsDataReturn {
 
 export function useResultsData(
   eventId: string | null,
-  selectedCompetition: string
+  selectedCompetition: string,
+  initialEventName = ''
 ): UseResultsDataReturn {
   
   const [ranking, setRanking] = useState<Participant[]>([]);
@@ -39,7 +40,7 @@ export function useResultsData(
   const [disciplines, setDisciplines] = useState<string[]>([]);
   const [disciplineFormulas, setDisciplineFormulas] = useState<Record<string, string>>({});
   const [selectedCompetitionDisciplineInfo, setSelectedCompetitionDisciplineInfo] = useState<DisciplineInfo[]>([]);
-  const [eventName, setEventName] = useState<string>('');
+  const [eventName, setEventName] = useState<string>(initialEventName);
   const [isLoading, setIsLoading] = useState(true);
   const [competitions, setCompetitions] = useState<any[]>([]);
 
@@ -120,7 +121,7 @@ export function useResultsData(
         setRanking([]);
         setCompetitionGroups([]);
         setDisciplines([]);
-        setEventName(`Event ${eventId}`);
+        setEventName(initialEventName || `Event ${eventId}`);
         return;
       }
 

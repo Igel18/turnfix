@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useResultsData } from '@/pages/Results/hooks/useResultsData'
+import { useResultsData } from '../../pages/Results/hooks/useResultsData'
 
-vi.mock('@/utils/api', () => ({
+vi.mock('../../utils/api', () => ({
   apiGet: vi.fn(),
 }))
 
@@ -12,7 +12,7 @@ describe('useResultsData', () => {
   })
 
   it('keeps competition-specific jury fields and scores separated for participants in multiple competitions', async () => {
-    const { apiGet } = await import('@/utils/api')
+    const { apiGet } = await import('../../utils/api')
 
     vi.mocked(apiGet).mockImplementation(async (url: string) => {
       if (url.startsWith('/event-participants?')) {
@@ -134,6 +134,26 @@ describe('useResultsData', () => {
 
     expect(annaInGroup1!.totalScore).toBeCloseTo(13, 2)
     expect(annaInGroup2!.totalScore).toBeCloseTo(5, 2)
+  })
+
+  it('keeps the selected event name instead of falling back to the event id when no participants are loaded', async () => {
+    const { apiGet } = await import('../../utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return { participants: [] }
+      }
+
+      return []
+    })
+
+    const { result } = renderHook(() => useResultsData('77', '', 'Fruehjahrs-Cup 2026'))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([])
+    })
+
+    expect(result.current.eventName).toBe('Fruehjahrs-Cup 2026')
   })
 
   it('keeps multi-discipline scores isolated per competition and calculates totals per competition discipline set', async () => {
