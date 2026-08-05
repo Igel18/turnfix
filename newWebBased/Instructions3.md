@@ -25,7 +25,6 @@ Also:
 
 Die Doku muss auch mit dem Setup mitgeliefert werden und soll über einen Desktop Icon erreichbar sein. 
 
-
 73. [Feature] Beim Automatischen Riegen erzeugen gehe ich wie folgt vor: 
 1. Analyse wie viele Geräte geturnt werden müssen (je Wettkampf). Manche haben 4-Kampf manche 6-Kampf, das beeinflusst natürlich die Wettkampfdauer und damit die angestrebte Riegengröße 
 2. Analyse wie viele Teilnehmer insgesamt gemeldet sind und wie viele in den einzelnen Wettkämpfen sind 
@@ -35,13 +34,6 @@ Die Doku muss auch mit dem Setup mitgeliefert werden und soll über einen Deskto
 6. Dann werden diese Wettkämpfe bzw. zusammengefassen Wettkämpfe in Riegen aufgeteilt. Um möglichst gleich große Riegen zu bekommen. 
 7. Die Riegen werden dann so definiert, dass die Teilnehmer von einem Verein möglichst zusammen bleiben. 
 
-
-## Zukunftsideen (noch nicht umgesetzt)
-
-Z1. [Idee] Wettkampf-Auswahl in der Wertungserfassung
-Aktueller Stand: Jede Person darf nur einem Wettkampf pro Veranstaltung zugeordnet werden (1:1-Regel, seit #113 im Backend durchgesetzt). Als Workaround für mehrere Wettkämpfe kann eine separate Veranstaltung angelegt werden.
-Idee für die Zukunft: Falls mehrere Wettkämpfe pro Person doch benötigt werden, könnte in der Wertungserfassung ein Schritt "0 – Wettkampf auswählen" vor der Riegen-Auswahl eingebaut werden. Der Selector würde nur erscheinen, wenn die Veranstaltung mehr als einen Wettkampf hat, und würde Teilnehmer sowie Disziplinen auf den gewählten Wettkampf beschränken.
-Betroffene Dateien: ScoreCapture/index.tsx, SquadDisciplineSelector.tsx, useScoreValidation.ts
 
 91. Im Jury-Portal beim Speichern der Wertung kommt die Meldung Fehler, Wertung wurde nicht angelegt. Ich denke es ist sinnvoll hier die verbindung zum Server zu überwachen! 
 
@@ -83,7 +75,6 @@ TDD mit UI Tests
 
 110. [Improvement] Layout designer 
 Im Layout designer ist es nicht bei jedem Typ (datenbank, bild, ...) möglich, dies in der UI zu editieren/vergrößern/verkleinern. über das eingabefeld geht es. Ich glaube es ist beim Bild beim Vergrößern aufgefallen. Bitte für alle Typen prüfen und mittels Test sicherstellen, das es funktioniert. 
-
 
 108. [Improvement] automatisch Status Gedruckt setzen beim Export von PDF / Urkunden 
 
@@ -191,16 +182,17 @@ Vorschläge: Boden Turn10® Basis, Balken/Bank Turn10® Basis, P-Barren Turn10®
 Grund ist wahrscheinlich, dass keine Teilnehmer in diesen Wettkämpfen drin sind und daher auch keine Disziplinen hinzugefügt werden können. 
 Die Meldung ist daher ok, sollte aber den Grund enthalten (wenn dieser ausfindig gemacht werden kann). 
 
-138. [Bug] Beim Import kann kein Veranstaltungsort ausgewählt werden, erst beim nachträglichen editieren. TDD
+138. [Bug] http://localhost:3001/events Beim Import kann kein Veranstaltungsort ausgewählt werden, erst beim nachträglichen editieren. TDD
+-> Erledigt ✅
 
 139. [Bug] Nach dem Import von dem 69. Schüler und Jugendturnfest sind oft 6 Geräte mit einem Wettkampf verknüpft, obwohl das im XML nicht so drin zu sein scheint. TDD -> Liegt an den Zuordnungsvorschlägen. Wird mit 140 gefixt. 
 
-140. [Feature] Beim Import der XML wäre es doch gut, wenn man jeden Wettkampf einmal durch geht / anschaut und die Vorschläge für die Disziplinen anzeigt und dann korrigiert. Also ob die Disziplin passt und ob der Wettkampf passt. ggf. dann mit den auto-imports. Wie wäre sowas?
+140. [Feature] Beim Import der XML wäre es doch gut, wenn man jeden Wettkampf einmal durch geht / anschaut und die Vorschläge für die Disziplinen anzeigt und dann korrigiert. Also ob die Disziplin passt und ob der Wettkampf passt. ggf. dann mit den auto-imports. Wie wäre sowas? Den Wizard gibt es ja bereits, da kann man sowas ja einfach erweitern. 
 
 141. [Bug] Beim Wettkampf editieren "Gruppe setzen" wird zwar die Disziplin Gruppe selektiert, aber die anderen ggf. bereits selektierten Diszplinen nicht 
 deselektiert. 
 
-142. Die TurnFix Tray app muss als admin ausgeführt werden, da man sonst keine Services starten / stoppen kann 
+142. [Bug] Die TurnFix Tray app muss als admin ausgeführt werden, da man sonst keine Services starten / stoppen kann Das muss mittels dem Setup sicher gestellt werden. 
 
 144. Beim dem DB Wizard / Setup sollte bei den Disziplingruppen folgende mitkommen: Turn10 3-Kampf w, Turn10 3-Kampf m, Turn10 4-Kampf w, Turn10 4-Kampf m. 
 
@@ -335,6 +327,15 @@ TD-06 Offen bleibt noch ein angrenzender Punkt: die Auflösung von int_formelid 
 
 TD-07 GymNet XML Export der Ergebnisse ist nur möglich wenn man auch die GymNet Import XML hat. Das liegt daran, dass die Teilnehmer IDs nicht ins GymNet importiert werden sowie auch nicht die Wettkampf und Geräte IDs. 
 Es wäre wohl einfacher, wenn alle IDs aus dem GymNet einen Platz in der DB von TurnFix hätten. Dann gäbe es keine Duplikate und ein Matching wäre ohne Probleme möglich. 
+
+## Zukunftsideen (noch nicht umgesetzt)
+
+Z1. [Idee] Wettkampf-Auswahl in der Wertungserfassung
+Aktueller Stand: Jede Person darf nur einem Wettkampf pro Veranstaltung zugeordnet werden (1:1-Regel, seit #113 im Backend durchgesetzt). Als Workaround für mehrere Wettkämpfe kann eine separate Veranstaltung angelegt werden.
+Idee für die Zukunft: Falls mehrere Wettkämpfe pro Person doch benötigt werden, könnte in der Wertungserfassung ein Schritt "0 – Wettkampf auswählen" vor der Riegen-Auswahl eingebaut werden. Der Selector würde nur erscheinen, wenn die Veranstaltung mehr als einen Wettkampf hat, und würde Teilnehmer sowie Disziplinen auf den gewählten Wettkampf beschränken.
+Betroffene Dateien: ScoreCapture/index.tsx, SquadDisciplineSelector.tsx, useScoreValidation.ts
+
+
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀
