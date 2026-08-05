@@ -203,6 +203,66 @@ describe('useExport GymNet XML', () => {
     expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:test');
   });
 
+  it('posts template file to template export endpoint and downloads returned file', async () => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+
+    const clickSpy = vi.fn();
+    const createObjectURLSpy = vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:template');
+    const revokeObjectURLSpy = vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string): any => {
+      if (tagName.toLowerCase() === 'a') {
+        return {
+          href: '',
+          download: '',
+          click: clickSpy
+        } as unknown as HTMLAnchorElement;
+      }
+      return originalCreateElement(tagName);
+    });
+
+    const blob = new Blob(['<xml></xml>'], { type: 'application/xml' });
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () => Promise.resolve(blob),
+      headers: {
+        get: (name: string) => {
+          if (name.toLowerCase() === 'content-disposition') {
+            return 'attachment; filename="gymnet_template_results.xml"';
+          }
+          return null;
+        }
+      }
+    } as unknown as Response);
+
+    const { result } = renderHook(() =>
+      useExport({
+        eventId: '42',
+        eventName: 'Test Event',
+        selectedCompetition: '9',
+        ranking: [],
+        competitionGroups: [],
+        disciplines: [],
+        disciplineFormulas: {},
+        selectedCompetitionDisciplineInfo: [],
+        formatScore: (score: number) => score.toFixed(3)
+      })
+    );
+
+    const templateFile = new File(['<Wettkämpfe/>'], 'import.xml', { type: 'application/xml' });
+    await result.current.exportResultsGymNetXML(templateFile);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const [url, options] = (global.fetch as any).mock.calls[0];
+    expect(url).toBe('/api/results/export-gymnet-xml-template');
+    expect(options.method).toBe('POST');
+    expect(options.body).toBeInstanceOf(FormData);
+
+    expect(createObjectURLSpy).toHaveBeenCalledWith(blob);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:template');
+  });
+
   it('uses ranking competition name for filtered PDF export when single-competition groups are empty', async () => {
     const { resolveCompetitionExportName } = await import('../../pages/Results/hooks/useExport');
 

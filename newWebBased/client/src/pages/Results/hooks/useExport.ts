@@ -36,6 +36,20 @@ import {
 } from '@/utils/formulaUtils'
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types'
 
+export interface GymNetMatchReport {
+  summary: {
+    competitionsMatched: number
+    participantsMatched: number
+    disciplineScoresWritten: number
+    competitionsUnmatched: number
+    participantsUnmatched: number
+    disciplinesUnmatched: number
+  }
+  unmatchedCompetitions: string[]
+  unmatchedParticipants: string[]
+  unmatchedDisciplines: string[]
+}
+
 interface UseExportProps {
   eventId: string | null
   eventName: string
@@ -651,17 +665,44 @@ export const useExport = ({
   /**
    * Export GymNet XML for current event/competition
    */
-  const exportResultsGymNetXML = useCallback(async () => {
-    if (!eventId) return
+  const exportResultsGymNetXML = useCallback(async (templateFile?: File): Promise<GymNetMatchReport | null> => {
+    if (!eventId) return null
 
-    const params = new URLSearchParams({ eventId })
-    if (selectedCompetition) {
-      params.append('competitionId', selectedCompetition)
+    let response: Response
+
+    if (templateFile) {
+      const formData = new FormData()
+      formData.append('eventId', eventId)
+      if (selectedCompetition) {
+        formData.append('competitionId', selectedCompetition)
+      }
+      formData.append('xmlFile', templateFile)
+
+      response = await fetch('/api/results/export-gymnet-xml-template', {
+        method: 'POST',
+        body: formData
+      })
+    } else {
+      const params = new URLSearchParams({ eventId })
+      if (selectedCompetition) {
+        params.append('competitionId', selectedCompetition)
+      }
+
+      response = await fetch(`/api/results/export-gymnet-xml?${params.toString()}`)
     }
 
-    const response = await fetch(`/api/results/export-gymnet-xml?${params.toString()}`)
     if (!response.ok) {
       throw new Error('Failed to export GymNet XML')
+    }
+
+    let report: GymNetMatchReport | null = null
+    const encodedReport = response.headers.get('x-gymnet-match-report-encoded')
+    if (encodedReport) {
+      try {
+        report = JSON.parse(decodeURIComponent(encodedReport)) as GymNetMatchReport
+      } catch {
+        report = null
+      }
     }
 
     const blob = await response.blob()
@@ -678,6 +719,8 @@ export const useExport = ({
     a.download = fileName
     a.click()
     window.URL.revokeObjectURL(url)
+
+    return report
   }, [eventId, selectedCompetition, eventName])
 
   return {

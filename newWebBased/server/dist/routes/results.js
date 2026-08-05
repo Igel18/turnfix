@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -8,6 +41,10 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const gymnetXmlExport_1 = require("../utils/gymnetXmlExport");
+const gymnetTemplateResultsExport_1 = require("../utils/gymnetTemplateResultsExport");
+const multer_1 = __importDefault(require("multer"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 const router = (0, express_1.Router)();
 // Validation schemas
 const createResultSchema = zod_1.z.object({
@@ -19,25 +56,27 @@ const createResultSchema = zod_1.z.object({
     notes: zod_1.z.string().optional()
 });
 const updateResultSchema = createResultSchema.partial();
-// Export results as GymNet-compatible XML
-router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res) => {
-    try {
-        const eventId = parseInt(req.query.eventId, 10);
-        const competitionIdParam = req.query.competitionId;
-        const competitionId = competitionIdParam ? parseInt(competitionIdParam, 10) : null;
-        if (Number.isNaN(eventId)) {
-            return res.status(400).json({ error: 'Valid eventId is required' });
+const templateUpload = (0, multer_1.default)({
+    storage: multer_1.default.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+        const lowerName = file.originalname.toLowerCase();
+        if (file.mimetype === 'text/xml' || file.mimetype === 'application/xml' || lowerName.endsWith('.xml')) {
+            cb(null, true);
         }
-        if (competitionIdParam && (competitionId === null || Number.isNaN(competitionId))) {
-            return res.status(400).json({ error: 'Invalid competitionId' });
+        else {
+            cb(new Error('Only XML files are allowed'));
         }
-        const competitionParams = [eventId];
-        let competitionFilter = '';
-        if (competitionId !== null) {
-            competitionFilter = ' AND w.int_wettkaempfeid = $2';
-            competitionParams.push(competitionId);
-        }
-        const competitions = await prisma_1.default.$queryRawUnsafe(`
+    }
+});
+async function loadGymNetExportPayload(eventId, competitionId) {
+    const competitionParams = [eventId];
+    let competitionFilter = '';
+    if (competitionId !== null) {
+        competitionFilter = ' AND w.int_wettkaempfeid = $2';
+        competitionParams.push(competitionId);
+    }
+    const competitions = await prisma_1.default.$queryRawUnsafe(`
       SELECT
         w.int_wettkaempfeid,
         COALESCE(w.var_nummer, '') AS var_nummer,
@@ -51,11 +90,11 @@ router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res
       WHERE w.int_veranstaltungenid = $1${competitionFilter}
       ORDER BY w.int_wettkaempfeid ASC
     `, ...competitionParams);
-        if (competitions.length === 0) {
-            return res.status(404).json({ error: 'No competitions found for export' });
-        }
-        const competitionIds = competitions.map((row) => row.int_wettkaempfeid);
-        const disciplineRows = await prisma_1.default.$queryRawUnsafe(`
+    if (competitions.length === 0) {
+        return [];
+    }
+    const competitionIds = competitions.map((row) => row.int_wettkaempfeid);
+    const disciplineRows = await prisma_1.default.$queryRawUnsafe(`
       SELECT
         wxd.int_wettkaempfeid,
         d.int_disziplinenid,
@@ -66,7 +105,7 @@ router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res
       WHERE wxd.int_wettkaempfeid = ANY($1::int[])
       ORDER BY wxd.int_wettkaempfeid, COALESCE(wxd.int_sortierung, 999), d.int_disziplinenid
     `, competitionIds);
-        const participantRows = await prisma_1.default.$queryRawUnsafe(`
+    const participantRows = await prisma_1.default.$queryRawUnsafe(`
       SELECT
         wr.int_wettkaempfeid,
         t.int_teilnehmerid,
@@ -84,7 +123,7 @@ router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res
         AND COALESCE(wr.bol_startet_nicht, false) = false
       ORDER BY wr.int_wettkaempfeid, wr.int_startnummer NULLS LAST, t.var_nachname, t.var_vorname
     `, competitionIds);
-        const scoreRows = await prisma_1.default.$queryRawUnsafe(`
+    const scoreRows = await prisma_1.default.$queryRawUnsafe(`
       WITH latest_scores AS (
         SELECT
           wr.int_wettkaempfeid,
@@ -108,57 +147,74 @@ router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res
       FROM latest_scores
       WHERE rn = 1
     `, competitionIds);
-        const disciplinesByCompetition = new Map();
-        disciplineRows.forEach((row) => {
-            if (!disciplinesByCompetition.has(row.int_wettkaempfeid)) {
-                disciplinesByCompetition.set(row.int_wettkaempfeid, []);
-            }
-            disciplinesByCompetition.get(row.int_wettkaempfeid).push(row);
-        });
-        const scoreByParticipantAndDiscipline = new Map();
-        scoreRows.forEach((row) => {
-            const mapKey = `${row.int_wettkaempfeid}:${row.int_teilnehmerid}:${row.int_disziplinenid}`;
-            scoreByParticipantAndDiscipline.set(mapKey, row.rel_leistung ?? null);
-        });
-        const participantsByCompetition = new Map();
-        participantRows.forEach((row) => {
-            if (!participantsByCompetition.has(row.int_wettkaempfeid)) {
-                participantsByCompetition.set(row.int_wettkaempfeid, []);
-            }
-            participantsByCompetition.get(row.int_wettkaempfeid).push(row);
-        });
-        const exportPayload = competitions.map((competition) => {
-            const competitionDisciplines = disciplinesByCompetition.get(competition.int_wettkaempfeid) || [];
-            const competitionParticipants = participantsByCompetition.get(competition.int_wettkaempfeid) || [];
-            return {
-                competitionId: competition.int_wettkaempfeid,
-                competitionNumber: competition.var_nummer,
-                competitionName: competition.var_name,
-                genderMale: competition.bol_maennlich === true,
-                genderFemale: competition.bol_weiblich === true,
-                ageFrom: Number(competition.yer_von || 0),
-                ageTo: competition.yer_bis !== null && competition.yer_bis !== undefined ? Number(competition.yer_bis) : null,
-                participants: competitionParticipants.map((participant) => ({
-                    participantId: participant.int_teilnehmerid,
-                    firstName: participant.var_vorname,
-                    lastName: participant.var_nachname,
-                    birthDate: participant.dat_geburtstag,
-                    gender: participant.int_geschlecht,
-                    clubId: participant.int_vereineid,
-                    clubName: participant.club_name,
-                    startNumber: participant.int_startnummer,
-                    disciplines: competitionDisciplines.map((discipline, index) => {
-                        const scoreKey = `${competition.int_wettkaempfeid}:${participant.int_teilnehmerid}:${discipline.int_disziplinenid}`;
-                        return {
-                            disciplineId: discipline.int_disziplinenid,
-                            name: discipline.var_name,
-                            position: index + 1,
-                            score: scoreByParticipantAndDiscipline.get(scoreKey) ?? null
-                        };
-                    })
-                }))
-            };
-        });
+    const disciplinesByCompetition = new Map();
+    disciplineRows.forEach((row) => {
+        if (!disciplinesByCompetition.has(row.int_wettkaempfeid)) {
+            disciplinesByCompetition.set(row.int_wettkaempfeid, []);
+        }
+        disciplinesByCompetition.get(row.int_wettkaempfeid).push(row);
+    });
+    const scoreByParticipantAndDiscipline = new Map();
+    scoreRows.forEach((row) => {
+        const mapKey = `${row.int_wettkaempfeid}:${row.int_teilnehmerid}:${row.int_disziplinenid}`;
+        scoreByParticipantAndDiscipline.set(mapKey, row.rel_leistung ?? null);
+    });
+    const participantsByCompetition = new Map();
+    participantRows.forEach((row) => {
+        if (!participantsByCompetition.has(row.int_wettkaempfeid)) {
+            participantsByCompetition.set(row.int_wettkaempfeid, []);
+        }
+        participantsByCompetition.get(row.int_wettkaempfeid).push(row);
+    });
+    return competitions.map((competition) => {
+        const competitionDisciplines = disciplinesByCompetition.get(competition.int_wettkaempfeid) || [];
+        const competitionParticipants = participantsByCompetition.get(competition.int_wettkaempfeid) || [];
+        return {
+            competitionId: competition.int_wettkaempfeid,
+            competitionNumber: competition.var_nummer,
+            competitionName: competition.var_name,
+            genderMale: competition.bol_maennlich === true,
+            genderFemale: competition.bol_weiblich === true,
+            ageFrom: Number(competition.yer_von || 0),
+            ageTo: competition.yer_bis !== null && competition.yer_bis !== undefined ? Number(competition.yer_bis) : null,
+            participants: competitionParticipants.map((participant) => ({
+                participantId: participant.int_teilnehmerid,
+                firstName: participant.var_vorname,
+                lastName: participant.var_nachname,
+                birthDate: participant.dat_geburtstag,
+                gender: participant.int_geschlecht,
+                clubId: participant.int_vereineid,
+                clubName: participant.club_name,
+                startNumber: participant.int_startnummer,
+                disciplines: competitionDisciplines.map((discipline, index) => {
+                    const scoreKey = `${competition.int_wettkaempfeid}:${participant.int_teilnehmerid}:${discipline.int_disziplinenid}`;
+                    return {
+                        disciplineId: discipline.int_disziplinenid,
+                        name: discipline.var_name,
+                        position: index + 1,
+                        score: scoreByParticipantAndDiscipline.get(scoreKey) ?? null
+                    };
+                })
+            }))
+        };
+    });
+}
+// Export results as GymNet-compatible XML
+router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res) => {
+    try {
+        const eventId = parseInt(req.query.eventId, 10);
+        const competitionIdParam = req.query.competitionId;
+        const competitionId = competitionIdParam ? parseInt(competitionIdParam, 10) : null;
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ error: 'Valid eventId is required' });
+        }
+        if (competitionIdParam && (competitionId === null || Number.isNaN(competitionId))) {
+            return res.status(400).json({ error: 'Invalid competitionId' });
+        }
+        const exportPayload = await loadGymNetExportPayload(eventId, competitionId);
+        if (exportPayload.length === 0) {
+            return res.status(404).json({ error: 'No competitions found for export' });
+        }
         const xml = (0, gymnetXmlExport_1.buildGymNetResultsXml)(exportPayload);
         const datePart = new Date().toISOString().split('T')[0];
         const fileName = `gymnet_results_event_${eventId}_${datePart}.xml`;
@@ -169,6 +225,46 @@ router.get('/export-gymnet-xml', authBypass_1.authenticateToken, async (req, res
     catch (error) {
         console.error('Error exporting GymNet XML:', error);
         return res.status(500).json({ error: 'Failed to export GymNet XML' });
+    }
+});
+router.post('/export-gymnet-xml-template', authBypass_1.authenticateToken, templateUpload.single('xmlFile'), async (req, res) => {
+    try {
+        const eventId = parseInt(req.body.eventId, 10);
+        const competitionIdRaw = req.body.competitionId;
+        const competitionId = competitionIdRaw ? parseInt(competitionIdRaw, 10) : null;
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ error: 'Valid eventId is required' });
+        }
+        if (competitionIdRaw && (competitionId === null || Number.isNaN(competitionId))) {
+            return res.status(400).json({ error: 'Invalid competitionId' });
+        }
+        if (!req.file?.buffer) {
+            return res.status(400).json({ error: 'Template XML file is required' });
+        }
+        const exportPayload = await loadGymNetExportPayload(eventId, competitionId);
+        if (exportPayload.length === 0) {
+            return res.status(404).json({ error: 'No competitions found for export' });
+        }
+        const templateXml = req.file.buffer.toString('utf-8');
+        const { xml, stats, report } = await (0, gymnetTemplateResultsExport_1.mergeGymNetTemplateWithResults)(templateXml, exportPayload);
+        const originalName = req.file.originalname || `gymnet_event_${eventId}.xml`;
+        const ext = path.extname(originalName) || '.xml';
+        const baseName = path.basename(originalName, ext);
+        const datePart = new Date().toISOString().split('T')[0];
+        const fileName = `${baseName}_Results_${datePart}${ext}`;
+        const exportDir = path.resolve(process.cwd(), 'exports', 'gymnet-results');
+        fs.mkdirSync(exportDir, { recursive: true });
+        const outputPath = path.join(exportDir, fileName);
+        fs.writeFileSync(outputPath, xml, 'utf8');
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.setHeader('X-GymNet-Match-Stats', JSON.stringify(stats));
+        res.setHeader('X-GymNet-Match-Report-Encoded', encodeURIComponent(JSON.stringify(report)));
+        return res.status(200).send(xml);
+    }
+    catch (error) {
+        console.error('Error exporting GymNet XML from template:', error);
+        return res.status(500).json({ error: 'Failed to export GymNet XML from template' });
     }
 });
 // Get all results with pagination

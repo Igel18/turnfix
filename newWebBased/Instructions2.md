@@ -726,6 +726,8 @@ Natürlich mittels TDD fixen.
 109. [Bug] Dringend: Wertung Eingabefenster wird nicht angezeigt
 -> Erledigt ✅ | In der UI http://localhost:5173/score-capture?eventId=1 wird ständig "Lädt" in dem Eingabefenster der Wertung angzeigt. 
 
+110. [Improvement] Layout designer 
+Im Layout designer ist es nicht bei jedem Typ (datenbank, bild, ...) möglich, dies in der UI zu editieren/vergrößern/verkleinern. über das eingabefeld geht es. Ich glaube es ist beim Bild beim Vergrößern aufgefallen. Bitte für alle Typen prüfen und mittels Test sicherstellen, das es funktioniert. 
 
 ---
 
@@ -1146,10 +1148,15 @@ Ist das richtig, dass in dem Layout nur 11 Felder in den Ebenen 0-10 vorhanden s
 -> Erledigt ✅
 
 160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
+-> Erledigt ✅
 
-161. [bug] Export des XML mit den Ergebnissen lässt sich nicht im GymNet importieren. TDD.
+161. [bug] 
+a.) Export des XML mit den Ergebnissen (http://192.168.1.51:3001/results?eventId=1) lässt sich nicht im GymNet importieren. TDD.
 Das liegt wohl daran, dass in der GymNet xml viele Ids drin sind, die nicht ins TurnFix importiert werden. Daher können diese auch nicht exportiert werden. 
-Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml vom Import öffnen. Dann wird eine Kopie davon erstellt als "Results". Dann können alle Ergebnisse direkt in diese Datei geschrieben werden, mit matching der Teilnehmer per name, vorname, verein, alter; matching der Disziplinen per name
+Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml vom Import öffnen. Dann wird eine Kopie davon erstellt als "Results" an der gleichen Stelle/Pfad. Dann können alle Ergebnisse direkt in diese Datei geschrieben werden, mit matching der Teilnehmer per name, vorname, verein, alter; matching der Disziplinen per name
+Ist das machbar, oder fehlen noch infos zur Ausführung? 
+🚀 In Arbeit
+b.) Jetzt wäre es noch gut, wenn sich bei dem klick auf xml export ein Wizard öffnet mit den verschiedenen Schritten. Ein Einheitlichen Wizard klasse gibt es ja schon. Schritte könnte ich mir folgende vorstellen. Auswahl der GymNet xml, Auswahl des Ablageorts, Export und dann Ergebniss Anzeige ob alles gematcht hat. TDD 
 
 162. [Bug] Kritisch!!! Wenn es einen Wettkampf gibt mit vielen Teilnehmern (300 z.B.) dann werden auf der Ergebnisseite nicht alle Results geladen. Das ist sehr kritisch, da man dann denkt es wären keine Wertungen vorhanden. Wird nur nach dem Einzelnen Wettkampf gefiltert sind die Wertungen vorhanden. 
 -> Erledigt ✅  
@@ -1237,6 +1244,9 @@ Risiko: hoher Änderungsaufwand, Regressionen.
 Fundstellen: Configuration, EventManagement, DisciplinesUnified, EventImportModal
 
 TD-06 Offen bleibt noch ein angrenzender Punkt: die Auflösung von int_formelid per API-Fetch ist weiterhin an mehreren Stellen separat vorhanden. Die reine Berechnungslogik ist jetzt zentralisiert, die Formel-Resolver-Logik noch nicht vollständig. Wenn du willst, ziehe ich das als nächsten Schritt auch noch in eine gemeinsame Hook/Utility zusammen.
+
+TD-07 GymNet XML Export der Ergebnisse ist nur möglich wenn man auch die GymNet Import XML hat. Das liegt daran, dass die Teilnehmer IDs nicht ins GymNet importiert werden sowie auch nicht die Wettkampf und Geräte IDs. 
+Es wäre wohl einfacher, wenn alle IDs aus dem GymNet einen Platz in der DB von TurnFix hätten. Dann gäbe es keine Duplikate und ein Matching wäre ohne Probleme möglich. 
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀

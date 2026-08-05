@@ -228,4 +228,15 @@ describe('Results API', () => {
         });
     });
   });
+
+  describe('GymNet XML Export (Template-based)', () => {
+    it('returns 400 when xml template file is missing', async () => {
+      const response = await request(app)
+        .post('/api/results/export-gymnet-xml-template')
+        .field('eventId', String(testEvent.int_veranstaltungenid))
+        .expect(400);
+
+      expect(response.body.error).toContain('Template XML file is required');
+    });
+  });
 });

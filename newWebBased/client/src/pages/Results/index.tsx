@@ -18,6 +18,7 @@ import { useEvent } from '@/contexts/EventContext'
 import { useCertificateLayout } from '@/contexts/CertificateLayoutContext'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import LiveUpdateIndicator from '@/components/LiveUpdateIndicator'
+import UnifiedDialog from '@/components/UnifiedDialog'
 import { TrophyIcon } from '@heroicons/react/24/outline'
 import getSocket from '@/utils/socket'
 
@@ -39,6 +40,7 @@ import {
 
 // Types
 import type { PaperFormat } from './Results.types'
+import type { GymNetMatchReport } from './hooks/useExport'
 
 const Results = () => {
   const { t } = useTranslation()
@@ -67,6 +69,8 @@ const Results = () => {
   const [selectedPaperFormat, setSelectedPaperFormat] = useState<PaperFormat>('A4')
   const [certificatesToPrint, setCertificatesToPrint] = useState<any[]>([])
   const [certificateSortOrder, setCertificateSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [showGymNetReportModal, setShowGymNetReportModal] = useState(false)
+  const [gymNetMatchReport, setGymNetMatchReport] = useState<GymNetMatchReport | null>(null)
 
   // Data Hook - Loads all results data
   const {
@@ -115,6 +119,22 @@ const Results = () => {
     selectedCompetitionDisciplineInfo,
     formatScore
   })
+
+  const handleGymNetTemplateExport = async () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.xml,text/xml,application/xml'
+
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      const report = await exportResultsGymNetXML(file)
+      setGymNetMatchReport(report)
+      setShowGymNetReportModal(true)
+    }
+
+    input.click()
+  }
 
   // Data loading: always fetch competitions first, then ranking
   // Single effect to prevent race conditions between parallel fetches
@@ -274,7 +294,7 @@ const Results = () => {
         <>
           <LiveUpdateIndicator label={t('common.liveUpdates')} />
           <button
-            onClick={() => void exportResultsGymNetXML()}
+            onClick={() => void handleGymNetTemplateExport()}
             className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
             title="Export GymNet XML"
           >
@@ -347,6 +367,63 @@ const Results = () => {
             sortOrder={certificateSortOrder}
             onSortOrderChange={setCertificateSortOrder}
           />
+
+          <UnifiedDialog
+            isOpen={showGymNetReportModal}
+            onClose={() => setShowGymNetReportModal(false)}
+            title="GymNet Match Report"
+            maxWidth="3xl"
+          >
+            <div className="space-y-4 text-sm">
+              {gymNetMatchReport ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="p-3 rounded bg-gray-50">
+                      <div className="text-gray-500">Competitions matched</div>
+                      <div className="font-semibold">{gymNetMatchReport.summary.competitionsMatched}</div>
+                    </div>
+                    <div className="p-3 rounded bg-gray-50">
+                      <div className="text-gray-500">Participants matched</div>
+                      <div className="font-semibold">{gymNetMatchReport.summary.participantsMatched}</div>
+                    </div>
+                    <div className="p-3 rounded bg-gray-50">
+                      <div className="text-gray-500">Discipline scores written</div>
+                      <div className="font-semibold">{gymNetMatchReport.summary.disciplineScoresWritten}</div>
+                    </div>
+                    <div className="p-3 rounded bg-amber-50">
+                      <div className="text-amber-700">Competitions unmatched</div>
+                      <div className="font-semibold text-amber-700">{gymNetMatchReport.summary.competitionsUnmatched}</div>
+                    </div>
+                    <div className="p-3 rounded bg-amber-50">
+                      <div className="text-amber-700">Participants unmatched</div>
+                      <div className="font-semibold text-amber-700">{gymNetMatchReport.summary.participantsUnmatched}</div>
+                    </div>
+                    <div className="p-3 rounded bg-amber-50">
+                      <div className="text-amber-700">Disciplines unmatched</div>
+                      <div className="font-semibold text-amber-700">{gymNetMatchReport.summary.disciplinesUnmatched}</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 max-h-80 overflow-auto border rounded p-3 bg-white">
+                    <div>
+                      <div className="font-medium">Unmatched competitions</div>
+                      <div className="text-gray-600 whitespace-pre-wrap">{gymNetMatchReport.unmatchedCompetitions.join('\n') || 'None'}</div>
+                    </div>
+                    <div>
+                      <div className="font-medium">Unmatched participants</div>
+                      <div className="text-gray-600 whitespace-pre-wrap">{gymNetMatchReport.unmatchedParticipants.join('\n') || 'None'}</div>
+                    </div>
+                    <div>
+                      <div className="font-medium">Unmatched disciplines</div>
+                      <div className="text-gray-600 whitespace-pre-wrap">{gymNetMatchReport.unmatchedDisciplines.join('\n') || 'None'}</div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-gray-600">No match report returned by server.</div>
+              )}
+            </div>
+          </UnifiedDialog>
         </div>
       )}
     </EventManagementTemplate>

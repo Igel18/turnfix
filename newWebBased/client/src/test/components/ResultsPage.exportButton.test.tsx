@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Results from '@/pages/Results';
 
 const exportResultsGymNetXMLMock = vi.fn().mockResolvedValue(undefined);
+const originalCreateElement = document.createElement.bind(document);
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
@@ -84,13 +85,41 @@ vi.mock('@/pages/Results/components', () => ({
 }));
 
 describe('Results XML export action', () => {
-  it('renders XML export button and triggers GymNet XML export handler', () => {
+  it('renders XML export button and triggers GymNet XML export handler', async () => {
+    const xmlTemplateFile = new File(['<Wettkämpfe />'], 'template.xml', {
+      type: 'application/xml'
+    });
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string): any => {
+      if (tagName.toLowerCase() === 'input') {
+        return {
+          type: '',
+          accept: '',
+          files: [xmlTemplateFile],
+          onchange: null,
+          click: function (this: any) {
+            this.onchange?.(new Event('change'));
+          }
+        } as HTMLInputElement;
+      }
+
+      if (tagName.toLowerCase() === 'a') {
+        return {
+          href: '',
+          download: '',
+          click: vi.fn()
+        } as HTMLAnchorElement;
+      }
+
+      return originalCreateElement(tagName);
+    });
+
     render(<Results />);
 
     const xmlButton = screen.getByRole('button', { name: 'XML Export' });
     expect(xmlButton).toBeInTheDocument();
 
     fireEvent.click(xmlButton);
-    expect(exportResultsGymNetXMLMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(exportResultsGymNetXMLMock).toHaveBeenCalledTimes(1));
   });
 });
