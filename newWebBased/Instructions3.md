@@ -193,6 +193,7 @@ Die Meldung ist daher ok, sollte aber den Grund enthalten (wenn dieser ausfindig
 deselektiert. 
 
 142. [Bug] Die TurnFix Tray app muss als admin ausgeführt werden, da man sonst keine Services starten / stoppen kann Das muss mittels dem Setup sicher gestellt werden. 
+-> 🚀 In Arbeit 
 
 144. Beim dem DB Wizard / Setup sollte bei den Disziplingruppen folgende mitkommen: Turn10 3-Kampf w, Turn10 3-Kampf m, Turn10 4-Kampf w, Turn10 4-Kampf m. 
 
@@ -203,7 +204,7 @@ deselektiert.
 147. auf der Seite competitions muss man immer links / rechts scrollen... Die 1. Spalte könnte man doch schmäler machen. 
 
 148. Manche Riegenbezeichnungen nicht auf den Etiketten. 
--> 🚀 In Arbeit 
+-> Erledigt ✅
 
 149. Etiketten default maße: 
 oben / unten 8 
@@ -268,7 +269,17 @@ a) Es muss nach dem UI-Standard eine UI erstellt werden, um die Länder zu verwa
 b) Es müssen Tests hierfür geschrieben werden 
 c) Es müssen alle standard komponenten verwendet werden (utils) 
 
-177. In der UI clubs und persons beim erstellen eines Vereins ist der Dialog nicht lokalisiert
+177. [Bug] In der UI clubs und persons beim erstellen eines Vereins ist der Dialog nicht lokalisiert
+-> 🚀 In Arbeit
+
+178. Bereinigung: 
+Aktuell ist der komplette C++ Code von alten Turnfix noch mit im Ordner. Den können wir jetzt doch eigentlich löschen. Gründe: 
+a.) Wir haben den Code soweit verstanden und Dokumentiert, damit wir die neue WebApp nachbauen können 
+b.) die neue Web App funktioniert 
+c.) wir haben seit einiger Zeit nichts mehr nachschauen müssen 
+d.) in GitHub alle Issues und Stories für TurnFix löschen, da dann obsolet. 
+
+179. [Bug] Im Medallienspiegel und der Siegerliste steht im Header immer "Muster-Sporthalle" obwohl die korrekte Location am Event hinterlegt ist. Das müsste ja eine Util klasse sein und kann für alle listen behoben werden. TDD. 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

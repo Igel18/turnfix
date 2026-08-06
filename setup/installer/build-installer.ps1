@@ -441,14 +441,20 @@ Write-Host "  📦 Compiling TurnFixTray.exe..." -ForegroundColor Cyan
 $trayCs = Join-Path $ScriptDir "scripts\TurnFixTray.cs"
 $trayExe = Join-Path $ScriptDir "scripts\TurnFixTray.exe"
 $trayIco = Join-Path $RepoRoot "resources\turnfix.ico"
+$trayManifest = Join-Path $ScriptDir "scripts\TurnFixTray.manifest"
 $cscPath = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 if (-not (Test-Path $cscPath)) {
     $cscPath = Join-Path $env:WINDIR "Microsoft.NET\Framework\v4.0.30319\csc.exe"
 }
 if (Test-Path $cscPath) {
+    if (-not (Test-Path $trayManifest)) {
+        throw "TurnFixTray.manifest not found. Tray app must be built with requireAdministrator manifest."
+    }
+
     $cscArgs = @(
         "/nologo", "/target:winexe", "/optimize",
         "/out:$trayExe",
+        "/win32manifest:$trayManifest",
         "/reference:System.dll",
         "/reference:System.Drawing.dll",
         "/reference:System.Windows.Forms.dll",

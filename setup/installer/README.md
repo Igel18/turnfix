@@ -69,6 +69,12 @@ cd setup\installer
 | 10 | **Firewall** | Ports 3001/3002 öffnen |
 | 11 | **Verknüpfungen** | Desktop + Startmenü |
 
+### Tray-App und Administratorrechte
+
+- Die Tray-App TurnFixTray.exe wird beim Build mit einem Windows-Manifest (requireAdministrator) kompiliert.
+- Dadurch startet die Tray-App immer erhöht und kann Windows-Dienste zuverlässig starten/stoppen.
+- Das gilt auch für den Autostart-Eintrag nach der Installation.
+
 ### Installierte Komponenten:
 
 ```

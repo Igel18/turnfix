@@ -100,6 +100,12 @@ setup/installer/output/TurnFix-Setup-{Version}-build{BuildNumber}-{GitHash}.exe
 | 10 | Firewall | Ports 3001/3002 öffnen |
 | 11 | Verknüpfungen | Desktop + Startmenü |
 
+### Tray-App und Administratorrechte
+
+- Die TurnFix Tray-App wird beim Build mit einem eingebetteten Manifest (requestedExecutionLevel=requireAdministrator) erstellt.
+- Damit kann die Tray-App Dienste lokal zuverlässig starten/stoppen.
+- Das Verhalten wird durch das Setup sichergestellt, da genau diese kompilierte EXE installiert wird.
+
 ### Installationstypen
 
 | Typ | PostgreSQL | Service | Firewall |
