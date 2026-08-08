@@ -5,12 +5,16 @@ const {
   addSectionTitleMock,
   addPDFHeaderFooterMock,
   autoTableMock,
-  jsPdfSaveMock
+  jsPdfSaveMock,
+  resolveEventForPDFHeaderMock,
+  mockUseEvent
 } = vi.hoisted(() => ({
   addSectionTitleMock: vi.fn(),
   addPDFHeaderFooterMock: vi.fn(),
   autoTableMock: vi.fn(),
-  jsPdfSaveMock: vi.fn()
+  jsPdfSaveMock: vi.fn(),
+  resolveEventForPDFHeaderMock: vi.fn(),
+  mockUseEvent: vi.fn()
 }));
 
 const createMockDoc = () => ({
@@ -84,7 +88,11 @@ vi.mock('@/utils/disciplineIcons', () => ({
 }));
 
 vi.mock('@/contexts/EventContext', () => ({
-  useEvent: () => ({ selectedEvent: null })
+  useEvent: () => mockUseEvent()
+}));
+
+vi.mock('@/utils/pdfEventResolver', () => ({
+  resolveEventForPDFHeader: resolveEventForPDFHeaderMock
 }));
 
 vi.mock('react-i18next', () => ({
@@ -98,12 +106,19 @@ describe('useExport GymNet XML', () => {
   const originalRevokeObjectURL = window.URL.revokeObjectURL;
 
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     addSectionTitleMock.mockClear();
     addPDFHeaderFooterMock.mockClear();
     autoTableMock.mockClear();
     jsPdfSaveMock.mockClear();
+    resolveEventForPDFHeaderMock.mockClear();
     currentDoc = createMockDoc();
+
+    mockUseEvent.mockReturnValue({
+      selectedEvent: null
+    });
+
+    resolveEventForPDFHeaderMock.mockResolvedValue(null);
 
     if (typeof window.URL.createObjectURL !== 'function') {
       Object.defineProperty(window.URL, 'createObjectURL', {
@@ -290,5 +305,78 @@ describe('useExport GymNet XML', () => {
     );
 
     expect(competitionName).toBe('AK 10 weiblich (Nr. 7)');
+  });
+
+  it('uses resolved event location for PDF headers in all-competitions export', async () => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+
+    mockUseEvent.mockReturnValue({
+      selectedEvent: {
+        int_eventid: 59,
+        var_eventname: 'Test Event Cached',
+        dat_eventstartdate: '2025-01-01',
+        dat_eventenddate: '2025-01-02',
+        var_location: 'Muster-Sporthalle',
+        status: 'active'
+      }
+    });
+
+    resolveEventForPDFHeaderMock.mockResolvedValue({
+      int_eventid: 59,
+      var_eventname: 'Test Event Cached',
+      dat_eventstartdate: '2025-01-01',
+      dat_eventenddate: '2025-01-02',
+      var_location: 'Richtige Halle',
+      status: 'active'
+    });
+
+    const { result } = renderHook(() =>
+      useExport({
+        eventId: '59',
+        eventName: 'Test Event Cached',
+        selectedCompetition: null,
+        ranking: [],
+        competitionGroups: [
+          {
+            competitionId: 7,
+            competitionName: 'WK 7',
+            participants: [
+              {
+                id: 1,
+                name: 'Anna Test',
+                club: 'TV Test',
+                startNumber: 11,
+                age: 12,
+                gender: 'weiblich',
+                scores: {},
+                juryResults: {},
+                formulas: {},
+                totalScore: 38.25,
+                rank: 1
+              }
+            ],
+            disciplines: [],
+            disciplineInfo: []
+          }
+        ],
+        disciplines: [],
+        disciplineFormulas: {},
+        selectedCompetitionDisciplineInfo: [],
+        formatScore: (score: number) => score.toFixed(3)
+      })
+    );
+
+    result.current.exportResultsPDF();
+
+    await vi.waitFor(() => {
+      expect(resolveEventForPDFHeaderMock).toHaveBeenCalled();
+      expect(addPDFHeaderFooterMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: expect.objectContaining({
+            var_location: 'Richtige Halle'
+          })
+        })
+      );
+    });
   });
 });

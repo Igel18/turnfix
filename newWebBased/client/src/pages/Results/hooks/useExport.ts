@@ -21,6 +21,7 @@ import {
   addSectionTitle,
   drawRankingBadge
 } from '@/utils/pdfUtils'
+import { resolveEventForPDFHeader } from '@/utils/pdfEventResolver'
 import {
   pdfColors,
   applyTableHeaderStyle,
@@ -196,6 +197,9 @@ export const useExport = ({
     const pageFormat = doc.internal.pageSize
     const pageWidth = pageFormat.width
     const pageHeight = pageFormat.height
+    const eventForPDF = await resolveEventForPDFHeader(selectedEvent, {
+      var_eventname: eventName
+    })
 
     const headerMeta = buildDisciplineHeaderMeta(
       disciplines,
@@ -395,7 +399,7 @@ export const useExport = ({
       doc.setPage(i)
       addPDFHeaderFooter({
         doc,
-        event: selectedEvent,
+        event: eventForPDF,
         documentTitle: `Competition Results - ${competitionName}`,
         pageWidth,
         pageHeight
@@ -403,7 +407,7 @@ export const useExport = ({
     }
 
     doc.save(`results_${competitionName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
-  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, t])
+  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, eventName, t])
 
   /**
    * Export all competitions to PDF
@@ -415,6 +419,9 @@ export const useExport = ({
     const pageFormat = doc.internal.pageSize
     const pageWidth = pageFormat.width
     const pageHeight = pageFormat.height
+    const eventForPDF = await resolveEventForPDFHeader(selectedEvent, {
+      var_eventname: eventName
+    })
 
     let currentY = 60
 
@@ -637,7 +644,7 @@ export const useExport = ({
       doc.setPage(i)
       addPDFHeaderFooter({
         doc,
-        event: selectedEvent,
+        event: eventForPDF,
         documentTitle: 'Competition Results - All Competitions',
         pageWidth,
         pageHeight

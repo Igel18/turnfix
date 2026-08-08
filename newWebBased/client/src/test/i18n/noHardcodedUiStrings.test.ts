@@ -28,7 +28,7 @@ const UI_DIRS = [
 ];
 const BASELINE_FILE = path.join(__dirname, 'noHardcodedUiStrings.baseline.json');
 
-const TRANSLATION_KEY_RE = /^[a-z][a-z0-9]*(\.[a-z0-9_]+)+$/;
+const TRANSLATION_KEY_RE = /^[a-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$/;
 const URL_RE = /^(https?:\/\/|\/api\/|\/|mailto:)/i;
 const FILE_EXT_RE = /\.(png|jpg|jpeg|svg|gif|webp|pdf|json|xml|csv)$/i;
 const TECH_TOKEN_RE = /^[A-Z0-9_\-:/.]+$/;
@@ -80,6 +80,7 @@ const IGNORE_JSX_ATTRIBUTES = new Set([
   'data-testid',
   'data-slot',
   'aria-hidden',
+  'viewStorageKey',
 ]);
 
 const UI_PROPERTY_NAMES = new Set([
@@ -223,7 +224,7 @@ function collectViolationsForFile(filePath: string): Violation[] {
       const text = node.text;
       if (isHumanString(text)) {
         const parent = node.parent;
-        if (!ts.isJsxAttribute(parent)) {
+        if (!ts.isJsxAttribute(parent) || !IGNORE_JSX_ATTRIBUTES.has(parent.name.text)) {
           violations.push(getViolation(relFile, sourceFile, node, 'jsx-expr-string', text));
         }
       }

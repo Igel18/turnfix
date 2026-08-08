@@ -270,7 +270,7 @@ b) Es müssen Tests hierfür geschrieben werden
 c) Es müssen alle standard komponenten verwendet werden (utils) 
 
 177. [Bug] In der UI clubs und persons beim erstellen eines Vereins ist der Dialog nicht lokalisiert
--> 🚀 In Arbeit
+-> Erledigt ✅
 
 178. Bereinigung: 
 Aktuell ist der komplette C++ Code von alten Turnfix noch mit im Ordner. Den können wir jetzt doch eigentlich löschen. Gründe: 
@@ -280,6 +280,26 @@ c.) wir haben seit einiger Zeit nichts mehr nachschauen müssen
 d.) in GitHub alle Issues und Stories für TurnFix löschen, da dann obsolet. 
 
 179. [Bug] Im Medallienspiegel und der Siegerliste steht im Header immer "Muster-Sporthalle" obwohl die korrekte Location am Event hinterlegt ist. Das müsste ja eine Util klasse sein und kann für alle listen behoben werden. TDD. 
+-> Erledigt ✅
+
+180. [Feature] Wir haben in der UI verschiedene Exports (CSV, PDF, Ergebnisse, Urkunden, Medallienspiegel, XML Ergebnisse, usw.) 
+Das ist in der UI nich immer klar, was hier passiert bei dem Button & jede UI sieht anders aus. Mein Vorschlag: 
+a.) jede UI hat nur einen Button "Export" 
+b.) mit dem Button Export öffnet sich ein "Wizard" 
+c.) in dem Wizard kann man jetzt den Dateityp (CSV, PDF, XML) wählen (ggf. auf mehrere)
+d.) in dem Wizard kann man noch diverse weitere spezielle eigenschaften auswählen (wie z.B. die GymNet XML vom import)
+e.) in dem Wizard kann man noch den ablageort definieren 
+g.) in dem Wizard kann man neben dem Dateityp auch noch Exporttyp auswählen (Urkunde, Siegerliste, Etiketten) vielleicht auch kombiniert mit dem Dateityp. Der Exporttyp ist natürlich immer abhängig von der aktuellen Seite, bzw. sind alle anderen Typen per default ausgeblendet. 
+h.) Das soll natürlich wiederverwendbar implemnentiert sein
+i.) Tests müssen vorhanden sein 
+j.) Falls ein Filter aktiv ist, wirkt sich das auf den Export aus, wie bisher (und sollte auch angezeigt werden)
+k.) wenn es in einer UI nur einen Export gibt, dann brauchen wir eigentlich keinen Wizard öffnen, oder? (z.B. event-management)
+l.) fehltnoch was? macht das sinn? 
+
+181. [Feature] Gerätewertung 
+Es muss bei in der Anzeige der Ergebnisse eine Gerätewertung verfügbar sein. Und zwar muss je Wettkampf die Person mit der größten Punktzahl der Gerätesieger in dem Wettkampf sein. Dies soll direkt an der Wertung mittels einer goldenen 1 (gleiches Icon wie sonst auch verwendet) gekennzeichnet werden. Auch der 2. und 3. Platz soll dementsprechen gekennzeichnet sein. 
+
+182. [improvement] statt der client/src/test/i18n/noNardcodedUiStrings.baseline.json wäre es besser die UI Texte zu lokalisieren. Dann kann die baseline datei gelöscht werden. 
 
 🚀 In Arbeit (unvollständig)
 #	Titel
