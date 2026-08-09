@@ -28,6 +28,7 @@ export function useManagementStatistics(): Statistics {
         if (participantsRes.ok) { try { participants = await participantsRes.json() } catch { /* noop */ } }
 
         const additionalApis = [
+          '/countries/count',
           '/regions/count',
           '/associations/count',
           '/disciplines/count',
@@ -48,7 +49,7 @@ export function useManagementStatistics(): Statistics {
         )
 
         const [
-          regionsData, associationsData, disciplinesData, venuesData,
+          countriesData, regionsData, associationsData, disciplinesData, venuesData,
           personsData, sportsData, formulasData, disciplineGroupsData,
           disciplineFieldsData, layoutsData, statusesData, areasCountData, documentsCountData,
         ] = additionalResults
@@ -57,6 +58,7 @@ export function useManagementStatistics(): Statistics {
           activeEvents:           events.pagination?.total        || 0,
           registeredClubs:        clubs.pagination?.total         || 0,
           totalAthletes:          participants.pagination?.total  || 0,
+          totalCountries:         countriesData?.count            || 0,
           totalAreas:             areasCountData?.count           || 0,
           totalRegions:           regionsData?.count              || 0,
           totalAssociations:      associationsData?.count         || 0,

@@ -13,6 +13,7 @@
     "manageDisciplines": "Disziplinen verwalten",
     "clubs": "Vereine",
     "participants": "Teilnehmer",
+    "countries": "Länder",
     "regions": "Regionen",
     "associations": "Verbände",
     "areas": "Bereiche",
@@ -28,6 +29,10 @@
       "regions": {
         "title": "Gebiete verwalten",
         "description": "Turngebiete und Bezirke verwalten"
+      },
+      "countries": {
+        "title": "Länder verwalten",
+        "description": "Länder für die Verbands-Stammdaten verwalten"
       },
       "associations": {
         "title": "Verbände verwalten",
@@ -1966,6 +1971,38 @@
       "deleteError": "Fehler beim Löschen der Region",
       "loadError": "Fehler beim Laden der Regionen",
       "confirmDelete": "Sind Sie sicher, dass Sie die Region \"{{name}}\" löschen möchten?"
+    }
+  },
+  "countries": {
+    "title": "Länderverwaltung",
+    "subtitle": "Länder für Verbände und Vereine verwalten",
+    "subtitleCount": "{{count}} Länder geladen",
+    "searchPlaceholder": "Länder suchen...",
+    "addCountry": "Land hinzufügen",
+    "editCountry": "Land bearbeiten",
+    "addNewCountry": "Neues Land hinzufügen",
+    "deleteCountry": "Land löschen",
+    "noCountries": "Keine Länder gefunden",
+    "loadingCountries": "Lade Länder...",
+    "table": {
+      "name": "Ländername",
+      "abbreviation": "Kürzel",
+      "actions": "Aktionen"
+    },
+    "filter": {
+      "abbreviation": "Kürzel"
+    },
+    "form": {
+      "name": "Ländername",
+      "namePlaceholder": "Ländername eingeben",
+      "abbreviation": "Kürzel",
+      "abbreviationPlaceholder": "Kürzel eingeben"
+    },
+    "messages": {
+      "loadError": "Fehler beim Laden der Länder",
+      "saveError": "Fehler beim Speichern des Landes",
+      "deleteError": "Fehler beim Löschen des Landes",
+      "confirmDelete": "Soll das Land \"{{name}}\" wirklich gelöscht werden?"
     }
   },
   "associations": {

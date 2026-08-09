@@ -12,6 +12,7 @@ import {
   ClipboardDocumentCheckIcon,
   ChartBarIcon,
   MapIcon,
+  GlobeEuropeAfricaIcon,
   BuildingLibraryIcon,
   CogIcon,
   DocumentTextIcon,
@@ -42,6 +43,7 @@ export interface Statistics {
   activeEvents: number
   registeredClubs: number
   totalAthletes: number
+  totalCountries: number
   totalAreas: number
   totalRegions: number
   totalAssociations: number
@@ -62,6 +64,7 @@ export const INITIAL_STATISTICS: Statistics = {
   activeEvents: 0,
   registeredClubs: 0,
   totalAthletes: 0,
+  totalCountries: 0,
   totalAreas: 0,
   totalRegions: 0,
   totalAssociations: 0,
@@ -79,6 +82,7 @@ export const INITIAL_STATISTICS: Statistics = {
 }
 
 export const getDatabaseManagementActions = (statistics: Statistics): DbActionItem[] => [
+  { name: 'Manage Countries', description: 'Manage countries used for associations', href: '/countries', icon: GlobeEuropeAfricaIcon, color: 'bg-cyan-600', count: statistics.totalCountries, countLabel: 'Countries' },
   { name: 'Manage Associations', description: 'Manage gymnastics associations and federations', href: '/associations', icon: BuildingLibraryIcon, color: 'bg-teal-500', count: statistics.totalAssociations, countLabel: 'Associations' },
   { name: 'Manage Regions', description: 'Manage gymnastics regions and districts', href: '/regions', icon: MapIcon, color: 'bg-indigo-500', count: statistics.totalRegions, countLabel: 'Regions' },
   { name: 'Manage Clubs', description: 'Add and edit gymnastics clubs', href: '/clubs', icon: BuildingOfficeIcon, color: 'bg-green-500', count: statistics.registeredClubs, countLabel: 'Clubs' },

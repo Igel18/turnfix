@@ -6,6 +6,7 @@ import {
   HomeIcon,
   CalendarDaysIcon,
   BuildingOfficeIcon,
+  GlobeEuropeAfricaIcon,
   UserGroupIcon,
   TrophyIcon,
   ClipboardDocumentListIcon,
@@ -33,6 +34,7 @@ const databaseMenuItems = [
   { name: 'Clubs', href: '/clubs', icon: BuildingOfficeIcon },
   { name: 'Participants', href: '/participants', icon: UserGroupIcon },
   { name: 'Regions', href: '/regions', icon: HomeIcon },
+  { name: 'navigation.countries', href: '/countries', icon: GlobeEuropeAfricaIcon },
   { name: 'Associations', href: '/associations', icon: BuildingOfficeIcon },
   { name: 'Areas', href: '/areas', icon: HomeIcon },
 ]
@@ -69,10 +71,15 @@ export function Layout() {
       'Clubs': 'navigation.clubs',
       'Participants': 'navigation.participants',
       'Regions': 'navigation.regions',
+      'navigation.countries': 'navigation.countries',
       'Associations': 'navigation.associations',
       'Areas': 'navigation.areas'
     }
     
+    if (name.startsWith('navigation.')) {
+      return t(name)
+    }
+
     return menuTranslationMap[name] ? t(menuTranslationMap[name]) : name
   }
 

@@ -268,6 +268,7 @@ Wenn man hier jetzt auf eine Zelle klickt (entweder in der Matrix-> Verein/Wettk
 a) Es muss nach dem UI-Standard eine UI erstellt werden, um die Länder zu verwalten (hinzufügen, löschen, filtern, usw.) 
 b) Es müssen Tests hierfür geschrieben werden 
 c) Es müssen alle standard komponenten verwendet werden (utils) 
+-> Erledigt ✅
 
 177. [Bug] In der UI clubs und persons beim erstellen eines Vereins ist der Dialog nicht lokalisiert
 -> Erledigt ✅

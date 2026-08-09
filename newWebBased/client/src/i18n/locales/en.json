@@ -13,6 +13,7 @@
     "manageDisciplines": "Manage Disciplines",
     "clubs": "Clubs",
     "participants": "Participants",
+    "countries": "Countries",
     "regions": "Regions",
     "associations": "Associations",
     "areas": "Areas",
@@ -28,6 +29,10 @@
       "regions": {
         "title": "Manage Regions",
         "description": "Manage gymnastics regions and districts"
+      },
+      "countries": {
+        "title": "Manage Countries",
+        "description": "Manage countries used for association master data"
       },
       "associations": {
         "title": "Manage Associations", 
@@ -1933,6 +1938,38 @@
       "deleteError": "Error deleting region",
       "loadError": "Error loading regions",
       "confirmDelete": "Are you sure you want to delete the region \"{{name}}\"?"
+    }
+  },
+  "countries": {
+    "title": "Country Management",
+    "subtitle": "Manage countries used by associations and clubs",
+    "subtitleCount": "{{count}} countries loaded",
+    "searchPlaceholder": "Search countries...",
+    "addCountry": "Add Country",
+    "editCountry": "Edit Country",
+    "addNewCountry": "Add New Country",
+    "deleteCountry": "Delete Country",
+    "noCountries": "No countries found",
+    "loadingCountries": "Loading countries...",
+    "table": {
+      "name": "Country Name",
+      "abbreviation": "Abbreviation",
+      "actions": "Actions"
+    },
+    "filter": {
+      "abbreviation": "Abbreviation"
+    },
+    "form": {
+      "name": "Country Name",
+      "namePlaceholder": "Enter country name",
+      "abbreviation": "Abbreviation",
+      "abbreviationPlaceholder": "Enter abbreviation"
+    },
+    "messages": {
+      "loadError": "Error loading countries",
+      "saveError": "Error saving country",
+      "deleteError": "Error deleting country",
+      "confirmDelete": "Are you sure you want to delete the country \"{{name}}\"?"
     }
   },
   "associations": {
