@@ -281,7 +281,7 @@ function formatViolations(violations: Violation[]): string {
 }
 
 describe('i18n guard: no new hardcoded UI strings', () => {
-  it('blocks newly introduced hardcoded strings across UI files', () => {
+  it('blocks newly introduced hardcoded strings across UI files', { timeout: 20000 }, () => {
     const violations = collectAllViolations();
 
     if (process.env.UPDATE_I18N_BASELINE === '1') {

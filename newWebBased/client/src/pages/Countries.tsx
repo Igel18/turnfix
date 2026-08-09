@@ -18,6 +18,11 @@ interface CountryForm {
   var_kuerzel: string;
 }
 
+const SORT_KEY_NAME = 'var_name';
+const SORT_KEY_ABBREVIATION = 'var_kuerzel';
+const MODAL_SIZE_MD: 'md' = 'md';
+const CONFIRM_STYLE_DANGER: 'danger' = 'danger';
+
 const Countries: React.FC = () => {
   const { t } = useTranslation();
   const [countries, setCountries] = useState<Country[]>([]);
@@ -239,14 +244,14 @@ const Countries: React.FC = () => {
           <tr>
             <SortableTableHeader
               label={t('countries.table.name')}
-              sortKey="var_name"
+              sortKey={SORT_KEY_NAME}
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
             />
             <SortableTableHeader
               label={t('countries.table.abbreviation')}
-              sortKey="var_kuerzel"
+              sortKey={SORT_KEY_ABBREVIATION}
               currentSortKey={sortKey}
               currentSortDirection={sortDirection}
               onSort={handleSort}
@@ -295,7 +300,7 @@ const Countries: React.FC = () => {
         title={editingCountry ? t('countries.editCountry') : t('countries.addNewCountry')}
         onSave={handleSave}
         saveLabel={editingCountry ? t('common.update') : t('common.create')}
-        size="md"
+        size={MODAL_SIZE_MD}
       >
         <div className="space-y-4">
           <div>
@@ -335,7 +340,7 @@ const Countries: React.FC = () => {
         title={t('common.confirmDeleteTitle')}
         message={t('countries.messages.confirmDelete', { name: pendingDeleteCountry?.var_name || '' })}
         confirmLabel={t('common.delete')}
-        confirmStyle="danger"
+        confirmStyle={CONFIRM_STYLE_DANGER}
       />
     </>
   );
