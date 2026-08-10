@@ -161,6 +161,7 @@ eg use WizardModal component for wizard modals.
 
 #### Localization (i18n)
 - **ALL UI text must be localized** (no hardcoded strings)
+- UI text is checked against hardcoded strings in unit test noHardcodedUiStrings.test.ts
 - Use `t('key.path')` from `useTranslation` hook
 - Translation files: `client/src/i18n/locales/{de|en}.json`
 - Gender values: Use German backend values ('männlich', 'weiblich', 'gemischt')

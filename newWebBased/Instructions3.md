@@ -302,6 +302,22 @@ Es muss bei in der Anzeige der Ergebnisse eine Gerätewertung verfügbar sein. U
 
 182. [improvement] statt der client/src/test/i18n/noNardcodedUiStrings.baseline.json wäre es besser die UI Texte zu lokalisieren. Dann kann die baseline datei gelöscht werden. 
 
+183. [improvement] in den Einstellungen sollte es auf der Seite für die Software (mit Versionsinfos usw.) weitere Hinweise zur Software geben, so wie ein Changelog. nur eine Komprimierte version mit Features, Bugfixes, known bugs immer zur Softwareversion. 
+
+184. [improvement/bug] Ergebnisse XML Export. Aktuell funktioniert der XML Export nicht als Wizard. 
+Es öffnet sich ein "File open Dialog" um die GymNet.xml zu öffnen. Danach eine UI, welche die matches anzeigt. Das sollte alles als Wizard passieren. Auch dann der "File save Dialog". 
+Zudem funktioniert das Matching der Namen nicht. 
+Bei dem Report steht dran, dass 
+26 Competitions matched
+0 Participants matched 
+0 Diszipline scores written 
+0 Competitions unmatched
+0 Participants unmatched 
+0 Disziplines unmatched 
+-> Erledigt ✅
+
+185. [improvement] Ergebnisse XML Export. Manche Teilnehmer können nicht gematched werden. Zu diesen müssen noch detaillierte Infos, wenn das möglich ist. 
+
 🚀 In Arbeit (unvollständig)
 #	Titel
 72	PDF Export – Wettkampfnummer bei Teilnehmer- & Riegenlistenexport (Tests fehlen)

@@ -2843,7 +2843,62 @@
     },
     "details": "Score Details",
     "values": "values",
-    "finalScore": "Final Score"
+    "finalScore": "Final Score",
+    "exportWizard": {
+      "openButton": "GymNet XML Wizard",
+      "title": "GymNet XML Export",
+      "titles": {
+        "template": "GymNet XML Export - Select Template",
+        "target": "GymNet XML Export - Define Output File",
+        "execute": "GymNet XML Export - Execute Export",
+        "report": "GymNet XML Export - Match Report"
+      },
+      "steps": {
+        "template": "Template",
+        "target": "Output",
+        "execute": "Export",
+        "report": "Report"
+      },
+      "help": {
+        "template": "Select the original GymNet XML file as template. TurnFix fills this file with available scores.",
+        "target": "Define the output file name for the generated GymNet XML export.",
+        "execute": "Review your selection and start export. The file download starts automatically when finished."
+      },
+      "templateInputLabel": "GymNet template XML",
+      "selectedTemplate": "Selected template",
+      "outputFileNameLabel": "Output file name",
+      "outputFileNamePlaceholder": "e.g. gymnet_results_event.xml",
+      "outputFileNameHint": "Tip: You can choose any file name. .xml is appended automatically if missing.",
+      "summary": {
+        "event": "Event",
+        "competition": "Competition",
+        "template": "Template",
+        "output": "Output file"
+      },
+      "actions": {
+        "startExport": "Start export",
+        "exporting": "Exporting...",
+        "executeHint": "Use \"Start export\" to execute the XML merge."
+      },
+      "errors": {
+        "templateRequired": "Please select a GymNet XML template file.",
+        "outputFileNameRequired": "Please provide an output file name.",
+        "exportFailed": "GymNet XML export failed."
+      }
+    },
+    "matchReport": {
+      "competitionsMatched": "Competitions matched",
+      "participantsMatched": "Participants matched",
+      "disciplineScoresWritten": "Discipline scores written",
+      "competitionsUnmatched": "Competitions unmatched",
+      "participantsUnmatched": "Participants unmatched",
+      "disciplinesUnmatched": "Disciplines unmatched",
+      "unmatchedCompetitions": "Unmatched competitions",
+      "unmatchedParticipants": "Unmatched participants",
+      "unmatchedDisciplines": "Unmatched disciplines",
+      "none": "None",
+      "noReport": "No match report returned by server."
+    }
   },
   "medallienspiegel": {
     "title": "Medal Standings",

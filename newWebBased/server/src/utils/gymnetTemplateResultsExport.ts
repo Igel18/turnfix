@@ -1,6 +1,7 @@
 import { Builder } from 'xml2js';
 import { parseXmlAsync } from './gymnetXmlParser';
 import type { GymNetExportCompetition, GymNetExportParticipant } from './gymnetXmlExport';
+import { wedDisNrToTurnFixId } from './gymnetMapping';
 
 interface MergeStats {
   competitionsMatched: number;
@@ -30,7 +31,23 @@ function toArray<T>(value: T | T[] | null | undefined): T[] {
 function normalizeText(value: unknown): string {
   return String(value || '')
     .toLowerCase()
-    .replace(/\./g, '')
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[.'`]/g, '')
+    .replace(/[\-_/]/g, ' ')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeNameForComparison(value: unknown): string {
+  return normalizeText(value)
+    .replace(/\bstu\b/g, 'stufen')
+    .replace(/\bstuba\b/g, 'stufenbarren')
+    .replace(/\bsch\b/g, 'schwebe')
+    .replace(/\bp\b/g, 'pauschen')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -77,11 +94,14 @@ function findCompetitionNode(parsed: any): any[] {
 
 function findParticipantMatch(
   candidates: GymNetExportParticipant[],
-  templateParticipant: any
+  templateParticipant: any,
+  templateClubOverride?: string
 ): GymNetExportParticipant | null {
   const templateLastName = normalizeText(templateParticipant?.perName);
   const templateFirstName = normalizeText(templateParticipant?.perVorname);
-  const templateClub = normalizeText(templateParticipant?.verKurzname || templateParticipant?.verName);
+  const templateClub = normalizeText(
+    templateClubOverride || templateParticipant?.verKurzname || templateParticipant?.verName
+  );
   const templateBirthDate = normalizeDateKey(templateParticipant?.perGeburt);
 
   const nameMatches = candidates.filter(candidate =>
@@ -124,6 +144,101 @@ function findParticipantMatch(
   }
 
   return nameMatches[0];
+}
+
+interface TemplateParticipantEntry {
+  participantNode: any;
+  disciplineNodes: any[];
+  clubName: string;
+}
+
+function extractTemplateCompetitionEntries(competitionNode: any): TemplateParticipantEntry[] {
+  const entries: TemplateParticipantEntry[] = [];
+
+  // Pattern A: direct participant list at competition level.
+  const directParticipants = toArray(competitionNode?.Teilnehmer?.TN);
+  const directDisciplines = toArray(competitionNode?.Disziplinen?.Disziplin);
+
+  directParticipants.forEach((participantNode) => {
+    const participantDisciplines = toArray(participantNode?.Disziplinen?.Disziplin);
+    entries.push({
+      participantNode,
+      disciplineNodes: participantDisciplines.length > 0 ? participantDisciplines : directDisciplines,
+      clubName: String(participantNode?.verKurzname || participantNode?.verName || ''),
+    });
+  });
+
+  // Pattern B: participants nested below team nodes (Mannschaften/Mannschaft).
+  const teamNodes = toArray(competitionNode?.Mannschaften?.Mannschaft);
+  teamNodes.forEach((teamNode) => {
+    const teamParticipants = toArray(teamNode?.Teilnehmer?.TN);
+    const teamDisciplines = toArray(teamNode?.Disziplinen?.Disziplin);
+    const teamClubName = String(teamNode?.verKurzname || teamNode?.verName || '');
+
+    teamParticipants.forEach((participantNode) => {
+      const participantDisciplines = toArray(participantNode?.Disziplinen?.Disziplin);
+      entries.push({
+        participantNode,
+        disciplineNodes: participantDisciplines.length > 0 ? participantDisciplines : teamDisciplines,
+        clubName: teamClubName,
+      });
+    });
+  });
+
+  return entries;
+}
+
+function findDisciplineMatch(
+  participant: GymNetExportParticipant,
+  templateDisciplineNode: any
+): GymNetExportParticipant['disciplines'][number] | null {
+  const wedDisNrRaw = templateDisciplineNode?.wedDisNr;
+  const wedDisIdRaw = templateDisciplineNode?.wedDisID;
+  const mappedDisciplineId = wedDisNrToTurnFixId(wedDisNrRaw, {
+    wedDisId: wedDisIdRaw,
+    wedDisName: templateDisciplineNode?.wedDisName,
+  });
+
+  if (mappedDisciplineId !== null) {
+    const byMappedId = participant.disciplines.find((discipline) => discipline.disciplineId === mappedDisciplineId);
+    if (byMappedId) {
+      return byMappedId;
+    }
+  }
+
+  const templateByName = normalizeNameForComparison(templateDisciplineNode?.wedDisName);
+  if (templateByName) {
+    const byExactName = participant.disciplines.find((discipline) =>
+      normalizeNameForComparison(discipline.name) === templateByName
+    );
+    if (byExactName) {
+      return byExactName;
+    }
+
+    const templatePrefix = templateByName.split(' ')[0] || templateByName;
+    const byPrefix = participant.disciplines.find((discipline) => {
+      const candidate = normalizeNameForComparison(discipline.name);
+      const candidatePrefix = candidate.split(' ')[0] || candidate;
+      return candidate.startsWith(templatePrefix) || templateByName.startsWith(candidatePrefix);
+    });
+
+    if (byPrefix) {
+      return byPrefix;
+    }
+  }
+
+  const positionRaw = String(templateDisciplineNode?.wtdPosition || '').trim();
+  if (positionRaw) {
+    const position = parseInt(positionRaw, 10);
+    if (!Number.isNaN(position)) {
+      const byPosition = participant.disciplines.find((discipline) => discipline.position === position);
+      if (byPosition) {
+        return byPosition;
+      }
+    }
+  }
+
+  return null;
 }
 
 function findCompetitionMatch(
@@ -187,9 +302,9 @@ export async function mergeGymNetTemplateWithResults(
 
     stats.competitionsMatched += 1;
 
-    const participantNodes = toArray(competitionNode?.Teilnehmer?.TN);
-    participantNodes.forEach((participantNode) => {
-      const matchedParticipant = findParticipantMatch(matchedCompetition.participants, participantNode);
+    const participantEntries = extractTemplateCompetitionEntries(competitionNode);
+    participantEntries.forEach(({ participantNode, disciplineNodes, clubName }) => {
+      const matchedParticipant = findParticipantMatch(matchedCompetition.participants, participantNode, clubName);
       if (!matchedParticipant) {
         const participantLabel = `${String(participantNode?.perVorname || '').trim()} ${String(participantNode?.perName || '').trim()}`.trim();
         const competitionLabel = String(competitionNode?.waNr || competitionNode?.waBezeichnung || competitionNode?.waName || 'Unknown competition');
@@ -199,16 +314,13 @@ export async function mergeGymNetTemplateWithResults(
 
       stats.participantsMatched += 1;
 
-      const disciplineNodes = toArray(participantNode?.Disziplinen?.Disziplin);
       disciplineNodes.forEach((disciplineNode) => {
-        const templateDisciplineName = normalizeText(disciplineNode?.wedDisName || disciplineNode?.wedDisNr);
-        if (!templateDisciplineName) {
+        const hasTemplateDiscipline = normalizeText(disciplineNode?.wedDisName || disciplineNode?.wedDisNr);
+        if (!hasTemplateDiscipline) {
           return;
         }
 
-        const matchedDiscipline = matchedParticipant.disciplines.find(discipline =>
-          normalizeText(discipline.name) === templateDisciplineName
-        );
+        const matchedDiscipline = findDisciplineMatch(matchedParticipant, disciplineNode);
 
         if (!matchedDiscipline) {
           const disciplineLabel = String(disciplineNode?.wedDisName || disciplineNode?.wedDisNr || 'Unknown discipline');

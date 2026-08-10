@@ -3,7 +3,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Results from '@/pages/Results';
 
 const exportResultsGymNetXMLMock = vi.fn().mockResolvedValue(undefined);
-const originalCreateElement = document.createElement.bind(document);
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
@@ -81,45 +80,22 @@ vi.mock('@/pages/Results/hooks', () => ({
 vi.mock('@/pages/Results/components', () => ({
   ResultsTable: () => <div data-testid="results-table" />,
   ResultsFilters: () => <div data-testid="results-filters" />,
-  CertificateDialog: () => null
+  CertificateDialog: () => null,
+  ResultsGymNetExportWizard: ({ isOpen }: { isOpen: boolean }) => (
+    <div data-testid="results-export-wizard">{isOpen ? 'open' : 'closed'}</div>
+  )
 }));
 
 describe('Results XML export action', () => {
-  it('renders XML export button and triggers GymNet XML export handler', async () => {
-    const xmlTemplateFile = new File(['<Wettkämpfe />'], 'template.xml', {
-      type: 'application/xml'
-    });
-
-    vi.spyOn(document, 'createElement').mockImplementation((tagName: string): any => {
-      if (tagName.toLowerCase() === 'input') {
-        return {
-          type: '',
-          accept: '',
-          files: [xmlTemplateFile],
-          onchange: null,
-          click: function (this: any) {
-            this.onchange?.(new Event('change'));
-          }
-        } as HTMLInputElement;
-      }
-
-      if (tagName.toLowerCase() === 'a') {
-        return {
-          href: '',
-          download: '',
-          click: vi.fn()
-        } as HTMLAnchorElement;
-      }
-
-      return originalCreateElement(tagName);
-    });
-
+  it('renders XML export button and opens GymNet export wizard', async () => {
     render(<Results />);
 
-    const xmlButton = screen.getByRole('button', { name: 'XML Export' });
+    const xmlButton = screen.getByRole('button', { name: 'results.exportWizard.openButton' });
     expect(xmlButton).toBeInTheDocument();
+    expect(screen.getByTestId('results-export-wizard')).toHaveTextContent('closed');
 
     fireEvent.click(xmlButton);
-    await waitFor(() => expect(exportResultsGymNetXMLMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByTestId('results-export-wizard')).toHaveTextContent('open'));
+    expect(exportResultsGymNetXMLMock).not.toHaveBeenCalled();
   });
 });

@@ -672,7 +672,10 @@ export const useExport = ({
   /**
    * Export GymNet XML for current event/competition
    */
-  const exportResultsGymNetXML = useCallback(async (templateFile?: File): Promise<GymNetMatchReport | null> => {
+  const exportResultsGymNetXML = useCallback(async (
+    templateFile?: File,
+    outputFileName?: string
+  ): Promise<GymNetMatchReport | null> => {
     if (!eventId) return null
 
     let response: Response
@@ -718,7 +721,8 @@ export const useExport = ({
       ?.match(/filename="?([^";]+)"?/i)?.[1]
 
     const fallbackName = `gymnet_results_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xml`
-    const fileName = headerFileName || fallbackName
+    const normalizedOutputFileName = outputFileName?.trim()
+    const fileName = normalizedOutputFileName || headerFileName || fallbackName
 
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')

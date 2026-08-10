@@ -2877,7 +2877,62 @@
     },
     "details": "Einzelwertungen",
     "values": "Werte",
-    "finalScore": "Endwert"
+    "finalScore": "Endwert",
+    "exportWizard": {
+      "openButton": "GymNet XML Assistent",
+      "title": "GymNet XML Export",
+      "titles": {
+        "template": "GymNet XML Export - Vorlage auswählen",
+        "target": "GymNet XML Export - Zieldatei festlegen",
+        "execute": "GymNet XML Export - Export ausführen",
+        "report": "GymNet XML Export - Matching-Bericht"
+      },
+      "steps": {
+        "template": "Vorlage",
+        "target": "Ziel",
+        "execute": "Export",
+        "report": "Bericht"
+      },
+      "help": {
+        "template": "Wählen Sie die originale GymNet-XML-Datei als Vorlage. TurnFix füllt diese Datei mit den verfügbaren Ergebnissen.",
+        "target": "Legen Sie den Dateinamen für die erzeugte GymNet-XML-Ausgabedatei fest.",
+        "execute": "Prüfen Sie Ihre Auswahl und starten Sie den Export. Der Dateidownload startet nach Abschluss automatisch."
+      },
+      "templateInputLabel": "GymNet Vorlage (XML)",
+      "selectedTemplate": "Ausgewählte Vorlage",
+      "outputFileNameLabel": "Ausgabe-Dateiname",
+      "outputFileNamePlaceholder": "z.B. gymnet_ergebnisse_veranstaltung.xml",
+      "outputFileNameHint": "Tipp: Sie können jeden Dateinamen verwenden. .xml wird bei Bedarf automatisch ergänzt.",
+      "summary": {
+        "event": "Veranstaltung",
+        "competition": "Wettkampf",
+        "template": "Vorlage",
+        "output": "Ausgabedatei"
+      },
+      "actions": {
+        "startExport": "Export starten",
+        "exporting": "Export läuft...",
+        "executeHint": "Verwenden Sie \"Export starten\", um das XML-Merging auszuführen."
+      },
+      "errors": {
+        "templateRequired": "Bitte wählen Sie eine GymNet-XML-Vorlage aus.",
+        "outputFileNameRequired": "Bitte geben Sie einen Ausgabe-Dateinamen an.",
+        "exportFailed": "GymNet XML Export fehlgeschlagen."
+      }
+    },
+    "matchReport": {
+      "competitionsMatched": "Gematchte Wettkämpfe",
+      "participantsMatched": "Gematchte Teilnehmende",
+      "disciplineScoresWritten": "Geschriebene Disziplin-Wertungen",
+      "competitionsUnmatched": "Nicht gematchte Wettkämpfe",
+      "participantsUnmatched": "Nicht gematchte Teilnehmende",
+      "disciplinesUnmatched": "Nicht gematchte Disziplinen",
+      "unmatchedCompetitions": "Nicht gematchte Wettkämpfe",
+      "unmatchedParticipants": "Nicht gematchte Teilnehmende",
+      "unmatchedDisciplines": "Nicht gematchte Disziplinen",
+      "none": "Keine",
+      "noReport": "Vom Server wurde kein Matching-Bericht zurückgegeben."
+    }
   },
   "medallienspiegel": {
     "title": "Medallienspiegel",
