@@ -27,7 +27,7 @@
   "author": "Dominik Prudlo",
   "license": "AGPL-3.0",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^9.2.1"
   },
   "dependencies": {
     "form-data": "^4.0.4",
