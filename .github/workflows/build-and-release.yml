@@ -190,7 +190,7 @@ jobs:
         cp newWebBased/GETTING_STARTED.md artifacts/
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: turnfix-web-build-${{ matrix.node-version }}
         path: artifacts/
@@ -348,7 +348,7 @@ jobs:
         Compress-Archive -Path "setup-package/*" -DestinationPath "turnfix-web-setup-windows.zip"
 
     - name: Upload Windows package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: turnfix-web-windows-setup
         path: turnfix-web-setup-windows.zip
@@ -535,7 +535,7 @@ jobs:
   #       docker save turnfix-web:latest > turnfix-web-docker.tar
 
   #   - name: Upload Docker image
-  #     uses: actions/upload-artifact@v4
+  #     uses: actions/upload-artifact@v5
   #     with:
   #       name: turnfix-web-docker
   #       path: turnfix-web-docker.tar
