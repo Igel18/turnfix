@@ -671,6 +671,7 @@
     "import": "Import",
     "close": "Close",
     "back": "Back",
+    "next": "Next",
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
@@ -2845,21 +2846,39 @@
     "values": "values",
     "finalScore": "Final Score",
     "exportWizard": {
-      "openButton": "GymNet XML Wizard",
+      "openButton": "Export",
       "title": "GymNet XML Export",
+      "exportTypes": {
+        "csv": "CSV",
+        "pdf": "PDF",
+        "certificates": "Certificates PDF",
+        "xml": "XML"
+      },
+      "exportTypeHelp": {
+        "csv": "Export results as a CSV file.",
+        "pdf": "Export results as a PDF file.",
+        "certificates": "Generate a certificates PDF through the existing layout dialog.",
+        "xml": "Generate GymNet XML from a template file."
+      },
       "titles": {
+        "type": "Select export type",
+        "certificates": "Certificates PDF - Settings",
         "template": "GymNet XML Export - Select Template",
         "target": "GymNet XML Export - Define Output File",
         "execute": "GymNet XML Export - Execute Export",
         "report": "GymNet XML Export - Match Report"
       },
       "steps": {
+        "type": "Type",
+        "certificates": "Certificates",
         "template": "Template",
         "target": "Output",
         "execute": "Export",
         "report": "Report"
       },
       "help": {
+        "type": "Choose the export format you want to use first.",
+        "certificates": "Configure layout and options for the certificates PDF directly in the wizard.",
         "template": "Select the original GymNet XML file as template. TurnFix fills this file with available scores.",
         "target": "Define the output file name for the generated GymNet XML export.",
         "execute": "Review your selection and start export. The file download starts automatically when finished."
@@ -2870,8 +2889,11 @@
       "outputFileNamePlaceholder": "e.g. gymnet_results_event.xml",
       "outputFileNameHint": "Tip: You can choose any file name. .xml is appended automatically if missing.",
       "summary": {
+        "exportType": "Export type",
         "event": "Event",
         "competition": "Competition",
+        "certificates": "Certificates PDF",
+        "certificatesHint": "The existing certificate dialog will open.",
         "template": "Template",
         "output": "Output file"
       },
@@ -2881,6 +2903,8 @@
         "executeHint": "Use \"Start export\" to execute the XML merge."
       },
       "errors": {
+        "exportTypeRequired": "Please choose an export format first.",
+        "certificateLayoutRequired": "Please select a certificate layout.",
         "templateRequired": "Please select a GymNet XML template file.",
         "outputFileNameRequired": "Please provide an output file name.",
         "exportFailed": "GymNet XML export failed."

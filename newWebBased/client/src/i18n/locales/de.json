@@ -671,6 +671,7 @@
     "import": "Importieren",
     "close": "Schließen",
     "back": "Zurück",
+    "next": "Weiter",
     "confirm": "Bestätigen",
     "yes": "Ja",
     "no": "Nein",
@@ -2879,21 +2880,39 @@
     "values": "Werte",
     "finalScore": "Endwert",
     "exportWizard": {
-      "openButton": "GymNet XML Assistent",
+      "openButton": "Export",
       "title": "GymNet XML Export",
+      "exportTypes": {
+        "csv": "CSV",
+        "pdf": "PDF",
+        "certificates": "Urkunden PDF",
+        "xml": "XML"
+      },
+      "exportTypeHelp": {
+        "csv": "Ergebnisse als CSV-Datei exportieren.",
+        "pdf": "Ergebnisse als PDF-Datei exportieren.",
+        "certificates": "Urkunden-PDF über das bestehende Layout-Fenster erzeugen.",
+        "xml": "GymNet-XML mit Vorlagendatei erzeugen."
+      },
       "titles": {
+        "type": "Exporttyp auswählen",
+        "certificates": "Urkunden PDF - Einstellungen",
         "template": "GymNet XML Export - Vorlage auswählen",
         "target": "GymNet XML Export - Zieldatei festlegen",
         "execute": "GymNet XML Export - Export ausführen",
         "report": "GymNet XML Export - Matching-Bericht"
       },
       "steps": {
+        "type": "Typ",
+        "certificates": "Urkunden",
         "template": "Vorlage",
         "target": "Ziel",
         "execute": "Export",
         "report": "Bericht"
       },
       "help": {
+        "type": "Wählen Sie zuerst das gewünschte Exportformat aus.",
+        "certificates": "Konfigurieren Sie Layout und Optionen für die Urkunden-PDF direkt im Wizard.",
         "template": "Wählen Sie die originale GymNet-XML-Datei als Vorlage. TurnFix füllt diese Datei mit den verfügbaren Ergebnissen.",
         "target": "Legen Sie den Dateinamen für die erzeugte GymNet-XML-Ausgabedatei fest.",
         "execute": "Prüfen Sie Ihre Auswahl und starten Sie den Export. Der Dateidownload startet nach Abschluss automatisch."
@@ -2904,8 +2923,11 @@
       "outputFileNamePlaceholder": "z.B. gymnet_ergebnisse_veranstaltung.xml",
       "outputFileNameHint": "Tipp: Sie können jeden Dateinamen verwenden. .xml wird bei Bedarf automatisch ergänzt.",
       "summary": {
+        "exportType": "Exporttyp",
         "event": "Veranstaltung",
         "competition": "Wettkampf",
+        "certificates": "Urkunden PDF",
+        "certificatesHint": "Der bestehende Urkunden-Dialog wird geöffnet.",
         "template": "Vorlage",
         "output": "Ausgabedatei"
       },
@@ -2915,6 +2937,8 @@
         "executeHint": "Verwenden Sie \"Export starten\", um das XML-Merging auszuführen."
       },
       "errors": {
+        "exportTypeRequired": "Bitte wählen Sie zuerst ein Exportformat aus.",
+        "certificateLayoutRequired": "Bitte wählen Sie ein Urkunden-Layout aus.",
         "templateRequired": "Bitte wählen Sie eine GymNet-XML-Vorlage aus.",
         "outputFileNameRequired": "Bitte geben Sie einen Ausgabe-Dateinamen an.",
         "exportFailed": "GymNet XML Export fehlgeschlagen."

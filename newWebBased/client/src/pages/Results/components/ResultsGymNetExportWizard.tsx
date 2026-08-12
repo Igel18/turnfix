@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { PlayIcon } from '@heroicons/react/24/outline'
 import WizardModal from '@/components/WizardModal'
+import { isDebugEnabled, setDebugMode } from '@/utils/debug'
 import type { GymNetMatchReport } from '../hooks/useExport'
+import type { CertificateLayout, PaperFormat, Participant } from '../Results.types'
 import { useResultsGymNetExportWizard, RESULTS_GYMNET_EXPORT_STEP_KEYS } from './useResultsGymNetExportWizard'
 
 const WIZARD_MODAL_SIZE = '3xl'
@@ -14,7 +16,20 @@ interface ResultsGymNetExportWizardProps {
   onClose: () => void
   eventName: string
   selectedCompetitionLabel: string
-  onExport: (templateFile: File, outputFileName?: string) => Promise<GymNetMatchReport | null>
+  certificateParticipants: Participant[]
+  certificateLayouts: CertificateLayout[]
+  selectedCertificateLayout: CertificateLayout | null
+  onCertificateLayoutChange: (layout: CertificateLayout | null) => void
+  selectedPaperFormat: PaperFormat
+  onPaperFormatChange: (format: PaperFormat) => void
+  paperFormats: Record<PaperFormat, { width: number; height: number; name: string }>
+  certificateSortOrder: 'asc' | 'desc'
+  onCertificateSortOrderChange: (order: 'asc' | 'desc') => void
+  onExportCsv: () => Promise<void>
+  onExportPdf: () => Promise<void>
+  onPrepareCertificates: () => Promise<void>
+  onExportCertificates: () => Promise<void>
+  onExportXml: (templateFile: File, outputFileName?: string) => Promise<GymNetMatchReport | null>
 }
 
 export function ResultsGymNetExportWizard({
@@ -22,7 +37,20 @@ export function ResultsGymNetExportWizard({
   onClose,
   eventName,
   selectedCompetitionLabel,
-  onExport,
+  certificateParticipants,
+  certificateLayouts,
+  selectedCertificateLayout,
+  onCertificateLayoutChange,
+  selectedPaperFormat,
+  onPaperFormatChange,
+  paperFormats,
+  certificateSortOrder,
+  onCertificateSortOrderChange,
+  onExportCsv,
+  onExportPdf,
+  onPrepareCertificates,
+  onExportCertificates,
+  onExportXml,
 }: ResultsGymNetExportWizardProps) {
   const { t } = useTranslation()
   const wizard = useResultsGymNetExportWizard({
@@ -30,7 +58,19 @@ export function ResultsGymNetExportWizard({
     onClose,
     eventName,
     selectedCompetitionLabel,
-    onExport,
+    certificateParticipants,
+    certificateLayouts,
+    selectedCertificateLayout,
+    onCertificateLayoutChange,
+    selectedPaperFormat,
+    onPaperFormatChange,
+    certificateSortOrder,
+    onCertificateSortOrderChange,
+    onExportCsv,
+    onExportPdf,
+    onPrepareCertificates,
+    onExportCertificates,
+    onExportXml,
   })
 
   return (
@@ -43,6 +83,128 @@ export function ResultsGymNetExportWizard({
       size={WIZARD_MODAL_SIZE}
     >
       <div className="space-y-4">
+        {wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.type && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+              <p>{t('results.exportWizard.help.type')}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {(['csv', 'pdf', 'certificates', 'xml'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => wizard.setExportType(type)}
+                  className={`rounded-lg border p-4 text-left transition-colors ${wizard.exportType === type ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                >
+                  <div className="font-semibold text-gray-900">{t(`results.exportWizard.exportTypes.${type}`)}</div>
+                  <div className="mt-1 text-xs text-gray-500">{t(`results.exportWizard.exportTypeHelp.${type}`)}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.certificates && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 text-sm text-purple-800">
+              <p>{t('results.exportWizard.help.certificates')}</p>
+            </div>
+
+            <div className="rounded border border-gray-200 p-3 bg-gray-50 text-sm">
+              <div className="text-gray-600 mb-2">{t('results.certificate.selectedParticipants', { count: wizard.certificateParticipants.length })}</div>
+              <div className="max-h-28 overflow-auto space-y-1">
+                {wizard.certificateParticipants.slice(0, 5).map(p => (
+                  <div key={p.id} className="truncate text-gray-800">{p.rank}. {p.name} ({p.club})</div>
+                ))}
+                {wizard.certificateParticipants.length > 5 && (
+                  <div className="text-gray-500">{t('results.certificate.andMore', { count: wizard.certificateParticipants.length - 5 })}</div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('results.certificate.selectLayout')} <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={wizard.selectedCertificateLayout?.int_layoutid || ''}
+                onChange={(e) => {
+                  const layoutId = Number(e.target.value)
+                  const layout = wizard.certificateLayouts.find(l => l.int_layoutid === layoutId)
+                  wizard.onCertificateLayoutChange(layout || null)
+                }}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">{t('results.certificate.chooseLayout')}</option>
+                {wizard.certificateLayouts.map(layout => (
+                  <option key={layout.int_layoutid} value={layout.int_layoutid}>
+                    {layout.var_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('results.certificate.paperFormat')}
+              </label>
+              <select
+                value={wizard.selectedPaperFormat}
+                onChange={(e) => wizard.onPaperFormatChange(e.target.value as PaperFormat)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {Object.entries(paperFormats).map(([key, format]) => (
+                  <option key={key} value={key}>{format.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('results.certificate.sortOrder')}
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => wizard.onCertificateSortOrderChange('desc')}
+                  className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
+                    wizard.certificateSortOrder === 'desc'
+                      ? 'bg-blue-100 border-blue-500 text-blue-700'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  ↓ {t('results.certificate.sortOrderDesc')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => wizard.onCertificateSortOrderChange('asc')}
+                  className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
+                    wizard.certificateSortOrder === 'asc'
+                      ? 'bg-blue-100 border-blue-500 text-blue-700'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  ↑ {t('results.certificate.sortOrderAsc')}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={isDebugEnabled()}
+                  onChange={(e) => setDebugMode(e.target.checked)}
+                  className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">{t('results.certificate.debugMode')}</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">{t('results.certificate.debugModeHint')}</p>
+            </div>
+          </div>
+        )}
+
         {wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.template && (
           <div className="space-y-4">
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
@@ -102,6 +264,10 @@ export function ResultsGymNetExportWizard({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="rounded border border-gray-200 p-3">
+                <div className="text-gray-500">{t('results.exportWizard.summary.exportType')}</div>
+                <div className="font-semibold text-gray-900">{wizard.exportTypeLabel}</div>
+              </div>
+              <div className="rounded border border-gray-200 p-3">
                 <div className="text-gray-500">{t('results.exportWizard.summary.event')}</div>
                 <div className="font-semibold text-gray-900">{eventName}</div>
               </div>
@@ -109,14 +275,24 @@ export function ResultsGymNetExportWizard({
                 <div className="text-gray-500">{t('results.exportWizard.summary.competition')}</div>
                 <div className="font-semibold text-gray-900">{selectedCompetitionLabel}</div>
               </div>
-              <div className="rounded border border-gray-200 p-3">
-                <div className="text-gray-500">{t('results.exportWizard.summary.template')}</div>
-                <div className="font-semibold text-gray-900">{wizard.templateFile?.name || '-'}</div>
-              </div>
-              <div className="rounded border border-gray-200 p-3">
-                <div className="text-gray-500">{t('results.exportWizard.summary.output')}</div>
-                <div className="font-semibold text-gray-900">{wizard.outputFileName}</div>
-              </div>
+              {wizard.exportType === 'xml' && (
+                <>
+                  <div className="rounded border border-gray-200 p-3">
+                    <div className="text-gray-500">{t('results.exportWizard.summary.template')}</div>
+                    <div className="font-semibold text-gray-900">{wizard.templateFile?.name || '-'}</div>
+                  </div>
+                  <div className="rounded border border-gray-200 p-3">
+                    <div className="text-gray-500">{t('results.exportWizard.summary.output')}</div>
+                    <div className="font-semibold text-gray-900">{wizard.outputFileName}</div>
+                  </div>
+                </>
+              )}
+              {wizard.exportType === 'certificates' && (
+                <div className="rounded border border-gray-200 p-3 md:col-span-2">
+                  <div className="text-gray-500">{t('results.exportWizard.summary.certificates')}</div>
+                  <div className="font-semibold text-gray-900">{t('results.exportWizard.summary.certificatesHint')}</div>
+                </div>
+              )}
             </div>
 
             <div className="pt-2">
@@ -200,7 +376,7 @@ export function ResultsGymNetExportWizard({
             disabled={wizard.isExporting}
             className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
           >
-            {wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.template ? t('common.cancel') : t('common.back')}
+            {wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.type ? t('common.cancel') : t('common.back')}
           </button>
 
           {wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.report ? (
@@ -210,6 +386,15 @@ export function ResultsGymNetExportWizard({
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               {t('common.close')}
+            </button>
+          ) : wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.type ? (
+            <button
+              type="button"
+              onClick={wizard.goNext}
+              disabled={!wizard.exportType || wizard.isExporting}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {t('common.next')}
             </button>
           ) : wizard.step === RESULTS_GYMNET_EXPORT_STEP_KEYS.execute ? (
             <div className="text-xs text-gray-500">{t('results.exportWizard.actions.executeHint')}</div>

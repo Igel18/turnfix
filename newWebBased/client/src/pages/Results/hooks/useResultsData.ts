@@ -5,7 +5,7 @@
  * Handles all data fetching for Results page
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
 import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
@@ -43,6 +43,18 @@ export function useResultsData(
   const [eventName, setEventName] = useState<string>(initialEventName);
   const [isLoading, setIsLoading] = useState(true);
   const [competitions, setCompetitions] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (initialEventName?.trim()) {
+      setEventName(initialEventName.trim());
+    }
+  }, [initialEventName]);
+
+  const resolveEventDisplayName = (apiEventName?: string) => {
+    if (initialEventName?.trim()) return initialEventName.trim();
+    if (apiEventName?.trim()) return apiEventName.trim();
+    return `Event ${eventId}`;
+  };
 
   const fetchAllScores = async (): Promise<any[]> => {
     if (!eventId) return [];
@@ -116,12 +128,18 @@ export function useResultsData(
 
       const participantsData = await apiGet(`/event-participants?${participantsParams}`);
       const participants = participantsData.participants || [];
+      const apiEventName =
+        participantsData?.eventName ||
+        participantsData?.event?.var_eventname ||
+        participantsData?.event?.name ||
+        participantsData?.var_eventname ||
+        '';
 
       if (participants.length === 0) {
         setRanking([]);
         setCompetitionGroups([]);
         setDisciplines([]);
-        setEventName(initialEventName || `Event ${eventId}`);
+        setEventName(resolveEventDisplayName(apiEventName));
         return;
       }
 
@@ -498,7 +516,7 @@ export function useResultsData(
       } else {
         setDisciplines(Array.from(disciplineSet).sort());
       }
-      setEventName(`Event ${eventId}`);
+      setEventName(resolveEventDisplayName(apiEventName));
     } catch (error) {
       console.error('Error fetching event ranking:', error);
       setRanking([]);
@@ -506,7 +524,7 @@ export function useResultsData(
       setDisciplines([]);
       setDisciplineFormulas({});
       setSelectedCompetitionDisciplineInfo([]);
-      setEventName(`Event ${eventId}`);
+      setEventName(resolveEventDisplayName());
     } finally {
       setIsLoading(false);
     }

@@ -34,7 +34,6 @@ import { useFilterPanel } from '@/hooks'
 import { 
   ResultsTable, 
   ResultsFilters, 
-  CertificateDialog,
   ResultsGymNetExportWizard
 } from './components'
 
@@ -67,9 +66,7 @@ const Results = () => {
   const { showFilters, toggleFilters: toggleResultsFilters } = useFilterPanel(isAnyFilterActiveResults, resetResultsFilters);
   const [showDisciplineScores, setShowDisciplineScores] = useState(true)
   const [showJuryScores] = useState(true)
-  const [showCertificateModal, setShowCertificateModal] = useState(false)
   const [selectedPaperFormat, setSelectedPaperFormat] = useState<PaperFormat>('A4')
-  const [certificatesToPrint, setCertificatesToPrint] = useState<any[]>([])
   const [certificateSortOrder, setCertificateSortOrder] = useState<'asc' | 'desc'>('desc')
   const [showGymNetExportWizard, setShowGymNetExportWizard] = useState(false)
 
@@ -98,7 +95,6 @@ const Results = () => {
   // Certificates Hook - Certificate generation
   const {
     certificateLayouts,
-    isPrintingCertificates,
     fetchCertificateLayouts,
     generateCertificates,
     PAPER_FORMATS
@@ -184,20 +180,13 @@ const Results = () => {
     }))
     .filter(group => group.participants.length > 0)
 
-  // Get all participants for certificate printing
+  // Get all participants for certificate export
   const getAllParticipantsForCertificates = () => {
     if (selectedCompetition) {
       return filteredRanking
     } else {
       return filteredCompetitionGroups.flatMap(group => group.participants)
     }
-  }
-
-  // Show certificate dialog
-  const showCertificateDialog = (participants: any[]) => {
-    setCertificatesToPrint(participants)
-    setShowCertificateModal(true)
-    fetchCertificateLayouts()
   }
 
   const handleExportCSV = async () => {
@@ -210,24 +199,18 @@ const Results = () => {
     exportResultsPDF()
   }
 
-  const selectedCompetitionLabel = selectedCompetition
-    ? competitions.find(c => c.id.toString() === selectedCompetition)?.name || selectedCompetition
-    : t('results.filters.allCompetitions')
+  const handlePrepareCertificates = async () => {
+    await fetchCertificateLayouts()
+  }
 
-  const disciplineScoreToggleStateClass = showDisciplineScores
-    ? RESULTS_DISCIPLINE_VISIBLE_BUTTON_CLASS
-    : RESULTS_DISCIPLINE_HIDDEN_BUTTON_CLASS
-
-  // Handle certificate generation
-  const handleGenerateCertificates = () => {
-    // Sort participants by rank: desc = last place first (default), asc = 1st place first
-    const sortedParticipants = [...certificatesToPrint].sort((a, b) => {
+  const handleExportCertificates = async () => {
+    const sortedParticipants = [...getAllParticipantsForCertificates()].sort((a, b) => {
       const rankA = a.rank ?? 0
       const rankB = b.rank ?? 0
       return certificateSortOrder === 'desc' ? rankB - rankA : rankA - rankB
     })
 
-    generateCertificates(
+    await generateCertificates(
       sortedParticipants,
       contextSelectedLayout as any,
       selectedPaperFormat,
@@ -235,12 +218,16 @@ const Results = () => {
       selectedCompetition,
       eventName,
       selectedEvent?.var_location || ''
-    ).then(() => {
-      setShowCertificateModal(false)
-      setCertificatesToPrint([])
-      setSelectedPaperFormat('A4')
-    })
+    )
   }
+
+  const selectedCompetitionLabel = selectedCompetition
+    ? competitions.find(c => c.id.toString() === selectedCompetition)?.name || selectedCompetition
+    : t('results.filters.allCompetitions')
+
+  const disciplineScoreToggleStateClass = showDisciplineScores
+    ? RESULTS_DISCIPLINE_VISIBLE_BUTTON_CLASS
+    : RESULTS_DISCIPLINE_HIDDEN_BUTTON_CLASS
 
   // Create filter section JSX
   const filterSectionJSX = (
@@ -273,13 +260,6 @@ const Results = () => {
       showFilters={showFilters}
       onToggleFilters={toggleResultsFilters}
       filterSection={filterSectionJSX}
-      showExportCSV={true}
-      onExportCSV={() => void handleExportCSV()}
-      showExportPDF={true}
-      onExportPDF={() => void handleExportPDF()}
-      showPrint={true}
-      onPrint={() => showCertificateDialog(getAllParticipantsForCertificates())}
-      printLabel={t('results.printCertificates')}
       totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
       showEventContext={true}
       showViewToggle={false}
@@ -288,7 +268,7 @@ const Results = () => {
           <LiveUpdateIndicator label={t('common.liveUpdates')} />
           <button
             onClick={() => setShowGymNetExportWizard(true)}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             title={t('results.exportWizard.openButton')}
           >
             {t('results.exportWizard.openButton')}
@@ -320,27 +300,22 @@ const Results = () => {
             getMedalEmoji={getMedalEmoji}
           />
 
-          {/* Certificate Printing Dialog */}
-          <CertificateDialog
-            isOpen={showCertificateModal}
-            onClose={() => {
-              setShowCertificateModal(false)
-              setCertificatesToPrint([])
-              setSelectedPaperFormat('A4')
-            }}
-            participants={certificatesToPrint}
-            layouts={certificateLayouts}
-            selectedLayout={contextSelectedLayout as any}
-            onLayoutChange={(layout) => {
+          <ResultsGymNetExportWizard
+            isOpen={showGymNetExportWizard}
+            onClose={() => setShowGymNetExportWizard(false)}
+            eventName={eventName}
+            selectedCompetitionLabel={selectedCompetitionLabel}
+            certificateParticipants={getAllParticipantsForCertificates()}
+            certificateLayouts={certificateLayouts}
+            selectedCertificateLayout={contextSelectedLayout as any}
+            onCertificateLayoutChange={(layout) => {
               if (layout) {
-                // Map to context format - keep var_value for certificate generation
                 const contextLayout = {
                   ...layout,
                   fields: layout.fields?.map((field: any) => ({
                     ...field,
-                    var_text: field.var_value, // Add var_text for context compatibility
+                    var_text: field.var_value,
                     var_spaltenwert: null
-                    // var_value remains unchanged for certificate generation
                   }))
                 }
                 setContextSelectedLayout(contextLayout as any)
@@ -350,19 +325,14 @@ const Results = () => {
             }}
             selectedPaperFormat={selectedPaperFormat}
             onPaperFormatChange={setSelectedPaperFormat}
-            isPrinting={isPrintingCertificates}
-            onGenerate={handleGenerateCertificates}
             paperFormats={PAPER_FORMATS}
-            sortOrder={certificateSortOrder}
-            onSortOrderChange={setCertificateSortOrder}
-          />
-
-          <ResultsGymNetExportWizard
-            isOpen={showGymNetExportWizard}
-            onClose={() => setShowGymNetExportWizard(false)}
-            eventName={eventName}
-            selectedCompetitionLabel={selectedCompetitionLabel}
-            onExport={exportResultsGymNetXML}
+            certificateSortOrder={certificateSortOrder}
+            onCertificateSortOrderChange={setCertificateSortOrder}
+            onExportCsv={handleExportCSV}
+            onExportPdf={handleExportPDF}
+            onPrepareCertificates={handlePrepareCertificates}
+            onExportCertificates={handleExportCertificates}
+            onExportXml={exportResultsGymNetXML}
           />
         </div>
       )}

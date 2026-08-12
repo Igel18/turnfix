@@ -314,7 +314,7 @@ Bei dem Report steht dran, dass
 0 Competitions unmatched
 0 Participants unmatched 
 0 Disziplines unmatched 
--> in work
+🚀 In Arbeit (unvollständig)
 -> Erledigt ✅
 
 185. [improvement] Ergebnisse XML Export. Manche Teilnehmer können nicht gematched werden. Zu diesen müssen noch detaillierte Infos, wenn das möglich ist. 
