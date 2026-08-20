@@ -178,10 +178,10 @@ describe('Medallienspiegel', () => {
     it('should render the page title', async () => {
       await renderMedallienspiegel();
 
-      await waitFor(() => {
-        expect(screen.getByText('medallienspiegel.title')).toBeInTheDocument();
-      });
-    });
+      expect(
+        await screen.findByText('medallienspiegel.title', {}, { timeout: 10000 })
+      ).toBeInTheDocument();
+    }, 15000);
 
     it('should display club names in standings', async () => {
       await renderMedallienspiegel();

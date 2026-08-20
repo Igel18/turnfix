@@ -9,7 +9,7 @@
  *               ScheduleMatrixView, EditCompetitionModal
  */
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -50,6 +50,7 @@ import { DEFAULT_TIME_SETTINGS } from './TimePlanning.types';
 
 // ====== Time-settings localStorage helpers ======
 const TIME_SETTINGS_KEY = (id: string) => `time-planning-settings-${id}`;
+const ROTATION_ROUND_KEY = (id: string) => `time-planning-rotation-round-${id}`;
 
 function loadTimeSettingsFromStorage(id: string): TimeSettings {
   try {
@@ -79,6 +80,7 @@ export default function TimePlanning() {
   );
   const [_deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([]);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
+  const [selectedRotationRound, setSelectedRotationRound] = useState<number>(1);
   const [viewMode, setViewMode] = useState<'sessions' | 'rotation' | 'matrix'>('sessions');
   const [showTimeSettings, setShowTimeSettings] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
@@ -134,6 +136,30 @@ export default function TimePlanning() {
   });
 
   // ====== Handlers ======
+
+  useEffect(() => {
+    if (!eventId) return;
+    try {
+      const raw = localStorage.getItem(ROTATION_ROUND_KEY(eventId));
+      if (!raw) {
+        setSelectedRotationRound(1);
+        return;
+      }
+      const parsed = Number(raw);
+      setSelectedRotationRound(Number.isFinite(parsed) && parsed > 0 ? parsed : 1);
+    } catch {
+      setSelectedRotationRound(1);
+    }
+  }, [eventId]);
+
+  useEffect(() => {
+    if (!eventId) return;
+    try {
+      localStorage.setItem(ROTATION_ROUND_KEY(eventId), String(selectedRotationRound));
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [eventId, selectedRotationRound]);
 
   const saveTimeSettings = () => {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings);
@@ -366,6 +392,8 @@ export default function TimePlanning() {
                 ref={rotationRef}
                 eventId={eventId}
                 onDataChange={refetch}
+                selectedRound={selectedRotationRound}
+                onSelectedRoundChange={setSelectedRotationRound}
                 squads={squads.map(s => {
                   const mappedCompetitionIds: number[] = [];
 

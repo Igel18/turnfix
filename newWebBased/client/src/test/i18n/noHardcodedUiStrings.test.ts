@@ -146,6 +146,10 @@ function createId(v: Violation): string {
   return `${v.file}:${v.line}:${v.column}:${v.kind}:${v.text}`;
 }
 
+function createStableKey(v: Pick<Violation, 'file' | 'kind' | 'text'>): string {
+  return `${v.file}:${v.kind}:${v.text}`;
+}
+
 function hasJsxAncestor(node: ts.Node): boolean {
   let cur: ts.Node | undefined = node.parent;
   while (cur) {
@@ -297,8 +301,10 @@ describe('i18n guard: no new hardcoded UI strings', () => {
       `Missing baseline file: ${toRel(BASELINE_FILE)}. Run with UPDATE_I18N_BASELINE=1 once.`
     ).toBeGreaterThan(0);
 
-    const baselineIds = new Set(baseline.map((b) => b.id));
-    const newViolations = violations.filter((v) => !baselineIds.has(createId(v)));
+    // Compare against a position-independent key so harmless line shifts
+    // do not produce false positives in this guard.
+    const baselineKeys = new Set(baseline.map((b) => createStableKey(b)));
+    const newViolations = violations.filter((v) => !baselineKeys.has(createStableKey(v)));
 
     expect(
       newViolations,

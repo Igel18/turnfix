@@ -2840,6 +2840,7 @@
     "certificate": {
       "selectedParticipants": "{{count}} Teilnehmer ausgewählt",
       "andMore": "... und {{count}} weitere",
+      "participantEntry": "{{rank}}. {{name}} ({{club}})",
       "selectLayout": "Urkundenlayout auswählen",
       "chooseLayout": "Layout wählen...",
       "paperFormat": "Papierformat",

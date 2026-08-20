@@ -10,6 +10,13 @@ const WIZARD_MODAL_SIZE = '3xl'
 const XML_FILE_ACCEPT = '.xml,text/xml,application/xml'
 const TEMPLATE_FILE_INPUT_ID = 'results-gymnet-template-input'
 const OUTPUT_FILE_INPUT_ID = 'results-gymnet-output-input'
+const EXPORT_TYPE_OPTIONS = ['csv', 'pdf', 'certificates', 'xml'] as const
+const EXPORT_TYPE_XML = 'xml'
+const EXPORT_TYPE_CERTIFICATES = 'certificates'
+const ACTIVE_TYPE_BUTTON_CLASS = 'rounded-lg border p-4 text-left transition-colors border-blue-500 bg-blue-50'
+const INACTIVE_TYPE_BUTTON_CLASS = 'rounded-lg border p-4 text-left transition-colors border-gray-200 hover:bg-gray-50'
+const ACTIVE_SORT_BUTTON_CLASS = 'flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors bg-blue-100 border-blue-500 text-blue-700'
+const INACTIVE_SORT_BUTTON_CLASS = 'flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
 
 interface ResultsGymNetExportWizardProps {
   isOpen: boolean
@@ -90,12 +97,12 @@ export function ResultsGymNetExportWizard({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {(['csv', 'pdf', 'certificates', 'xml'] as const).map((type) => (
+              {EXPORT_TYPE_OPTIONS.map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => wizard.setExportType(type)}
-                  className={`rounded-lg border p-4 text-left transition-colors ${wizard.exportType === type ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                  className={wizard.exportType === type ? ACTIVE_TYPE_BUTTON_CLASS : INACTIVE_TYPE_BUTTON_CLASS}
                 >
                   <div className="font-semibold text-gray-900">{t(`results.exportWizard.exportTypes.${type}`)}</div>
                   <div className="mt-1 text-xs text-gray-500">{t(`results.exportWizard.exportTypeHelp.${type}`)}</div>
@@ -115,7 +122,9 @@ export function ResultsGymNetExportWizard({
               <div className="text-gray-600 mb-2">{t('results.certificate.selectedParticipants', { count: wizard.certificateParticipants.length })}</div>
               <div className="max-h-28 overflow-auto space-y-1">
                 {wizard.certificateParticipants.slice(0, 5).map(p => (
-                  <div key={p.id} className="truncate text-gray-800">{p.rank}. {p.name} ({p.club})</div>
+                  <div key={p.id} className="truncate text-gray-800">
+                    {t('results.certificate.participantEntry', { rank: p.rank, name: p.name, club: p.club })}
+                  </div>
                 ))}
                 {wizard.certificateParticipants.length > 5 && (
                   <div className="text-gray-500">{t('results.certificate.andMore', { count: wizard.certificateParticipants.length - 5 })}</div>
@@ -168,22 +177,14 @@ export function ResultsGymNetExportWizard({
                 <button
                   type="button"
                   onClick={() => wizard.onCertificateSortOrderChange('desc')}
-                  className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
-                    wizard.certificateSortOrder === 'desc'
-                      ? 'bg-blue-100 border-blue-500 text-blue-700'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={wizard.certificateSortOrder === 'desc' ? ACTIVE_SORT_BUTTON_CLASS : INACTIVE_SORT_BUTTON_CLASS}
                 >
                   ↓ {t('results.certificate.sortOrderDesc')}
                 </button>
                 <button
                   type="button"
                   onClick={() => wizard.onCertificateSortOrderChange('asc')}
-                  className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
-                    wizard.certificateSortOrder === 'asc'
-                      ? 'bg-blue-100 border-blue-500 text-blue-700'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={wizard.certificateSortOrder === 'asc' ? ACTIVE_SORT_BUTTON_CLASS : INACTIVE_SORT_BUTTON_CLASS}
                 >
                   ↑ {t('results.certificate.sortOrderAsc')}
                 </button>
@@ -275,7 +276,7 @@ export function ResultsGymNetExportWizard({
                 <div className="text-gray-500">{t('results.exportWizard.summary.competition')}</div>
                 <div className="font-semibold text-gray-900">{selectedCompetitionLabel}</div>
               </div>
-              {wizard.exportType === 'xml' && (
+              {wizard.exportType === EXPORT_TYPE_XML && (
                 <>
                   <div className="rounded border border-gray-200 p-3">
                     <div className="text-gray-500">{t('results.exportWizard.summary.template')}</div>
@@ -287,7 +288,7 @@ export function ResultsGymNetExportWizard({
                   </div>
                 </>
               )}
-              {wizard.exportType === 'certificates' && (
+              {wizard.exportType === EXPORT_TYPE_CERTIFICATES && (
                 <div className="rounded border border-gray-200 p-3 md:col-span-2">
                   <div className="text-gray-500">{t('results.exportWizard.summary.certificates')}</div>
                   <div className="font-semibold text-gray-900">{t('results.exportWizard.summary.certificatesHint')}</div>

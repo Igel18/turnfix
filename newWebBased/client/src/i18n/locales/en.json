@@ -2806,6 +2806,7 @@
     "certificate": {
       "selectedParticipants": "{{count}} participants selected",
       "andMore": "... and {{count}} more",
+      "participantEntry": "{{rank}}. {{name}} ({{club}})",
       "selectLayout": "Select Certificate Layout",
       "chooseLayout": "Choose layout...",
       "paperFormat": "Paper Format",

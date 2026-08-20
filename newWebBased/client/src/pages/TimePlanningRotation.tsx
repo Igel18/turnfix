@@ -78,6 +78,8 @@ interface TimePlanningRotationProps {
   devices: Device[];
   competitions: Competition[];
   onDataChange?: () => void; // Callback to refetch data after Bahn assignment
+  selectedRound?: number;
+  onSelectedRoundChange?: (round: number) => void;
 }
 
 interface Bahn {
@@ -93,14 +95,24 @@ export interface TimePlanningRotationRef {
 const TimePlanningRotation = forwardRef<
   TimePlanningRotationRef,
   TimePlanningRotationProps
->(({ eventId: _eventId, squads, devices, competitions, onDataChange }, ref) => {
+>(({ eventId: _eventId, squads, devices, competitions, onDataChange, selectedRound, onSelectedRoundChange }, ref) => {
   const [bahnen, setBahnen] = useState<Bahn[]>([]);
   const [draggedCompetition, setDraggedCompetition] = useState<{
     competitionWithSquads: CompetitionWithSquads;
     fromBahn: number;
   } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedRound, setSelectedRound] = useState<number>(1); // Currently selected Durchgang
+  const [internalSelectedRound, setInternalSelectedRound] = useState<number>(1);
+
+  const activeSelectedRound = selectedRound ?? internalSelectedRound;
+
+  const setActiveSelectedRound = (round: number) => {
+    if (onSelectedRoundChange) {
+      onSelectedRoundChange(round);
+      return;
+    }
+    setInternalSelectedRound(round);
+  };
 
   // Group competitions by round (Durchgang)
   const competitionsByRound = useMemo(() => {
@@ -117,10 +129,25 @@ const TimePlanningRotation = forwardRef<
       .map(([round, comps]) => ({ round, competitions: comps }));
   }, [competitions]);
 
+  // Keep selected round stable and valid after data reloads.
+  useEffect(() => {
+    if (competitionsByRound.length === 0) {
+      return;
+    }
+
+    const hasActiveRound = competitionsByRound.some(({ round }) => round === activeSelectedRound);
+    if (hasActiveRound) {
+      return;
+    }
+
+    const fallbackRound = competitionsByRound[0].round;
+    setActiveSelectedRound(fallbackRound);
+  }, [competitionsByRound, activeSelectedRound]);
+
   // Get competitions for the currently selected round only
   const currentRoundCompetitions = useMemo(() => {
-    return competitions.filter((comp) => (comp.round || 1) === selectedRound);
-  }, [competitions, selectedRound]);
+    return competitions.filter((comp) => (comp.round || 1) === activeSelectedRound);
+  }, [competitions, activeSelectedRound]);
 
   // Get squads for the currently selected round
   // A squad belongs to a round if its competition belongs to that round
@@ -136,7 +163,7 @@ const TimePlanningRotation = forwardRef<
     const sqs = currentRoundSquads;
     
     console.log('🔍 TimePlanningRotation DEBUG:', {
-      selectedRound,
+      selectedRound: activeSelectedRound,
       totalCompetitions: competitions.length,
       currentRoundCompetitions: comps.length,
       totalSquads: squads.length,
@@ -212,6 +239,8 @@ const TimePlanningRotation = forwardRef<
   
   const handleDrop = async (toBahn: number) => {
     if (!draggedCompetition) return;
+
+    const roundBeforeDrop = activeSelectedRound;
     
     setLoading(true);
     try {
@@ -239,6 +268,8 @@ const TimePlanningRotation = forwardRef<
       // The useEffect will then rebuild bahnen based on fresh data
       if (onDataChange) {
         await onDataChange(); // Wait for data to reload
+        // Keep the currently active Durchgang stable even if parent data refresh causes remount/reset.
+        setActiveSelectedRound(roundBeforeDrop);
       }
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -277,9 +308,9 @@ const TimePlanningRotation = forwardRef<
             {competitionsByRound.map(({ round, competitions: roundComps }) => (
               <button
                 key={round}
-                onClick={() => setSelectedRound(round)}
+                onClick={() => setActiveSelectedRound(round)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedRound === round
+                  activeSelectedRound === round
                     ? "bg-blue-600 text-white shadow-md"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
@@ -305,7 +336,7 @@ const TimePlanningRotation = forwardRef<
           <span className="font-semibold text-blue-900">
             Aktiver Durchgang:
           </span>
-          <span className="text-blue-700">Durchgang {selectedRound}</span>
+          <span className="text-blue-700">Durchgang {activeSelectedRound}</span>
           <span className="text-xs text-blue-600">
             ({currentRoundSquads.length}{" "}
             {currentRoundSquads.length === 1 ? "Riege" : "Riegen"})

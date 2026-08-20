@@ -254,6 +254,7 @@ b.) Jetzt wäre es noch gut, wenn sich bei dem klick auf xml export ein Wizard �
 170. [Feature] Zeitplanung: In der Zuordnung der Bahnen sollte über den Bahnen immer die Summe aller Teilnehmer stehen. 
 
 171. [Bug] Zeitplanung: Werden Wettkämpfe von einer Bahn in eine andere verschoben, wechselt die UI immer in Durchgang 1
+🚀 In Arbeit (unvollständig)
 
 172. [Feature/Bug] Zeitplanung: In der Zeitplanung werden im Reiter Rotation Bahnen zugeordnet. Jetzt bedeutet das, dass eigentlich jede Bahn ein eigenes Gerät und ein eigene Kampfgerich hat. Somit muss in der Zeitplan Tabelle zu erst der Durchang auftauchen, das passt schon. Danach stehen die Geräte die in diesem Durchgang geturnt werden, das passt auch, aber Die Geräteauswahl muss für jede Bahn erfolgen können! 
 
@@ -287,20 +288,30 @@ d.) in GitHub alle Issues und Stories für TurnFix löschen, da dann obsolet.
 Das ist in der UI nich immer klar, was hier passiert bei dem Button & jede UI sieht anders aus. Mein Vorschlag: 
 a.) jede UI hat nur einen Button "Export" 
 b.) mit dem Button Export öffnet sich ein "Wizard" 
+-> Erledigt ✅
 c.) in dem Wizard kann man jetzt den Dateityp (CSV, PDF, XML) wählen (ggf. auf mehrere)
+-> Erledigt ✅
 d.) in dem Wizard kann man noch diverse weitere spezielle eigenschaften auswählen (wie z.B. die GymNet XML vom import)
 e.) in dem Wizard kann man noch den ablageort definieren 
+-> Erledigt ✅
 g.) in dem Wizard kann man neben dem Dateityp auch noch Exporttyp auswählen (Urkunde, Siegerliste, Etiketten) vielleicht auch kombiniert mit dem Dateityp. Der Exporttyp ist natürlich immer abhängig von der aktuellen Seite, bzw. sind alle anderen Typen per default ausgeblendet. 
 h.) Das soll natürlich wiederverwendbar implemnentiert sein
+-> Erledigt ✅
 i.) Tests müssen vorhanden sein 
+-> Erledigt ✅
 j.) Falls ein Filter aktiv ist, wirkt sich das auf den Export aus, wie bisher (und sollte auch angezeigt werden)
+-> Erledigt ✅
 k.) wenn es in einer UI nur einen Export gibt, dann brauchen wir eigentlich keinen Wizard öffnen, oder? (z.B. event-management)
+-> Erledigt ✅
 l.) fehltnoch was? macht das sinn? 
+-> Erledigt ✅
 
 181. [Feature] Gerätewertung 
 Es muss bei in der Anzeige der Ergebnisse eine Gerätewertung verfügbar sein. Und zwar muss je Wettkampf die Person mit der größten Punktzahl der Gerätesieger in dem Wettkampf sein. Dies soll direkt an der Wertung mittels einer goldenen 1 (gleiches Icon wie sonst auch verwendet) gekennzeichnet werden. Auch der 2. und 3. Platz soll dementsprechen gekennzeichnet sein. 
+Möglich wäre auch eine komplett neue UI nur für die Gerätewertung... ? Wäre vielleicht schöner, da dann die Themen komplett getrennt sind und die Wertungen aller Teilnehmer betrachtet werden können? 
 
 182. [improvement] statt der client/src/test/i18n/noNardcodedUiStrings.baseline.json wäre es besser die UI Texte zu lokalisieren. Dann kann die baseline datei gelöscht werden. 
+🚀 In Arbeit (unvollständig)
 
 183. [improvement] in den Einstellungen sollte es auf der Seite für die Software (mit Versionsinfos usw.) weitere Hinweise zur Software geben, so wie ein Changelog. nur eine Komprimierte version mit Features, Bugfixes, known bugs immer zur Softwareversion. 
 
@@ -315,7 +326,7 @@ Bei dem Report steht dran, dass
 0 Participants unmatched 
 0 Disziplines unmatched 
 🚀 In Arbeit (unvollständig)
--> Erledigt ✅
+
 
 185. [improvement] Ergebnisse XML Export. Manche Teilnehmer können nicht gematched werden. Zu diesen müssen noch detaillierte Infos, wenn das möglich ist. 
 
