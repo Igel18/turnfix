@@ -68,11 +68,11 @@ describe('EventWorkflowSteps time planning section', () => {
     expect(timePlanningHeading.compareDocumentPosition(competitionDayHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('renders links for Durchgaenge, Rotation and Zeitplan-Tabelle with view query parameter', () => {
+  it('renders links for Durchgaenge, Rotation and Zeitplan-Tabelle with dedicated routes', () => {
     renderSubject()
 
-    expect(screen.getByRole('link', { name: /Durchgaenge/i }).getAttribute('href')).toBe('/time-planning?view=sessions&eventId=59')
-    expect(screen.getByRole('link', { name: /Rotation/i }).getAttribute('href')).toBe('/time-planning?view=rotation&eventId=59')
-    expect(screen.getByRole('link', { name: /Zeitplan-Tabelle/i }).getAttribute('href')).toBe('/time-planning?view=matrix&eventId=59')
+    expect(screen.getByRole('link', { name: /Durchgaenge/i }).getAttribute('href')).toBe('/time-planning/rounds?eventId=59')
+    expect(screen.getByRole('link', { name: /Rotation/i }).getAttribute('href')).toBe('/time-planning/rotation?eventId=59')
+    expect(screen.getByRole('link', { name: /Zeitplan-Tabelle/i }).getAttribute('href')).toBe('/time-planning/matrix?eventId=59')
   })
 })

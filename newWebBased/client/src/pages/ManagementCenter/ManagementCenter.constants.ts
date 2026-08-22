@@ -113,9 +113,9 @@ export const eventSetupActions: ActionItem[] = [
 ]
 
 export const timePlanningActions: ActionItem[] = [
-  { name: 'Rounds', description: 'Plan rounds and assign competitions', href: '/time-planning?view=sessions', icon: CalendarDaysIcon, color: 'bg-blue-500' },
-  { name: 'Rotation', description: 'Plan rotations and lanes', href: '/time-planning?view=rotation', icon: ClockIcon, color: 'bg-purple-500' },
-  { name: 'Schedule Matrix', description: 'Edit schedule matrix assignments', href: '/time-planning?view=matrix', icon: DocumentTextIcon, color: 'bg-emerald-500' },
+  { name: 'Rounds', description: 'Plan rounds and assign competitions', href: '/time-planning/rounds', icon: CalendarDaysIcon, color: 'bg-blue-500' },
+  { name: 'Rotation', description: 'Plan rotations and lanes', href: '/time-planning/rotation', icon: ClockIcon, color: 'bg-purple-500' },
+  { name: 'Schedule Matrix', description: 'Edit schedule matrix assignments', href: '/time-planning/matrix', icon: DocumentTextIcon, color: 'bg-emerald-500' },
 ]
 
 export const competitionDayActions: ActionItem[] = [

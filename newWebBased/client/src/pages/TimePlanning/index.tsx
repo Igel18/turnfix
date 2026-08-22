@@ -11,7 +11,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ClockIcon,
   CalendarDaysIcon,
@@ -48,13 +48,10 @@ import {
 import type { TimeSettings, Competition, DeviceSchedule } from './TimePlanning.types';
 import { DEFAULT_TIME_SETTINGS } from './TimePlanning.types';
 
-type TimePlanningViewMode = 'sessions' | 'rotation' | 'matrix'
+export type TimePlanningViewMode = 'sessions' | 'rotation' | 'matrix'
 
-function parseViewMode(value: string | null): TimePlanningViewMode {
-  if (value === 'rotation' || value === 'matrix') {
-    return value
-  }
-  return 'sessions'
+interface TimePlanningProps {
+  fixedViewMode?: TimePlanningViewMode
 }
 
 // ====== Time-settings localStorage helpers ======
@@ -77,8 +74,9 @@ function saveTimeSettingsToStorage(id: string, settings: TimeSettings) {
 
 // ====== Component ======
 
-export default function TimePlanning() {
+export default function TimePlanning({ fixedViewMode }: TimePlanningProps = {}) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { selectedEvent } = useEvent();
   const [searchParams] = useSearchParams();
   const eventId = searchParams.get('eventId') || selectedEvent?.int_eventid?.toString();
@@ -90,7 +88,7 @@ export default function TimePlanning() {
   const [_deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([]);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
   const [selectedRotationRound, setSelectedRotationRound] = useState<number>(1);
-  const [viewMode, setViewMode] = useState<TimePlanningViewMode>(() => parseViewMode(searchParams.get('view')));
+  const [viewMode, setViewMode] = useState<TimePlanningViewMode>('sessions');
   const [showTimeSettings, setShowTimeSettings] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -104,6 +102,8 @@ export default function TimePlanning() {
 
   const rotationRef = useRef<TimePlanningRotationRef>(null);
   const matrixPrintFnRef = useRef<(() => Promise<void>) | null>(null);
+  const activeViewMode = fixedViewMode ?? viewMode;
+  const showViewToggle = !fixedViewMode;
 
   // ====== Hooks ======
   const { addMinutesToTime } = useTimeCalculation();
@@ -169,10 +169,6 @@ export default function TimePlanning() {
       // ignore localStorage errors
     }
   }, [eventId, selectedRotationRound]);
-
-  useEffect(() => {
-    setViewMode(parseViewMode(searchParams.get('view')))
-  }, [searchParams]);
 
   const saveTimeSettings = () => {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings);
@@ -250,7 +246,7 @@ export default function TimePlanning() {
       loading={loading}
       customBelowActions={
         <div className="flex space-x-2">
-          {viewMode !== 'matrix' && (
+          {activeViewMode !== 'matrix' && (
             <button
               onClick={handleAddRound}
               className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
@@ -260,7 +256,7 @@ export default function TimePlanning() {
             </button>
           )}
 
-          {viewMode === 'rotation' && (
+          {activeViewMode === 'rotation' && (
             <button
               onClick={() => rotationRef.current?.addBahn()}
               className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
@@ -272,42 +268,44 @@ export default function TimePlanning() {
         </div>
       }
       customActions={[
-        // View Mode Toggle
-        <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
-          <button
-            type="button"
-            onClick={() => setViewMode('sessions')}
-            className={`px-3 py-2 text-sm font-medium border ${
-              viewMode === 'sessions'
-                ? 'bg-blue-600 text-white border-blue-600 z-10'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            } rounded-l-md`}
-          >
-            {t('timePlanning.viewMode.sessions')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('rotation')}
-            className={`px-3 py-2 text-sm font-medium border-t border-b -ml-px ${
-              viewMode === 'rotation'
-                ? 'bg-blue-600 text-white border-blue-600 z-10'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {t('timePlanning.viewMode.rotation') || 'Rotation'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('matrix')}
-            className={`px-3 py-2 text-sm font-medium border -ml-px rounded-r-md ${
-              viewMode === 'matrix'
-                ? 'bg-blue-600 text-white border-blue-600 z-10'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {t('timePlanning.viewMode.matrix')}
-          </button>
-        </div>,
+        // View Mode Toggle (only in combined legacy mode)
+        showViewToggle && (
+          <div key="view-toggle" className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setViewMode('sessions')}
+              className={`px-3 py-2 text-sm font-medium border ${
+                viewMode === 'sessions'
+                  ? 'bg-blue-600 text-white border-blue-600 z-10'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              } rounded-l-md`}
+            >
+              {t('timePlanning.viewMode.sessions')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('rotation')}
+              className={`px-3 py-2 text-sm font-medium border-t border-b -ml-px ${
+                viewMode === 'rotation'
+                  ? 'bg-blue-600 text-white border-blue-600 z-10'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {t('timePlanning.viewMode.rotation') || 'Rotation'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('matrix')}
+              className={`px-3 py-2 text-sm font-medium border -ml-px rounded-r-md ${
+                viewMode === 'matrix'
+                  ? 'bg-blue-600 text-white border-blue-600 z-10'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {t('timePlanning.viewMode.matrix')}
+            </button>
+          </div>
+        ),
 
         <button
           key="wizard"
@@ -351,7 +349,7 @@ export default function TimePlanning() {
 
         <button
           key="export"
-          onClick={viewMode === 'matrix' ? () => matrixPrintFnRef.current?.() : exportTimeplan}
+          onClick={activeViewMode === 'matrix' ? () => matrixPrintFnRef.current?.() : exportTimeplan}
           className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
         >
           <DocumentChartBarIcon className="h-4 w-4 mr-2" />
@@ -376,7 +374,7 @@ export default function TimePlanning() {
         </div>
       ) : (
         <>
-          {viewMode === 'sessions' && (
+          {activeViewMode === 'sessions' && (
             <SessionsView
               sessionGroups={sessionGroups}
               selectedSession={selectedSession}
@@ -395,11 +393,15 @@ export default function TimePlanning() {
               handleDrop={handleDrop}
               calculateDeviceSchedule={calculateDeviceSchedule}
               setDeviceSchedule={setDeviceSchedule}
-              setViewMode={(mode: string) => setViewMode(mode as 'sessions' | 'rotation' | 'matrix')}
+              setViewMode={(mode: string) => {
+                if (!fixedViewMode) {
+                  setViewMode(mode as TimePlanningViewMode)
+                }
+              }}
             />
           )}
 
-          {viewMode === 'rotation' && (
+          {activeViewMode === 'rotation' && (
             <div className="bg-white border rounded-lg p-6">
               <TimePlanningRotation
                 ref={rotationRef}
@@ -460,7 +462,7 @@ export default function TimePlanning() {
             </div>
           )}
 
-          {viewMode === 'matrix' && (
+          {activeViewMode === 'matrix' && (
             <ScheduleMatrixView
               eventId={eventId}
               timeSettings={timeSettings}
@@ -517,6 +519,11 @@ export default function TimePlanning() {
           }}
           onRefetch={refetch}
           onViewMatrix={() => {
+            if (fixedViewMode && eventId) {
+              navigate(`/time-planning/matrix?eventId=${eventId}`)
+              setShowWizard(false)
+              return
+            }
             setViewMode('matrix');
             setShowWizard(false);
             refetch();

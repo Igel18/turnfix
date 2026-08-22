@@ -39,7 +39,9 @@ import DisciplineGroupsUnified from '@/pages/DisciplineGroupsUnified'
 import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
-import TimePlanning from '@/pages/TimePlanning'
+import TimePlanningRounds from '@/pages/TimePlanningRounds'
+import TimePlanningRotationPage from '@/pages/TimePlanningRotationPage'
+import TimePlanningMatrixPage from '@/pages/TimePlanningMatrixPage'
 import LiveScoresPage from '@/pages/LiveScoresPage'
 import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
 import TeamScoreCapture from '@/pages/GroupTeamScoring/TeamScoreCapture'
@@ -75,7 +77,10 @@ function App() {
             <Route path="/team-scoring" element={<TeamScoreCapture />} />
             <Route path="/competitions" element={<Competitions />} />
             <Route path="/squads" element={<SquadManagement />} />
-            <Route path="/time-planning" element={<TimePlanning />} />
+            <Route path="/time-planning" element={<TimePlanningRounds />} />
+            <Route path="/time-planning/rounds" element={<TimePlanningRounds />} />
+            <Route path="/time-planning/rotation" element={<TimePlanningRotationPage />} />
+            <Route path="/time-planning/matrix" element={<TimePlanningMatrixPage />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />
             <Route path="/participant-status" element={<ParticipantStatusManagement />} />
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
