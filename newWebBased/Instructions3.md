@@ -251,14 +251,26 @@ b.) Jetzt wäre es noch gut, wenn sich bei dem klick auf xml export ein Wizard �
 
 169. [Feature] Zeitplanung: wenn man bei der Zeitplanung eine Session mit vielen Wettkämpfen hat, ist es mühselig auf jedem wettkampf die Startzeit zu ändern. hier wäre ein Multiselect sehr schön. oder man ändert die Zeit auf der Sesstion für alle Wettkämpfe... 
 
-170. [Feature] Zeitplanung: In der Zuordnung der Bahnen sollte über den Bahnen immer die Summe aller Teilnehmer stehen. 
+170. [Feature] Zeitplanung: 
+a) In der Zuordnung der Durchgänge & Bahnen sollte über den Bahnen immer die Summe aller Teilnehmer stehen. 
+b) Die Riegen in den durchgängen sollten vielleicht mit am Wettkampf dargestellt werden. Vergleiche hierzu die UI von der Riegenverwaltung. Hier werden die Wettkämpfe an den Riegen dargestellt. 
+c) die UI Durchgänge sollte auch so aufgebaut sein wie in der Riegeneinteilung mit verschiedenen Spalten. Vergleiche die Riegeneinteilung. Hier können bestimmt auch Utils übernommen werden. 
+
+d) Die Zeitplanung soll einen eigenen Expander in der Management UI bekommen, wie "Veranstaltungsaufbau" und "Wettkampftag". Und zwar zwischen "Veranstaltungsaufbau" und "Wettkampftag". TDD. 
+-> Erledigt ✅
+e) in dem Expander Zeitplanung müssen dann die Punkte Durchgänge, Rotation, und Zeitplan-Tabelle, also das was jetzt alles in dem "Zeitplanung" in separaten UIs drin ist. TDD. (gerne erst mal copy paste, am Ende können wir das alte Widget und UIs entfernen)
+-> Erledigt ✅
+
+🚀 In Arbeit (unvollständig) 
 
 171. [Bug] Zeitplanung: Werden Wettkämpfe von einer Bahn in eine andere verschoben, wechselt die UI immer in Durchgang 1
-🚀 In Arbeit (unvollständig)
+-> Erledigt ✅ Obsolete wegen 170 d.)
 
 172. [Feature/Bug] Zeitplanung: In der Zeitplanung werden im Reiter Rotation Bahnen zugeordnet. Jetzt bedeutet das, dass eigentlich jede Bahn ein eigenes Gerät und ein eigene Kampfgerich hat. Somit muss in der Zeitplan Tabelle zu erst der Durchang auftauchen, das passt schon. Danach stehen die Geräte die in diesem Durchgang geturnt werden, das passt auch, aber Die Geräteauswahl muss für jede Bahn erfolgen können! 
 
-173. [Bug] Zeitplanung: Wenn ich eine Bahn habe die Wettkämpfe mit 3 Geräten hat, dann gibt es unten in der Rotationsübersicht aktuell noch 4 Rotationen. Das stimmt nicht... Die Anzahl der Rotationen ist immer von der max. Anzahl der Geräte abhängig, die in der Bahn drin sind. 
+173. [Bug] Zeitplanung: 
+a) Wenn ich eine Bahn habe die Wettkämpfe mit 3 Geräten hat, dann gibt es unten in der Rotationsübersicht aktuell noch 4 Rotationen. Das stimmt nicht... Die Anzahl der Rotationen ist immer von der max. Anzahl der Geräte abhängig, die in der Bahn drin sind. 
+b) Im Zeitplanung-Assistent wird im Schritt "Generieren" kein Button angezeigt mit dem man den Assistenten weiter schalten kann. 
 
 174. [prüfen] Suchfeld: Bei sehr vielen Teilnehmern wird im Suchfeld oft kein Ergebnis angezeigt. Falls es da irgendein mechanismus gibt, der verhindert dass nach allen gesucht wird oder nach einer Zeit abgebrochen wird, sollte das geändert werden. Gerne darf das auch bisschen dauern, sollte dann halt visualisiert werden. 
 
@@ -280,6 +292,7 @@ a.) Wir haben den Code soweit verstanden und Dokumentiert, damit wir die neue We
 b.) die neue Web App funktioniert 
 c.) wir haben seit einiger Zeit nichts mehr nachschauen müssen 
 d.) in GitHub alle Issues und Stories für TurnFix löschen, da dann obsolet. 
+e.) Vielleicht sollte man auch noch warten, bis Gruppen/Mannschaftwettkämpfe funktionieren und validiert sind? 
 
 179. [Bug] Im Medallienspiegel und der Siegerliste steht im Header immer "Muster-Sporthalle" obwohl die korrekte Location am Event hinterlegt ist. Das müsste ja eine Util klasse sein und kann für alle listen behoben werden. TDD. 
 -> Erledigt ✅

@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import {
-  eventSetupActions, competitionDayActions, resultsAwardsActions,
+  eventSetupActions, timePlanningActions, competitionDayActions, resultsAwardsActions,
   type ActionItem,
 } from '../ManagementCenter.constants'
 import { translateAction } from '../ManagementCenter.utils'
@@ -20,7 +20,9 @@ function ActionTile({ action, eventId }: { action: ActionItem; eventId: number }
   const { t } = useTranslation()
   const Icon = action.icon
   const translated = translateAction(action, t)
-  const href = action.external ? action.href : `${action.href}?eventId=${eventId}`
+  const href = action.external
+    ? action.href
+    : `${action.href}${action.href.includes('?') ? '&' : '?'}eventId=${eventId}`
 
   const inner = (
     <div className="flex flex-col items-center text-center space-y-3">
@@ -123,9 +125,11 @@ function WorkflowStepCard({
 interface Props {
   selectedEvent: { int_eventid: number } | null
   isEventSetupCollapsed: boolean
+  isTimePlanningCollapsed: boolean
   isCompetitionDayCollapsed: boolean
   isResultsAwardsCollapsed: boolean
   onToggleEventSetup: () => void
+  onToggleTimePlanning: () => void
   onToggleCompetitionDay: () => void
   onToggleResultsAwards: () => void
 }
@@ -133,9 +137,11 @@ interface Props {
 export function EventWorkflowSteps({
   selectedEvent,
   isEventSetupCollapsed,
+  isTimePlanningCollapsed,
   isCompetitionDayCollapsed,
   isResultsAwardsCollapsed,
   onToggleEventSetup,
+  onToggleTimePlanning,
   onToggleCompetitionDay,
   onToggleResultsAwards,
 }: Props) {
@@ -172,6 +178,17 @@ export function EventWorkflowSteps({
           />
           <WorkflowStepCard
             stepNumber={2}
+            stepColor="bg-blue-100/text-blue-600"
+            titleKey="managementCenter.eventManagement.timePlanning.title"
+            subtitleKey="managementCenter.eventManagement.timePlanning.subtitle"
+            isCollapsed={isTimePlanningCollapsed}
+            onToggle={onToggleTimePlanning}
+            actions={timePlanningActions}
+            gridCols="lg:grid-cols-3"
+            eventId={selectedEvent.int_eventid}
+          />
+          <WorkflowStepCard
+            stepNumber={3}
             stepColor="bg-orange-100/text-orange-600"
             titleKey="managementCenter.eventManagement.competitionDay.title"
             subtitleKey="managementCenter.eventManagement.competitionDay.subtitle"
@@ -182,7 +199,7 @@ export function EventWorkflowSteps({
             eventId={selectedEvent.int_eventid}
           />
           <WorkflowStepCard
-            stepNumber={3}
+            stepNumber={4}
             stepColor="bg-green-100/text-green-600"
             titleKey="managementCenter.eventManagement.resultsAwards.title"
             subtitleKey="managementCenter.eventManagement.resultsAwards.subtitle"

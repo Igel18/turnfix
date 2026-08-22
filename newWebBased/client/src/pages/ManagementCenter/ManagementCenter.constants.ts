@@ -109,8 +109,13 @@ export const eventSetupActions: ActionItem[] = [
   { name: 'Manage Squads', description: 'Create squads and organize participants', href: '/squads', icon: UserGroupIcon, color: 'bg-blue-500' },
   { name: 'Manage Groups', description: 'Create and manage groups for team competitions', href: '/groups', icon: UserGroupIcon, color: 'bg-emerald-500', badge: 'Beta' },
   { name: 'Manage Teams', description: 'Create and manage teams for team competitions', href: '/teams', icon: UserGroupIcon, color: 'bg-teal-500', badge: 'Beta' },
-  { name: 'Time Planning', description: 'Plan competition times and apparatus rotations', href: '/time-planning', icon: ClockIcon, color: 'bg-purple-500' },
   { name: 'Meldematrix', description: 'Registration matrix: Clubs vs Competitions overview', href: '/meldematrix', icon: DocumentTextIcon, color: 'bg-emerald-500' },
+]
+
+export const timePlanningActions: ActionItem[] = [
+  { name: 'Rounds', description: 'Plan rounds and assign competitions', href: '/time-planning?view=sessions', icon: CalendarDaysIcon, color: 'bg-blue-500' },
+  { name: 'Rotation', description: 'Plan rotations and lanes', href: '/time-planning?view=rotation', icon: ClockIcon, color: 'bg-purple-500' },
+  { name: 'Schedule Matrix', description: 'Edit schedule matrix assignments', href: '/time-planning?view=matrix', icon: DocumentTextIcon, color: 'bg-emerald-500' },
 ]
 
 export const competitionDayActions: ActionItem[] = [

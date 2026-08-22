@@ -98,7 +98,7 @@
     },
     "eventManagement": {
       "title": "Event Management",
-      "subtitle": "3-step workflow: Setup → Competition → Results",
+      "subtitle": "4-step workflow: Setup → Time Planning → Competition Day → Results",
       "eventSetup": {
         "title": "Event Setup",
         "subtitle": "Planning & Configuration",
@@ -133,6 +133,22 @@
         "meldematrix": {
           "title": "Meldematrix",
           "description": "Registration matrix: Clubs vs Competitions overview"
+        }
+      },
+      "timePlanning": {
+        "title": "Time Planning",
+        "subtitle": "Rounds, Rotation & Schedule Matrix",
+        "rounds": {
+          "title": "Rounds",
+          "description": "Plan rounds and assign competitions"
+        },
+        "rotation": {
+          "title": "Rotation",
+          "description": "Plan rotations and lanes"
+        },
+        "matrix": {
+          "title": "Schedule Matrix",
+          "description": "Edit schedule matrix assignments"
         }
       },
       "competitionDay": {
@@ -193,7 +209,7 @@
       },
       "selectEvent": {
         "title": "Select an Event",
-        "description": "Choose an event above to access the 3-step workflow: Setup → Competition → Results",
+        "description": "Choose an event above to access the 4-step workflow: Setup → Time Planning → Competition Day → Results",
         "label": "Select Event"
       }
     },

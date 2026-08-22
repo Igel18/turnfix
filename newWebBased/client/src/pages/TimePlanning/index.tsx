@@ -48,6 +48,15 @@ import {
 import type { TimeSettings, Competition, DeviceSchedule } from './TimePlanning.types';
 import { DEFAULT_TIME_SETTINGS } from './TimePlanning.types';
 
+type TimePlanningViewMode = 'sessions' | 'rotation' | 'matrix'
+
+function parseViewMode(value: string | null): TimePlanningViewMode {
+  if (value === 'rotation' || value === 'matrix') {
+    return value
+  }
+  return 'sessions'
+}
+
 // ====== Time-settings localStorage helpers ======
 const TIME_SETTINGS_KEY = (id: string) => `time-planning-settings-${id}`;
 const ROTATION_ROUND_KEY = (id: string) => `time-planning-rotation-round-${id}`;
@@ -81,7 +90,7 @@ export default function TimePlanning() {
   const [_deviceSchedule, setDeviceSchedule] = useState<DeviceSchedule[]>([]);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
   const [selectedRotationRound, setSelectedRotationRound] = useState<number>(1);
-  const [viewMode, setViewMode] = useState<'sessions' | 'rotation' | 'matrix'>('sessions');
+  const [viewMode, setViewMode] = useState<TimePlanningViewMode>(() => parseViewMode(searchParams.get('view')));
   const [showTimeSettings, setShowTimeSettings] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -160,6 +169,10 @@ export default function TimePlanning() {
       // ignore localStorage errors
     }
   }, [eventId, selectedRotationRound]);
+
+  useEffect(() => {
+    setViewMode(parseViewMode(searchParams.get('view')))
+  }, [searchParams]);
 
   const saveTimeSettings = () => {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings);

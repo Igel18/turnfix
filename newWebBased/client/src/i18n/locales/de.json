@@ -98,7 +98,7 @@
     },
     "eventManagement": {
       "title": "Veranstaltungsverwaltung",
-      "subtitle": "3-Schritte-Workflow: Setup → Wettkampf → Ergebnisse",
+      "subtitle": "4-Schritte-Workflow: Aufbau → Zeitplanung → Wettkampftag → Ergebnisse",
       "eventSetup": {
         "title": "Veranstaltungsaufbau",
         "subtitle": "Planung & Konfiguration",
@@ -133,6 +133,22 @@
         "meldematrix": {
           "title": "Meldematrix",
           "description": "Meldematrix: Übersicht Vereine vs. Wettkämpfe"
+        }
+      },
+      "timePlanning": {
+        "title": "Zeitplanung",
+        "subtitle": "Durchgänge, Rotation & Zeitplan-Tabelle",
+        "rounds": {
+          "title": "Durchgänge",
+          "description": "Durchgänge planen und Wettkämpfe zuordnen"
+        },
+        "rotation": {
+          "title": "Rotation",
+          "description": "Rotationen und Bahnen planen"
+        },
+        "matrix": {
+          "title": "Zeitplan-Tabelle",
+          "description": "Zeitplan-Matrix bearbeiten"
         }
       },
       "competitionDay": {
@@ -193,7 +209,7 @@
       },
       "selectEvent": {
         "title": "Veranstaltung auswählen",
-        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 3-Schritte-Workflow zuzugreifen: Setup → Wettkampf → Ergebnisse",
+        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 4-Schritte-Workflow zuzugreifen: Aufbau → Zeitplanung → Wettkampftag → Ergebnisse",
         "label": "Veranstaltung auswählen"
       }
     },
