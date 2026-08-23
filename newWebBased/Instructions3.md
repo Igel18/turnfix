@@ -254,8 +254,9 @@ b.) Jetzt wäre es noch gut, wenn sich bei dem klick auf xml export ein Wizard �
 170. [Feature] Zeitplanung: 
 a) In der Zuordnung der Durchgänge & Bahnen sollte über den Bahnen immer die Summe aller Teilnehmer stehen. 
 b) Die Riegen in den durchgängen sollten vielleicht mit am Wettkampf dargestellt werden. Vergleiche hierzu die UI von der Riegenverwaltung. Hier werden die Wettkämpfe an den Riegen dargestellt. 
+
 c) die UI Durchgänge sollte auch so aufgebaut sein wie in der Riegeneinteilung mit verschiedenen Spalten. Vergleiche die Riegeneinteilung. Hier können bestimmt auch Utils übernommen werden. 
-🚀 In Arbeit (unvollständig) 
+-> Erledigt ✅
 
 d) Die Zeitplanung soll einen eigenen Expander in der Management UI bekommen, wie "Veranstaltungsaufbau" und "Wettkampftag". Und zwar zwischen "Veranstaltungsaufbau" und "Wettkampftag". TDD. 
 -> Erledigt ✅

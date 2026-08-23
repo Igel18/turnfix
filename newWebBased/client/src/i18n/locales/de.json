@@ -2521,6 +2521,11 @@
     "startDeviceInfo": "Startgerät auswählen",
     "startDeviceDescription": "Wählen Sie für jede Riege das Gerät aus, an dem sie ihre Rotation beginnen soll. Dies verhindert Konflikte, wenn mehrere Riegen gleichzeitig starten.",
     "noSquadsFound": "Keine Riegen für diesen Wettkampf gefunden",
+    "noSquads": "Keine Riegen in diesem Durchgang",
+    "sessionOverview": "Durchgangsübersicht",
+    "unassignedCompetitions": "Nicht zugewiesene Wettkämpfe",
+    "noUnassignedCompetitions": "Alle Wettkämpfe sind einem Durchgang zugewiesen.",
+    "noSessionSelected": "Bitte einen Durchgang auswählen.",
     "noStartDeviceSelected": "Kein Startgerät ausgewählt",
     "wizard": {
       "title": "Zeitplanung-Assistent",

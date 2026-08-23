@@ -2487,6 +2487,11 @@
     "startDeviceInfo": "Select Start Apparatus",
     "startDeviceDescription": "Select the apparatus where each squad should start their rotation. This prevents conflicts when multiple squads start simultaneously.",
     "noSquadsFound": "No squads found for this competition",
+    "noSquads": "No squads in this session",
+    "sessionOverview": "Session overview",
+    "unassignedCompetitions": "Unassigned competitions",
+    "noUnassignedCompetitions": "All competitions are assigned to a session.",
+    "noSessionSelected": "Please select a session.",
     "noStartDeviceSelected": "No start apparatus selected",
     "wizard": {
       "title": "Time Planning Wizard",
