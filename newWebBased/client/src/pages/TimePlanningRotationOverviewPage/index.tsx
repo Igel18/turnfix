@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -7,14 +7,14 @@ import {
   Cog6ToothIcon,
   DocumentChartBarIcon,
   InformationCircleIcon,
-  ArrowsRightLeftIcon,
+  TableCellsIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline'
 
 import { useEvent } from '@/contexts/EventContext'
 import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
 import UnifiedModal from '@/components/UnifiedModal'
-import TimePlanningRotation, { TimePlanningRotationRef } from '@/pages/TimePlanningRotation'
+import TimePlanningRotationOverview from '@/pages/TimePlanningRotationOverview'
 import {
   HelpPanels,
   TimeSettingsModal,
@@ -33,7 +33,7 @@ import {
   saveTimeSettingsToStorage,
 } from '@/pages/TimePlanning/timePlanningSettingsStorage'
 
-export default function TimePlanningRotationPage() {
+export default function TimePlanningRotationOverviewPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { selectedEvent } = useEvent()
@@ -47,8 +47,6 @@ export default function TimePlanningRotationPage() {
   const [showTimeSettings, setShowTimeSettings] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
-
-  const rotationRef = useRef<TimePlanningRotationRef>(null)
 
   const {
     loading,
@@ -148,17 +146,6 @@ export default function TimePlanningRotationPage() {
       showViewToggle={false}
       showAddButton={false}
       loading={loading}
-      customBelowActions={
-        <div className="flex space-x-2">
-          <button
-            onClick={() => rotationRef.current?.addBahn()}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <span className="text-xl mr-2">+</span>
-            {t('timePlanning.addBahn', 'Neue Bahn')}
-          </button>
-        </div>
-      }
       customActions={[
         <button
           key="wizard"
@@ -206,32 +193,26 @@ export default function TimePlanningRotationPage() {
           <p className="mt-2 text-sm text-gray-600">{t('timePlanning.loading')}</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="bg-white border rounded-lg p-6">
-            <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <ArrowsRightLeftIcon className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {t('timePlanning.lanePlanningWidgetTitle', 'Bahnplanung')}
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {t('timePlanning.lanePlanningWidgetSubtitle', 'Wettkämpfe den Bahnen zuweisen und per Drag & Drop verschieben.')}
-                </p>
-              </div>
+        <div className="bg-white border rounded-lg p-6">
+          <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
+            <div className="bg-purple-100 p-2 rounded-lg">
+              <TableCellsIcon className="h-5 w-5 text-purple-600" />
             </div>
-            <TimePlanningRotation
-              ref={rotationRef}
-              eventId={eventId}
-              onDataChange={refetch}
-              selectedRound={selectedRotationRound}
-              onSelectedRoundChange={setSelectedRotationRound}
-              squads={mappedSquads}
-              devices={mappedDevices}
-              competitions={competitions}
-            />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('timePlanning.rotationOverviewWidgetTitle')}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {t('timePlanning.rotationOverviewWidgetSubtitle')}
+              </p>
+            </div>
           </div>
+          <TimePlanningRotationOverview
+            selectedRound={selectedRotationRound}
+            squads={mappedSquads}
+            devices={mappedDevices}
+            competitions={competitions}
+          />
         </div>
       )}
 

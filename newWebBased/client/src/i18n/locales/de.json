@@ -142,6 +142,14 @@
           "title": "Durchgänge",
           "description": "Durchgänge planen und Wettkämpfe zuordnen"
         },
+        "lanePlanning": {
+          "title": "Bahnplanung",
+          "description": "Wettkämpfe den Bahnen zuweisen"
+        },
+        "rotationOverview": {
+          "title": "Rotationsübersicht",
+          "description": "Round-Robin-Rotation pro Bahn anzeigen"
+        },
         "rotation": {
           "title": "Rotation",
           "description": "Rotationen und Bahnen planen"
@@ -2533,6 +2541,10 @@
     "lanesTitle": "Bahnen",
     "laneLabel": "Bahn",
     "laneDetails": "Bahn-Details",
+    "lanePlanningWidgetTitle": "Bahnplanung",
+    "lanePlanningWidgetSubtitle": "Wettkämpfe den Bahnen zuweisen und per Drag & Drop verschieben.",
+    "rotationOverviewWidgetTitle": "Rotationsübersicht",
+    "rotationOverviewWidgetSubtitle": "Round-Robin-Rotation pro Bahn für den gewählten Durchgang.",
     "selectLaneFirst": "Bitte zuerst eine Bahn auswählen.",
     "noCompetitionsOnLane": "Auf dieser Bahn sind noch keine Wettkämpfe zugewiesen.",
     "competitionSingle": "Wettkampf",

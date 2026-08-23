@@ -41,6 +41,7 @@ import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
 import TimePlanningRounds from '@/pages/TimePlanningRounds'
 import TimePlanningRotationPage from '@/pages/TimePlanningRotationPage'
+import TimePlanningRotationOverviewPage from '@/pages/TimePlanningRotationOverviewPage'
 import TimePlanningMatrixPage from '@/pages/TimePlanningMatrixPage'
 import LiveScoresPage from '@/pages/LiveScoresPage'
 import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
@@ -80,6 +81,7 @@ function App() {
             <Route path="/time-planning" element={<TimePlanningRounds />} />
             <Route path="/time-planning/rounds" element={<TimePlanningRounds />} />
             <Route path="/time-planning/rotation" element={<TimePlanningRotationPage />} />
+            <Route path="/time-planning/rotation-overview" element={<TimePlanningRotationOverviewPage />} />
             <Route path="/time-planning/matrix" element={<TimePlanningMatrixPage />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />
             <Route path="/participant-status" element={<ParticipantStatusManagement />} />

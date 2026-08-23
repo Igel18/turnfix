@@ -142,6 +142,14 @@
           "title": "Rounds",
           "description": "Plan rounds and assign competitions"
         },
+        "lanePlanning": {
+          "title": "Lane Planning",
+          "description": "Assign competitions to lanes"
+        },
+        "rotationOverview": {
+          "title": "Rotation Overview",
+          "description": "View round-robin rotation by lane"
+        },
         "rotation": {
           "title": "Rotation",
           "description": "Plan rotations and lanes"
@@ -2499,6 +2507,10 @@
     "lanesTitle": "Lanes",
     "laneLabel": "Lane",
     "laneDetails": "Lane details",
+    "lanePlanningWidgetTitle": "Lane planning",
+    "lanePlanningWidgetSubtitle": "Assign competitions to lanes and move them via drag and drop.",
+    "rotationOverviewWidgetTitle": "Rotation overview",
+    "rotationOverviewWidgetSubtitle": "Round-robin rotation per lane for the selected session.",
     "selectLaneFirst": "Please select a lane first.",
     "noCompetitionsOnLane": "No competitions assigned to this lane yet.",
     "competitionSingle": "Competition",
