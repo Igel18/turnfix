@@ -55,7 +55,7 @@ describe('TimePlanningRotation round selection', () => {
   it('keeps the selected round after a remount', async () => {
     render(<RotationHost />);
 
-    const round2Button = screen.getByRole('button', { name: /Durchgang 2/i });
+    const round2Button = screen.getByRole('button', { name: /session\s+2/i });
     fireEvent.click(round2Button);
 
     await waitFor(() => {
@@ -65,7 +65,7 @@ describe('TimePlanningRotation round selection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'hide-rotation' }));
     fireEvent.click(screen.getByRole('button', { name: 'show-rotation' }));
 
-    const round2ButtonAfterRemount = screen.getByRole('button', { name: /Durchgang 2/i });
+    const round2ButtonAfterRemount = screen.getByRole('button', { name: /session\s+2/i });
     expect(round2ButtonAfterRemount.className).toContain('bg-blue-600');
   });
 
