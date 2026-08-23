@@ -141,8 +141,8 @@ export default function TimePlanningRotationPage() {
 
   return (
     <EventManagementTemplate
-      title={t('timePlanning.title')}
-      subtitle={t('timePlanning.subtitle')}
+      title={t('timePlanning.pages.lanePlanning.title')}
+      subtitle={t('timePlanning.pages.lanePlanning.subtitle')}
       icon={ClockIcon}
       showEventContext={true}
       showViewToggle={false}

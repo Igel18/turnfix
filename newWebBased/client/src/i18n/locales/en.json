@@ -2406,6 +2406,24 @@
   "timePlanning": {
     "title": "Time Planning",
     "subtitle": "Manage competition times, squads, and apparatus rotations",
+    "pages": {
+      "rounds": {
+        "title": "Round Planning",
+        "subtitle": "Plan sessions and assign competitions to sessions"
+      },
+      "lanePlanning": {
+        "title": "Lane Planning",
+        "subtitle": "Assign competitions to lanes and move them between lanes"
+      },
+      "rotationOverview": {
+        "title": "Rotation Overview",
+        "subtitle": "Round-robin rotation per lane for the selected session"
+      },
+      "matrix": {
+        "title": "Schedule Matrix",
+        "subtitle": "Review, adjust, and export the schedule matrix"
+      }
+    },
     "noEventSelected": "No Event Selected",
     "selectEventToManageTime": "Please select an event to manage time planning.",
     "session": "Session",

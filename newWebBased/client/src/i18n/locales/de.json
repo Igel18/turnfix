@@ -2439,6 +2439,24 @@
   "timePlanning": {
     "title": "Zeitplanung",
     "subtitle": "Verwalten Sie Wettkampfzeiten, Riegen und Gerätedurchgänge",
+    "pages": {
+      "rounds": {
+        "title": "Durchgangsplanung",
+        "subtitle": "Durchgänge planen und Wettkämpfe den Durchgängen zuordnen"
+      },
+      "lanePlanning": {
+        "title": "Bahnplanung",
+        "subtitle": "Wettkämpfe den Bahnen zuweisen und zwischen Bahnen verschieben"
+      },
+      "rotationOverview": {
+        "title": "Rotationsübersicht",
+        "subtitle": "Round-Robin-Rotation pro Bahn für den gewählten Durchgang"
+      },
+      "matrix": {
+        "title": "Zeitplan-Tabelle",
+        "subtitle": "Zeitplan-Matrix prüfen, anpassen und exportieren"
+      }
+    },
     "noEventSelected": "Keine Veranstaltung ausgewählt",
     "selectEventToManageTime": "Bitte wählen Sie eine Veranstaltung aus, um die Zeitplanung zu verwalten.",
     "session": "Durchgang",

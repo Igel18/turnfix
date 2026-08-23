@@ -194,8 +194,8 @@ export default function TimePlanningRounds() {
 
   return (
     <EventManagementTemplate
-      title={t('timePlanning.title')}
-      subtitle={t('timePlanning.subtitle')}
+      title={t('timePlanning.pages.rounds.title')}
+      subtitle={t('timePlanning.pages.rounds.subtitle')}
       icon={ClockIcon}
       showEventContext={true}
       showViewToggle={false}

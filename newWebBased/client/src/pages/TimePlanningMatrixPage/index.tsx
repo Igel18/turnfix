@@ -67,8 +67,8 @@ export default function TimePlanningMatrixPage() {
 
   return (
     <EventManagementTemplate
-      title={t('timePlanning.title')}
-      subtitle={t('timePlanning.subtitle')}
+      title={t('timePlanning.pages.matrix.title')}
+      subtitle={t('timePlanning.pages.matrix.subtitle')}
       icon={ClockIcon}
       showEventContext={true}
       showViewToggle={false}
