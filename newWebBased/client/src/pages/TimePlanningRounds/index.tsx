@@ -55,6 +55,8 @@ export default function TimePlanningRounds() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [editingSession, setEditingSession] = useState<number | null>(null)
+  const [sessionStartTime, setSessionStartTime] = useState('')
   const [editingStartDevices, setEditingStartDevices] = useState<{
     competitionId: number
     competitionName: string
@@ -145,6 +147,36 @@ export default function TimePlanningRounds() {
       setEditingCompetition(null)
     } catch (error) {
       console.error('Failed to update competition times:', error)
+    }
+  }
+
+  const handleOpenEditSessionTimes = (session: number) => {
+    setEditingSession(session)
+    const group = sessionGroups.find(g => g.session === session)
+    setSessionStartTime(group?.startTime || '')
+  }
+
+  const handleSaveSessionTimes = async () => {
+    if (!editingSession || !sessionStartTime) return
+    const group = sessionGroups.find(g => g.session === editingSession)
+    if (!group || group.competitions.length === 0) return
+
+    try {
+      await Promise.all(
+        group.competitions.map(comp =>
+          apiPut(`/competitions/${comp.id}`, {
+            startTime: sessionStartTime,
+            warmupTime: comp.warmupTime,
+          })
+        )
+      )
+      invalidateCache('/competitions')
+      invalidateCache('/time-planning')
+      await refetch()
+      setEditingSession(null)
+      setSessionStartTime('')
+    } catch (error) {
+      console.error('Failed to update session start times:', error)
     }
   }
 
@@ -264,8 +296,43 @@ export default function TimePlanningRounds() {
           calculateDeviceSchedule={calculateDeviceSchedule}
           setDeviceSchedule={setDeviceSchedule}
           onOpenMatrix={() => navigate(`/time-planning/matrix?eventId=${eventId}`)}
+          onEditSessionTimes={handleOpenEditSessionTimes}
         />
       )}
+
+      <UnifiedModal
+        isOpen={editingSession !== null}
+        onClose={() => {
+          setEditingSession(null)
+          setSessionStartTime('')
+        }}
+        title={t('timePlanning.editSessionTimes')}
+        size="md"
+        showFooter={true}
+        onSave={handleSaveSessionTimes}
+        saveLabel={t('common.save', 'Speichern')}
+        showCancel={true}
+        cancelLabel={t('common.cancel', 'Abbrechen')}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-700">
+            {t('timePlanning.applySessionStartToAllCompetitions', {
+              session: editingSession ?? '-',
+            })}
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('timePlanning.startTime')}
+            </label>
+            <input
+              type="time"
+              value={sessionStartTime}
+              onChange={e => setSessionStartTime(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </UnifiedModal>
 
       <UnifiedModal
         isOpen={showTimeSettings}

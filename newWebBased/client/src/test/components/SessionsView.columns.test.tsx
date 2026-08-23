@@ -108,6 +108,7 @@ const sessionGroups: SessionGroup[] = [
 
 describe('SessionsView three-column layout', () => {
   it('renders sessions column, middle unassigned column and selected-session competitions column', () => {
+    const onEditSessionTimes = vi.fn()
     renderWithProviders(
       <SessionsView
         sessionGroups={sessionGroups}
@@ -122,6 +123,7 @@ describe('SessionsView three-column layout', () => {
         calculateDeviceSchedule={vi.fn(() => [])}
         setDeviceSchedule={vi.fn()}
         onOpenMatrix={vi.fn()}
+        onEditSessionTimes={onEditSessionTimes}
       />
     )
 
@@ -135,9 +137,12 @@ describe('SessionsView three-column layout', () => {
     expect(screen.getAllByText('Riege B').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Riege C').length).toBeGreaterThan(0)
 
-    expect(screen.getByText('24 timePlanning.participants')).toBeInTheDocument()
-    expect(screen.getByText('7 timePlanning.devices')).toBeInTheDocument()
+    expect(screen.getAllByText('timePlanning.participants').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('timePlanning.estimatedDurationShort').length).toBeGreaterThan(0)
     expect(screen.getByText('Estimated duration: 342 minutes')).toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByTitle('timePlanning.editSessionTimes')[0])
+    expect(onEditSessionTimes).toHaveBeenCalledWith(0)
   })
 
   it('uses the third column action to open matrix and pass calculated schedule', () => {
@@ -169,6 +174,7 @@ describe('SessionsView three-column layout', () => {
         calculateDeviceSchedule={calculateDeviceSchedule}
         setDeviceSchedule={setDeviceSchedule}
         onOpenMatrix={onOpenMatrix}
+        onEditSessionTimes={vi.fn()}
       />
     )
 

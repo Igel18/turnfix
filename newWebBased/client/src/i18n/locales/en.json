@@ -2489,9 +2489,12 @@
     "noSquadsFound": "No squads found for this competition",
     "noSquads": "No squads in this session",
     "sessionOverview": "Session overview",
+    "estimatedDurationShort": "Duration (estimated)",
     "unassignedCompetitions": "Unassigned competitions",
     "noUnassignedCompetitions": "All competitions are assigned to a session.",
     "noSessionSelected": "Please select a session.",
+    "editSessionTimes": "Edit session times",
+    "applySessionStartToAllCompetitions": "Set start time for all competitions in session {{session}}.",
     "noStartDeviceSelected": "No start apparatus selected",
     "wizard": {
       "title": "Time Planning Wizard",

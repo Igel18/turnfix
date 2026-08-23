@@ -40,6 +40,7 @@ interface SessionsViewProps {
   calculateDeviceSchedule: (group: SessionGroup) => DeviceSchedule[];
   setDeviceSchedule: (schedule: DeviceSchedule[]) => void;
   onOpenMatrix: () => void;
+  onEditSessionTimes: (session: number) => void;
 }
 
 export function SessionsView({
@@ -54,7 +55,8 @@ export function SessionsView({
   handleDrop,
   calculateDeviceSchedule,
   setDeviceSchedule,
-  onOpenMatrix
+  onOpenMatrix,
+  onEditSessionTimes,
 }: SessionsViewProps) {
   const { t } = useTranslation();
   const flattenedCompetitions = sessionGroups.flatMap(group => group.competitions);
@@ -90,22 +92,29 @@ export function SessionsView({
   const selectedCompetitions = selectedGroup?.competitions ?? [];
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-1">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 min-h-[72vh] items-stretch">
+      <div className="xl:col-span-1 flex flex-col min-h-[72vh]">
         <h4 className="text-md font-semibold text-gray-900 mb-3">
           {t('timePlanning.sessions')} ({sessionGroups.length})
         </h4>
-        <div className="space-y-3 max-h-[680px] overflow-y-auto pr-1">
+        <div className="space-y-3 flex-1 overflow-y-auto pr-1">
           {sessionGroups.map(group => (
-            <button
+            <div
               key={group.session}
-              type="button"
               className={`w-full text-left border rounded-lg p-4 transition-colors ${
                 selectedGroup?.session === group.session
                   ? 'bg-blue-50 border-blue-500'
                   : 'bg-white hover:border-gray-300'
               }`}
               onClick={() => setSelectedSession(group.session)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedSession(group.session)
+                }
+              }}
+              role="button"
+              tabIndex={0}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(group.session)}
             >
@@ -138,31 +147,52 @@ export function SessionsView({
                     </p>
                   </div>
                 </div>
-                <ArrowRightIcon className="h-4 w-4 text-gray-400 mt-1" />
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditSessionTimes(group.session)
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                    title={t('timePlanning.editSessionTimes')}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </button>
+                  <ArrowRightIcon className="h-4 w-4 text-gray-400" />
+                </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
-                <div className="bg-gray-50 rounded px-2 py-1 text-gray-700">
-                  {group.competitions.length}
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div className="bg-gray-50 rounded px-2 py-2 text-gray-700">
+                  <div className="text-[11px] text-gray-500">{t('timePlanning.competitions')}</div>
+                  <div className="font-semibold text-gray-900">{group.competitions.length}</div>
                 </div>
-                <div className="bg-gray-50 rounded px-2 py-1 text-gray-700">
-                  {group.squads.length}
+                <div className="bg-gray-50 rounded px-2 py-2 text-gray-700">
+                  <div className="text-[11px] text-gray-500">{t('timePlanning.squads')}</div>
+                  <div className="font-semibold text-gray-900">{group.squads.length}</div>
                 </div>
-                <div className="bg-gray-50 rounded px-2 py-1 text-gray-700">
-                  {getSessionParticipantCount(group)}
+                <div className="bg-gray-50 rounded px-2 py-2 text-gray-700">
+                  <div className="text-[11px] text-gray-500">{t('timePlanning.participants')}</div>
+                  <div className="font-semibold text-gray-900">{getSessionParticipantCount(group)}</div>
+                </div>
+                <div className="bg-gray-50 rounded px-2 py-2 text-gray-700">
+                  <div className="text-[11px] text-gray-500">{t('timePlanning.estimatedDurationShort')}</div>
+                  <div className="font-semibold text-gray-900">
+                    {getEstimatedSessionDurationMinutes(group, timeSettings.exerciseDurationMinutes)} {t('timePlanning.minutes')}
+                  </div>
                 </div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       </div>
 
-      <div className="xl:col-span-1">
+      <div className="xl:col-span-1 flex flex-col min-h-[72vh]">
         <h4 className="text-md font-semibold text-gray-900 mb-3">
           {t('timePlanning.unassignedCompetitions')} ({unassignedCompetitions.length})
         </h4>
         <div
-          className="space-y-3 max-h-[680px] overflow-y-auto pr-1 min-h-[240px] border border-dashed border-gray-300 rounded-lg p-3 bg-gray-50"
+          className="space-y-3 flex-1 overflow-y-auto pr-1 min-h-[240px] border border-dashed border-gray-300 rounded-lg p-3 bg-gray-50"
           onDragOver={handleDragOver}
           onDrop={() => handleDrop(0)}
         >
@@ -194,7 +224,7 @@ export function SessionsView({
         </div>
       </div>
 
-      <div className="xl:col-span-1">
+      <div className="xl:col-span-1 flex flex-col min-h-[72vh]">
         <h4 className="text-md font-semibold text-gray-900 mb-3">
           {selectedGroup
             ? `${t('timePlanning.competitions')} (${t('timePlanning.session')} ${selectedGroup.session})`
@@ -203,7 +233,7 @@ export function SessionsView({
 
         {selectedGroup ? (
           <>
-            <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+            <div className="space-y-3 flex-1 overflow-y-auto pr-1">
               {selectedCompetitions.map(comp => {
                 const competitionSquads = getCompetitionSquadNames(selectedGroup, comp);
                 const mappedComp = competitionsById.get(comp.id) ?? comp;
