@@ -78,4 +78,25 @@ describe('EventWorkflowSteps time planning section', () => {
     expect(screen.getByRole('link', { name: /Rotationsuebersicht/i }).getAttribute('href')).toBe('/time-planning/rotation-overview?eventId=59')
     expect(screen.getByRole('link', { name: /Zeitplan-Tabelle/i }).getAttribute('href')).toBe('/time-planning/matrix?eventId=59')
   })
+
+  it('keeps Zeitplanung expander visible even without selected event', () => {
+    render(
+      <MemoryRouter>
+        <EventWorkflowSteps
+          selectedEvent={null}
+          isEventSetupCollapsed={false}
+          isTimePlanningCollapsed={false}
+          isCompetitionDayCollapsed={false}
+          isResultsAwardsCollapsed={false}
+          onToggleEventSetup={vi.fn()}
+          onToggleTimePlanning={vi.fn()}
+          onToggleCompetitionDay={vi.fn()}
+          onToggleResultsAwards={vi.fn()}
+        />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByRole('heading', { name: 'Zeitplanung' })).toBeInTheDocument()
+    expect(screen.getAllByText('managementCenter.eventManagement.selectEvent.description').length).toBeGreaterThan(0)
+  })
 })

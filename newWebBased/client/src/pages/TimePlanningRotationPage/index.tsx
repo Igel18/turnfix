@@ -7,7 +7,6 @@ import {
   Cog6ToothIcon,
   DocumentChartBarIcon,
   InformationCircleIcon,
-  ArrowsRightLeftIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline'
 
@@ -91,8 +90,6 @@ export default function TimePlanningRotationPage() {
   const wizardStartLabel = t('timePlanning.wizard.startButton')
   const helpLabel = t('timePlanning.help')
   const addLaneLabel = t('timePlanning.addBahn')
-  const lanePlanningWidgetTitle = t('timePlanning.lanePlanningWidgetTitle')
-  const lanePlanningWidgetSubtitle = t('timePlanning.lanePlanningWidgetSubtitle')
 
   if (!eventId) {
     return (
@@ -219,19 +216,6 @@ export default function TimePlanningRotationPage() {
       ) : (
         <div className="space-y-6">
           <div className="bg-white border rounded-lg p-6">
-            <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <ArrowsRightLeftIcon className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {lanePlanningWidgetTitle}
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {lanePlanningWidgetSubtitle}
-                </p>
-              </div>
-            </div>
             <TimePlanningRotation
               ref={rotationRef}
               eventId={eventId}

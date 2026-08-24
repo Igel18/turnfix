@@ -17,6 +17,10 @@ export type { Device, TimePlanningRotationProps, TimePlanningRotationRef, Squad 
 const LANE_CARD_ACTIVE_CLASS = "bg-blue-50 border-blue-500";
 const LANE_CARD_DEFAULT_CLASS = "bg-white hover:border-gray-300";
 
+const getLaneParticipants = (
+  competitionsOnLane: TimePlanningRotationProps["competitions"],
+) => competitionsOnLane.reduce((sum, comp) => sum + (comp.participantCount || 0), 0);
+
 const TimePlanningRotation = forwardRef<
   TimePlanningRotationRef,
   TimePlanningRotationProps
@@ -94,9 +98,8 @@ const TimePlanningRotation = forwardRef<
               </div>
             )}
             {bahnen.map((bahn) => {
-              const laneParticipants = bahn.competitions.reduce(
-                (sum, compWithSquads) => sum + compWithSquads.squads.reduce((inner, s) => inner + s.participantCount, 0),
-                0,
+              const laneParticipants = getLaneParticipants(
+                bahn.competitions.map((entry) => entry.competition),
               );
 
               return (
@@ -170,7 +173,7 @@ const TimePlanningRotation = forwardRef<
         <div className="xl:col-span-1 flex flex-col min-h-[72vh]">
           <h3 className="text-md font-semibold text-gray-900 mb-3">
             {selectedLane
-              ? `${t('timePlanning.laneLabel')} ${selectedLane}`
+              ? `${t('timePlanning.competitions')} (${t('timePlanning.laneLabel')} ${selectedLane})`
               : t('timePlanning.laneDetails')}
           </h3>
           <div
@@ -191,10 +194,8 @@ const TimePlanningRotation = forwardRef<
             {selectedLaneData && (
               (() => {
                 const bahn = selectedLaneData;
-                const participantsOnLane = bahn.competitions.reduce(
-                  (sum, compWithSquads) =>
-                    sum + compWithSquads.squads.reduce((s, squad) => s + squad.participantCount, 0),
-                  0
+                const participantsOnLane = getLaneParticipants(
+                  bahn.competitions.map((entry) => entry.competition),
                 );
 
                 return (
@@ -203,7 +204,7 @@ const TimePlanningRotation = forwardRef<
                     className="bg-white border-2 border-gray-200 rounded-lg p-4"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="font-semibold text-blue-700">{t('timePlanning.laneLabel')} {bahn.bahnNumber}</div>
+                      <div className="font-semibold text-blue-700">{t('timePlanning.competitions')}</div>
                       <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                         {bahn.competitions.length} {bahn.competitions.length === 1 ? t('timePlanning.competitionSingle') : t('timePlanning.competitions')}
                       </span>
@@ -220,6 +221,9 @@ const TimePlanningRotation = forwardRef<
                           onDragStart={() => handleDragStart(compWithSquads, bahn.bahnNumber)}
                         >
                           <div className="font-medium text-blue-900 text-sm">{compWithSquads.competition.name}</div>
+                          <div className="text-xs text-blue-700 mt-1">
+                            {t('timePlanning.participants')}: {compWithSquads.competition.participantCount || 0}
+                          </div>
                           <div className="text-xs text-blue-700 mt-1">
                             {compWithSquads.squads.length} {compWithSquads.squads.length === 1 ? t('timePlanning.squad') : t('timePlanning.squads')}
                           </div>

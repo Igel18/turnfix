@@ -1,7 +1,31 @@
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import TimePlanningRotation from '@/pages/TimePlanningRotation';
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'timePlanning.session': 'Session',
+        'timePlanning.competitionSingle': 'Competition',
+        'timePlanning.competitions': 'Competitions',
+        'timePlanning.participants': 'Participants',
+        'timePlanning.laneLabel': 'Lane',
+        'timePlanning.laneDetails': 'Lane details',
+        'timePlanning.unassignedCompetitions': 'Unassigned competitions',
+        'timePlanning.noUnassignedCompetitions': 'No unassigned competitions',
+        'timePlanning.noLanesYet': 'No lanes yet',
+        'timePlanning.selectLaneFirst': 'Select lane first',
+        'timePlanning.noCompetitionsOnLane': 'No competitions on lane',
+        'timePlanning.squad': 'Squad',
+        'timePlanning.squads': 'Squads',
+        'timePlanning.lanesTitle': 'Lanes',
+      }
+      return map[key] ?? key
+    },
+  }),
+}));
 
 vi.mock('@/utils/api', () => ({
   apiPut: vi.fn().mockResolvedValue({ success: true }),
@@ -87,4 +111,64 @@ describe('TimePlanningRotation round selection', () => {
       expect(onSelectedRoundChange).toHaveBeenCalledWith(1);
     });
   });
+
+  it('shows lane participant counts from competition participantCount (not squad totals)', () => {
+    const competitions: TestCompetition[] = [
+      { id: 201, name: 'WK Bahn 1', round: 1, participantCount: 20, int_bahn: 1 },
+      { id: 202, name: 'WK Bahn 2', round: 1, participantCount: 5, int_bahn: 2 },
+    ]
+
+    const squads = [
+      { name: 'Riege A', participantCount: 120, competitionId: 201, competitionIds: [201] },
+      { name: 'Riege B', participantCount: 90, competitionId: 202, competitionIds: [202] },
+    ]
+
+    render(
+      <TimePlanningRotation
+        eventId="1"
+        selectedRound={1}
+        competitions={competitions}
+        squads={squads}
+        devices={baseDevices}
+      />
+    )
+
+    const lane1Button = screen.getByRole('button', { name: /lane\s+1/i })
+    const lane2Button = screen.getByRole('button', { name: /lane\s+2/i })
+
+    expect(within(lane1Button).getByText('20')).toBeInTheDocument()
+    expect(within(lane2Button).getByText('5')).toBeInTheDocument()
+  })
+
+  it('updates right lane details heading and participant count when lane selection changes', async () => {
+    const competitions: TestCompetition[] = [
+      { id: 301, name: 'WK Detail 1', round: 1, participantCount: 11, int_bahn: 1 },
+      { id: 302, name: 'WK Detail 2', round: 1, participantCount: 7, int_bahn: 2 },
+    ]
+
+    const squads = [
+      { name: 'Riege C', participantCount: 60, competitionId: 301, competitionIds: [301] },
+      { name: 'Riege D', participantCount: 80, competitionId: 302, competitionIds: [302] },
+    ]
+
+    render(
+      <TimePlanningRotation
+        eventId="1"
+        selectedRound={1}
+        competitions={competitions}
+        squads={squads}
+        devices={baseDevices}
+      />
+    )
+
+    expect(screen.getByRole('heading', { name: 'Competitions (Lane 1)' })).toBeInTheDocument()
+    expect(screen.getAllByText(/Participants:\s*11/i).length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('button', { name: /lane\s+2/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Competitions (Lane 2)' })).toBeInTheDocument()
+    })
+    expect(screen.getAllByText(/Participants:\s*7/i).length).toBeGreaterThan(0)
+  })
 });
