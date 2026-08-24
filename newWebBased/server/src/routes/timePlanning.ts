@@ -604,18 +604,32 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       select: {
         int_disziplinenid: true,
         int_sortierung: true,
-        tfx_wettkaempfe: { select: { int_durchgang: true } },
+        tfx_wettkaempfe: { select: { int_durchgang: true, int_bahn: true } },
         tfx_disziplinen: { select: { var_name: true, var_kurz1: true } },
       },
       orderBy: { int_sortierung: 'asc' },
     });
     const sessionDisciplineMap = new Map<number, { id: number; sort: number }[]>();
+    const sessionLaneDisciplineMap = new Map<number, Map<number, { id: number; sort: number }[]>>();
     for (const row of disciplineRows) {
       const session = row.tfx_wettkaempfe?.int_durchgang ?? 1;
+      const lane = row.tfx_wettkaempfe?.int_bahn ?? 1;
       if (!sessionDisciplineMap.has(session)) {
         sessionDisciplineMap.set(session, []);
       }
       sessionDisciplineMap.get(session)!.push({
+        id: row.int_disziplinenid,
+        sort: row.int_sortierung ?? 0,
+      });
+
+      if (!sessionLaneDisciplineMap.has(session)) {
+        sessionLaneDisciplineMap.set(session, new Map<number, { id: number; sort: number }[]>());
+      }
+      const laneMap = sessionLaneDisciplineMap.get(session)!;
+      if (!laneMap.has(lane)) {
+        laneMap.set(lane, []);
+      }
+      laneMap.get(lane)!.push({
         id: row.int_disziplinenid,
         sort: row.int_sortierung ?? 0,
       });
@@ -642,6 +656,30 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
             return true;
           });
         return [String(session), ids];
+      })
+    );
+    const sessionLaneDisciplineIds = Object.fromEntries(
+      Array.from(sessionLaneDisciplineMap.entries()).map(([session, laneMap]) => {
+        const lanes = Object.fromEntries(
+          Array.from(laneMap.entries())
+            .sort(([leftLane], [rightLane]) => leftLane - rightLane)
+            .map(([lane, rows]) => {
+              const seenIds = new Set<number>();
+              const ids = rows
+                .sort((left, right) => left.sort - right.sort)
+                .map(row => row.id)
+                .filter(id => {
+                  if (seenIds.has(id)) {
+                    return false;
+                  }
+                  seenIds.add(id);
+                  return true;
+                });
+              return [String(lane), ids];
+            })
+        );
+
+        return [String(session), lanes];
       })
     );
 
@@ -692,7 +730,7 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       : 0;
     const maxRound = Math.max(maxAssignedRound, squads.length, 1);
 
-    res.json({ disciplines, availableDisciplines, assignments, squads, sessionDisciplineIds, maxRound });
+    res.json({ disciplines, availableDisciplines, assignments, squads, sessionDisciplineIds, sessionLaneDisciplineIds, maxRound });
   } catch (error) {
     console.error('Error fetching matrix data:', error);
     res.status(500).json({ error: 'Failed to fetch matrix data' });

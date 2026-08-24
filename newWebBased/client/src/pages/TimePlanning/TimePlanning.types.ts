@@ -88,5 +88,6 @@ export interface MatrixData {
   assignments: MatrixAssignment[]
   squads: string[]
   sessionDisciplineIds?: Record<string, number[]>
+  sessionLaneDisciplineIds?: Record<string, Record<string, number[]>>
   maxRound: number
 }

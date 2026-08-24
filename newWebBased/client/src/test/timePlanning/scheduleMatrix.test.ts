@@ -11,6 +11,8 @@ import {
   buildRoundTimeMap,
   getSessionSquads,
   getSessionVisibleColumns,
+  getAvailableSessions,
+  buildDisciplineLaneMap,
 } from '../../pages/TimePlanning/components/ScheduleMatrixView';
 
 // ── addMinutesToTime ──────────────────────────────────────────────────────────
@@ -304,5 +306,49 @@ describe('getSessionVisibleColumns', () => {
 
   it('falls back to all columns when no session mapping exists', () => {
     expect(getSessionVisibleColumns(columns, undefined, 2)).toEqual(columns);
+  });
+});
+
+describe('getAvailableSessions', () => {
+  it('merges sessions from groups and matrix mapping', () => {
+    const result = getAvailableSessions(
+      [{ session: 3 } as any, { session: 1 } as any],
+      { '2': [10], '3': [20] },
+    );
+
+    expect(result).toEqual([1, 2, 3]);
+  });
+
+  it('returns empty array without input', () => {
+    expect(getAvailableSessions(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe('buildDisciplineLaneMap', () => {
+  const laneMapping = {
+    '1': {
+      '1': [10, 20],
+      '2': [30],
+    },
+    '2': {
+      '2': [20],
+      '3': [40],
+    },
+  };
+
+  it('builds lane map for a selected session', () => {
+    const result = buildDisciplineLaneMap(laneMapping, 1);
+
+    expect(result.get(10)).toEqual([1]);
+    expect(result.get(20)).toEqual([1]);
+    expect(result.get(30)).toEqual([2]);
+    expect(result.get(40)).toBeUndefined();
+  });
+
+  it('merges lanes across sessions when no session is selected', () => {
+    const result = buildDisciplineLaneMap(laneMapping, null);
+
+    expect(result.get(20)).toEqual([1, 2]);
+    expect(result.get(40)).toEqual([3]);
   });
 });

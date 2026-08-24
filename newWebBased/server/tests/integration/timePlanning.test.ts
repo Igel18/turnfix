@@ -129,11 +129,11 @@ describe('Time Planning API', () => {
 
       await prisma.tfx_wettkaempfe.update({
         where: { int_wettkaempfeid: testCompetition.int_wettkaempfeid },
-        data: { int_durchgang: 1 },
+        data: { int_durchgang: 1, int_bahn: 1 },
       });
       await prisma.tfx_wettkaempfe.update({
         where: { int_wettkaempfeid: secondCompetition.int_wettkaempfeid },
-        data: { int_durchgang: 2 },
+        data: { int_durchgang: 2, int_bahn: 2 },
       });
 
       await prisma.tfx_wettkaempfe_x_disziplinen.create({
@@ -159,6 +159,15 @@ describe('Time Planning API', () => {
       expect(response.body.sessionDisciplineIds).toEqual({
         '1': [disciplineA.int_disziplinenid],
         '2': [disciplineB.int_disziplinenid],
+      });
+
+      expect(response.body.sessionLaneDisciplineIds).toEqual({
+        '1': {
+          '1': [disciplineA.int_disziplinenid],
+        },
+        '2': {
+          '2': [disciplineB.int_disziplinenid],
+        },
       });
     });
   });

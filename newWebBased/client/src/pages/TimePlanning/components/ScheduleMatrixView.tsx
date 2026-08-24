@@ -32,6 +32,8 @@ import {
 } from '../matrixColumnHelpers';
 
 const LS_KEY = (eventId: string) => `schedule-matrix-cols-${eventId}`;
+const SESSION_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white shadow-md';
+const SESSION_BUTTON_DEFAULT_CLASS = 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100';
 
 // ── Pure helpers (exported for unit testing) ─────────────────────────────────
 
@@ -180,6 +182,59 @@ export function getSessionVisibleColumns(
   });
 }
 
+export function getAvailableSessions(
+  sessionGroups: Pick<SessionGroup, 'session'>[] | undefined,
+  sessionDisciplineIds: Record<string, number[]> | undefined,
+): number[] {
+  const sessionSet = new Set<number>();
+
+  for (const group of sessionGroups ?? []) {
+    sessionSet.add(group.session);
+  }
+
+  for (const key of Object.keys(sessionDisciplineIds ?? {})) {
+    const parsed = Number(key);
+    if (!Number.isNaN(parsed)) {
+      sessionSet.add(parsed);
+    }
+  }
+
+  return Array.from(sessionSet).sort((left, right) => left - right);
+}
+
+export function buildDisciplineLaneMap(
+  sessionLaneDisciplineIds: Record<string, Record<string, number[]>> | undefined,
+  selectedSession: number | null,
+): Map<number, number[]> {
+  const laneMapByDiscipline = new Map<number, Set<number>>();
+
+  const sessionEntries = selectedSession === null
+    ? Object.entries(sessionLaneDisciplineIds ?? {})
+    : [[String(selectedSession), sessionLaneDisciplineIds?.[String(selectedSession)] ?? {}] as const];
+
+  for (const [, lanes] of sessionEntries) {
+    for (const [laneKey, disciplineIds] of Object.entries(lanes ?? {})) {
+      const laneNumber = Number(laneKey);
+      if (Number.isNaN(laneNumber)) {
+        continue;
+      }
+      for (const disciplineId of disciplineIds) {
+        if (!laneMapByDiscipline.has(disciplineId)) {
+          laneMapByDiscipline.set(disciplineId, new Set<number>());
+        }
+        laneMapByDiscipline.get(disciplineId)!.add(laneNumber);
+      }
+    }
+  }
+
+  const result = new Map<number, number[]>();
+  for (const [disciplineId, laneSet] of laneMapByDiscipline.entries()) {
+    result.set(disciplineId, Array.from(laneSet).sort((left, right) => left - right));
+  }
+
+  return result;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface ScheduleMatrixViewProps {
@@ -206,6 +261,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
+  const [selectedSession, setSelectedSession] = useState<number | null>(null);
   const [localMaxRound, setLocalMaxRound] = useState(1);
   const [storedColumns, setStoredColumns] = useState<StoredColumn[]>([]);
   const [savingCell, setSavingCell] = useState<string | null>(null);
@@ -247,6 +303,10 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   useEffect(() => {
     if (eventId) loadMatrix();
   }, [eventId, loadMatrix]);
+
+  useEffect(() => {
+    setSelectedSession(null);
+  }, [eventId]);
 
   const getCellValue = (disciplineId: number, round: number): string => {
     if (!matrixData) return '';
@@ -434,6 +494,12 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
   const hasMultipleSessions = Boolean(sessionGroups && sessionGroups.length > 1);
+  const availableSessions = getAvailableSessions(sessionGroups, matrixData.sessionDisciplineIds);
+  const hasSessionSelector = availableSessions.length > 1;
+  const effectiveSelectedSession =
+    selectedSession !== null && availableSessions.includes(selectedSession)
+      ? selectedSession
+      : null;
 
   // Per-session rotation intervals based on max squad size × exercise duration.
   // Falls back to the fixed rotationIntervalMinutes when no sessionGroups are available.
@@ -460,6 +526,34 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       }
     }
     return best;
+  };
+
+  const allRoundRows = Array.from({ length: localMaxRound }, (_, idx) => {
+    const round = idx + 1;
+    const roundTime = getRoundTime(round);
+    const sessionInfo = getSessionForTime(roundTime);
+    return { round, roundTime, sessionInfo };
+  });
+
+  const filteredRoundRows = effectiveSelectedSession === null
+    ? allRoundRows
+    : allRoundRows.filter(row => row.sessionInfo?.session === effectiveSelectedSession);
+
+  const activeSessionForColumns = effectiveSelectedSession;
+  const activeColumns = getSessionVisibleColumns(
+    localColumns,
+    matrixData.sessionDisciplineIds,
+    activeSessionForColumns,
+  );
+  const disciplineLaneMap = buildDisciplineLaneMap(matrixData.sessionLaneDisciplineIds, effectiveSelectedSession);
+
+  const getLaneLabel = (disciplineId: number): string | null => {
+    const lanes = disciplineLaneMap.get(disciplineId);
+    if (!lanes || lanes.length === 0) {
+      return null;
+    }
+    const laneText = lanes.join('/');
+    return `${t('timePlanning.laneLabel')} ${laneText}`;
   };
 
   // Build a Set of "disciplineId_round" keys for every cell where the same
@@ -534,6 +628,39 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
+      {hasSessionSelector && (
+        <div className="px-4 py-3 border-b bg-gray-50">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium text-gray-700">{t('timePlanning.session')}:</span>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setSelectedSession(null)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                effectiveSelectedSession === null
+                  ? SESSION_BUTTON_ACTIVE_CLASS
+                  : SESSION_BUTTON_DEFAULT_CLASS
+              }`}
+            >
+              {t('timePlanning.sessions')}
+            </button>
+            {availableSessions.map(session => (
+              <button
+                key={session}
+                onClick={() => setSelectedSession(session)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  effectiveSelectedSession === session
+                    ? SESSION_BUTTON_ACTIVE_CLASS
+                    : SESSION_BUTTON_DEFAULT_CLASS
+                }`}
+              >
+                {t('timePlanning.session')} {session}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Info strip */}
       <div className="px-4 py-3 bg-blue-50 border-b border-blue-100 text-sm text-blue-700 flex items-center gap-3">
         <span>{t('timePlanning.matrix.info', { interval: intervalMinutes })}</span>
@@ -554,13 +681,13 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          {!hasMultipleSessions && (
+          {(!hasMultipleSessions || effectiveSelectedSession !== null) && (
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   {t('timePlanning.matrix.time')}
                 </th>
-                {localColumns.map(col => {
+                {activeColumns.map(col => {
                 const key = colKey(col);
                 const isDragging = dragColKey === key;
                 const isDragOver = dragOverColKey === key;
@@ -616,6 +743,11 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                     <div className="flex items-center gap-1">
                       <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
+                        {getLaneLabel(col.id) && (
+                          <div className="text-[10px] uppercase tracking-wide text-blue-600 font-semibold normal-case">
+                            {getLaneLabel(col.id)}
+                          </div>
+                        )}
                         <div className="font-semibold text-gray-800">{col.shortName || col.name}</div>
                         {col.shortName && col.name !== col.shortName && (
                           <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{col.name}</div>
@@ -638,14 +770,22 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
             </thead>
           )}
           <tbody className="bg-white divide-y divide-gray-200">
-            {Array.from({ length: localMaxRound }, (_, i) => i + 1).map((round, idx) => {
-              const roundTime = getRoundTime(round);
-              const sessionInfo = getSessionForTime(roundTime);
-              const prevRoundTime = idx > 0 ? getRoundTime(round - 1) : null;
-              const prevSessionInfo = prevRoundTime ? getSessionForTime(prevRoundTime) : null;
-              const isNewSession = sessionInfo !== null && sessionInfo.session !== prevSessionInfo?.session;
-              const visibleColumns = getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, sessionInfo?.session ?? null);
-              const sessionSquads = getSessionSquads(sessionInfo?.session ?? null, sessionGroups, squads);
+            {filteredRoundRows.map((row, idx) => {
+              const { round, roundTime, sessionInfo } = row;
+              const prevSessionInfo = idx > 0 ? filteredRoundRows[idx - 1].sessionInfo : null;
+              const isNewSession =
+                effectiveSelectedSession === null
+                && sessionInfo !== null
+                && sessionInfo.session !== prevSessionInfo?.session;
+              const visibleColumns =
+                effectiveSelectedSession === null
+                  ? getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, sessionInfo?.session ?? null)
+                  : activeColumns;
+              const sessionSquads = getSessionSquads(
+                effectiveSelectedSession ?? sessionInfo?.session ?? null,
+                sessionGroups,
+                squads,
+              );
               return (
                 <React.Fragment key={round}>
                   {isNewSession && (
@@ -658,7 +798,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                       </td>
                     </tr>
                   )}
-                  {hasMultipleSessions && isNewSession && (
+                  {hasMultipleSessions && effectiveSelectedSession === null && isNewSession && (
                     <tr className="bg-gray-50">
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                         {t('timePlanning.matrix.time')}
@@ -689,6 +829,11 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                             <div className="flex items-center gap-1">
                               <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
+                                {getLaneLabel(col.id) && (
+                                  <div className="text-[10px] uppercase tracking-wide text-blue-600 font-semibold normal-case">
+                                    {getLaneLabel(col.id)}
+                                  </div>
+                                )}
                                 <div className="font-semibold text-gray-800">{col.shortName || col.name}</div>
                                 {col.shortName && col.name !== col.shortName && (
                                   <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{col.name}</div>
@@ -754,6 +899,13 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
                 </React.Fragment>
               );
             })}
+            {filteredRoundRows.length === 0 && (
+              <tr>
+                <td colSpan={Math.max(activeColumns.length + 1, 2)} className="px-4 py-6 text-center text-sm text-gray-500">
+                  {t('timePlanning.noData')}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

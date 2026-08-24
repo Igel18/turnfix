@@ -216,8 +216,13 @@ höhe 15
 153. [Bug] Zeitplanung: 
 a.) Beim Erstellen des Zeitplan über den Assistent gibt es im Schritt "Generieren" keinen Button um weiter zu drücken. TDD 
 b.) Bei den Bahnzuordnungen (Rotation) scheint es so, dass einige Wettkämpfe fehlen 
+🚀 In Arbeit 
+
 c.) Bei den Rotationen Übersicht muss die Anzahl der Rotationen der Anzahl der Geräte entsprechen. Es werden aber immer nur 3 Rotationen angezeigt. 
+🚀 In Arbeit 
+
 d.) In der Zeitplan Tabelle muss je Bahn die Geräte dargestellt werden. 
+🚀 In Arbeit 
 
 155. [Feature] Zeitplanung: 
 Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Beste Lösung wie ich finde: Für jeden Durchgang eine eigene Überschrift mit den Geräten die in dem Durchgang dran sind. Alle anderen gar nicht darstellen. 
@@ -347,6 +352,13 @@ Bei dem Report steht dran, dass
 
 
 185. [improvement] Ergebnisse XML Export. Manche Teilnehmer können nicht gematched werden. Zu diesen müssen noch detaillierte Infos, wenn das möglich ist. 
+
+186. [improvement] Zeitplanung 
+in der Zeitplanung haben wir aktuell für die Durchgänge immer so Auswahl Buttons. Das sollte einheitlich gemacht werden wie in anderen UIs. 
+a.) alle Durchgänge anzeigen, aber gruppiert (vgl. Ergebnis UI) 
+b.) Durchgänge lassen sich mittels dem Filter auswählen statt mit dem jetzigen auswahl button. 
+c.) neue Zeilen sollten sich dann mit einem Hinzufügen Button links oben ergänzen lassen. 
+d.) PDF Export muss umgesetzt werden 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

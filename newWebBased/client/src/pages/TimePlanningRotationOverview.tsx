@@ -6,6 +6,8 @@ import type { Bahn } from "./TimePlanningRotation.types";
 
 const ROTATION_ROW_EVEN_CLASS = "bg-white";
 const ROTATION_ROW_ODD_CLASS = "bg-gray-50";
+const SESSION_BUTTON_ACTIVE_CLASS = "bg-blue-600 text-white shadow-md";
+const SESSION_BUTTON_DEFAULT_CLASS = "bg-gray-100 text-gray-700 hover:bg-gray-200";
 
 type TimePlanningRotationOverviewProps = Pick<
   TimePlanningRotationProps,
@@ -104,8 +106,8 @@ export default function TimePlanningRotationOverview({
                 onClick={() => setActiveRound(round)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   activeRound === round
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? SESSION_BUTTON_ACTIVE_CLASS
+                    : SESSION_BUTTON_DEFAULT_CLASS
                 }`}
               >
                 {t("timePlanning.session")} {round}
