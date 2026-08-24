@@ -2507,6 +2507,7 @@
       "printTitle": "Zeitplan-Tabelle"
     },
     "addRound": "Durchgang hinzufügen",
+    "addBahn": "Bahn hinzufügen",
     "timeRange": {
       "from": "Von",
       "to": "Bis"

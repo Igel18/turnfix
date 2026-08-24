@@ -33,6 +33,10 @@ import {
   saveTimeSettingsToStorage,
 } from '@/pages/TimePlanning/timePlanningSettingsStorage'
 
+const HELP_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white border-blue-600'
+const HELP_BUTTON_DEFAULT_CLASS = 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+const MODAL_SIZE_2XL = '2xl'
+
 export default function TimePlanningRotationPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -82,6 +86,13 @@ export default function TimePlanningRotationPage() {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings)
     setShowTimeSettings(false)
   }
+
+  const timeSettingsTitle = t('timePlanning.timeSettings.title')
+  const wizardStartLabel = t('timePlanning.wizard.startButton')
+  const helpLabel = t('timePlanning.help')
+  const addLaneLabel = t('timePlanning.addBahn')
+  const lanePlanningWidgetTitle = t('timePlanning.lanePlanningWidgetTitle')
+  const lanePlanningWidgetSubtitle = t('timePlanning.lanePlanningWidgetSubtitle')
 
   if (!eventId) {
     return (
@@ -155,7 +166,7 @@ export default function TimePlanningRotationPage() {
             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
           >
             <span className="text-xl mr-2">+</span>
-            {t('timePlanning.addBahn', 'Neue Bahn')}
+            {addLaneLabel}
           </button>
         </div>
       }
@@ -166,7 +177,7 @@ export default function TimePlanningRotationPage() {
           className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700"
         >
           <SparklesIcon className="h-4 w-4 mr-2" />
-          {t('timePlanning.wizard.startButton', 'Assistent')}
+          {wizardStartLabel}
         </button>,
         <button
           key="settings"
@@ -181,12 +192,12 @@ export default function TimePlanningRotationPage() {
           onClick={() => setShowHelp(!showHelp)}
           className={`inline-flex items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-lg ${
             showHelp
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              ? HELP_BUTTON_ACTIVE_CLASS
+              : HELP_BUTTON_DEFAULT_CLASS
           }`}
         >
           <InformationCircleIcon className="h-4 w-4 mr-2" />
-          {t('timePlanning.help', 'Hilfe')}
+          {helpLabel}
         </button>,
         <button
           key="export"
@@ -214,10 +225,10 @@ export default function TimePlanningRotationPage() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {t('timePlanning.lanePlanningWidgetTitle', 'Bahnplanung')}
+                  {lanePlanningWidgetTitle}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {t('timePlanning.lanePlanningWidgetSubtitle', 'Wettkämpfe den Bahnen zuweisen und per Drag & Drop verschieben.')}
+                  {lanePlanningWidgetSubtitle}
                 </p>
               </div>
             </div>
@@ -238,8 +249,8 @@ export default function TimePlanningRotationPage() {
       <UnifiedModal
         isOpen={showTimeSettings}
         onClose={() => setShowTimeSettings(false)}
-        title="Time Settings"
-        size="2xl"
+        title={timeSettingsTitle}
+        size={MODAL_SIZE_2XL}
         showFooter={false}
       >
         <TimeSettingsModal

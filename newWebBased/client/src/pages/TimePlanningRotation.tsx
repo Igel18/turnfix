@@ -14,6 +14,9 @@ import type {
 
 export type { Device, TimePlanningRotationProps, TimePlanningRotationRef, Squad } from "./TimePlanningRotation.types";
 
+const LANE_CARD_ACTIVE_CLASS = "bg-blue-50 border-blue-500";
+const LANE_CARD_DEFAULT_CLASS = "bg-white hover:border-gray-300";
+
 const TimePlanningRotation = forwardRef<
   TimePlanningRotationRef,
   TimePlanningRotationProps
@@ -102,8 +105,8 @@ const TimePlanningRotation = forwardRef<
                   onClick={() => setSelectedLane(bahn.bahnNumber)}
                   className={`w-full text-left border rounded-lg p-4 transition-colors ${
                     selectedLane === bahn.bahnNumber
-                      ? "bg-blue-50 border-blue-500"
-                      : "bg-white hover:border-gray-300"
+                      ? LANE_CARD_ACTIVE_CLASS
+                      : LANE_CARD_DEFAULT_CLASS
                   }`}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => handleDrop(bahn.bahnNumber)}

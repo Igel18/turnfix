@@ -27,6 +27,10 @@ import {
   saveTimeSettingsToStorage,
 } from '@/pages/TimePlanning/timePlanningSettingsStorage'
 
+const HELP_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white border-blue-600'
+const HELP_BUTTON_DEFAULT_CLASS = 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+const MODAL_SIZE_2XL = '2xl'
+
 export default function TimePlanningMatrixPage() {
   const { t } = useTranslation()
   const { selectedEvent } = useEvent()
@@ -52,6 +56,10 @@ export default function TimePlanningMatrixPage() {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings)
     setShowTimeSettings(false)
   }
+
+  const timeSettingsTitle = t('timePlanning.timeSettings.title')
+  const wizardStartLabel = t('timePlanning.wizard.startButton')
+  const helpLabel = t('timePlanning.help')
 
   if (!eventId) {
     return (
@@ -81,7 +89,7 @@ export default function TimePlanningMatrixPage() {
           className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700"
         >
           <SparklesIcon className="h-4 w-4 mr-2" />
-          {t('timePlanning.wizard.startButton', 'Assistent')}
+          {wizardStartLabel}
         </button>,
         <button
           key="settings"
@@ -96,12 +104,12 @@ export default function TimePlanningMatrixPage() {
           onClick={() => setShowHelp(!showHelp)}
           className={`inline-flex items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-lg ${
             showHelp
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              ? HELP_BUTTON_ACTIVE_CLASS
+              : HELP_BUTTON_DEFAULT_CLASS
           }`}
         >
           <InformationCircleIcon className="h-4 w-4 mr-2" />
-          {t('timePlanning.help', 'Hilfe')}
+          {helpLabel}
         </button>,
         <button
           key="export"
@@ -138,8 +146,8 @@ export default function TimePlanningMatrixPage() {
       <UnifiedModal
         isOpen={showTimeSettings}
         onClose={() => setShowTimeSettings(false)}
-        title="Time Settings"
-        size="2xl"
+        title={timeSettingsTitle}
+        size={MODAL_SIZE_2XL}
         showFooter={false}
       >
         <TimeSettingsModal

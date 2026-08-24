@@ -326,7 +326,7 @@ l.) fehltnoch was? macht das sinn?
 
 181. [Feature] Gerätewertung 
 Es muss bei in der Anzeige der Ergebnisse eine Gerätewertung verfügbar sein. Und zwar muss je Wettkampf die Person mit der größten Punktzahl der Gerätesieger in dem Wettkampf sein. Dies soll direkt an der Wertung mittels einer goldenen 1 (gleiches Icon wie sonst auch verwendet) gekennzeichnet werden. Auch der 2. und 3. Platz soll dementsprechen gekennzeichnet sein. 
-Möglich wäre auch eine komplett neue UI nur für die Gerätewertung... ? Wäre vielleicht schöner, da dann die Themen komplett getrennt sind und die Wertungen aller Teilnehmer betrachtet werden können? 
+Möglich wäre auch eine komplett neue UI nur für die Gerätewertung... ? Wäre vielleicht schöner, da dann die Themen komplett getrennt sind und die Wertungen aller Teilnehmer betrachtet werden können? -> in Github Gerätewertung #97
 
 182. [improvement] statt der client/src/test/i18n/noNardcodedUiStrings.baseline.json wäre es besser die UI Texte zu lokalisieren. Dann kann die baseline datei gelöscht werden. 
 🚀 In Arbeit (unvollständig)

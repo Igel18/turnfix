@@ -2477,6 +2477,7 @@
       "from": "From",
       "to": "To"
     },
+    "addBahn": "Add lane",
     "timeSettings": {
       "title": "Time Settings",
       "exerciseDuration": "Exercise duration per apparatus",

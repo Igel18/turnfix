@@ -26,8 +26,10 @@ vi.mock('react-i18next', () => ({
         'managementCenter.buttons.collapse': 'Zuklappen',
         'managementCenter.eventManagement.timePlanning.rounds.title': 'Durchgaenge',
         'managementCenter.eventManagement.timePlanning.rounds.description': 'Durchgaenge planen',
-        'managementCenter.eventManagement.timePlanning.rotation.title': 'Rotation',
-        'managementCenter.eventManagement.timePlanning.rotation.description': 'Rotation planen',
+        'managementCenter.eventManagement.timePlanning.lanePlanning.title': 'Bahnplanung',
+        'managementCenter.eventManagement.timePlanning.lanePlanning.description': 'Bahnplanung',
+        'managementCenter.eventManagement.timePlanning.rotationOverview.title': 'Rotationsuebersicht',
+        'managementCenter.eventManagement.timePlanning.rotationOverview.description': 'Rotationsuebersicht',
         'managementCenter.eventManagement.timePlanning.matrix.title': 'Zeitplan-Tabelle',
         'managementCenter.eventManagement.timePlanning.matrix.description': 'Matrix bearbeiten',
       }
@@ -68,11 +70,12 @@ describe('EventWorkflowSteps time planning section', () => {
     expect(timePlanningHeading.compareDocumentPosition(competitionDayHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('renders links for Durchgaenge, Rotation and Zeitplan-Tabelle with dedicated routes', () => {
+  it('renders links for Durchgaenge, Bahnplanung, Rotationsuebersicht and Zeitplan-Tabelle with dedicated routes', () => {
     renderSubject()
 
     expect(screen.getByRole('link', { name: /Durchgaenge/i }).getAttribute('href')).toBe('/time-planning/rounds?eventId=59')
-    expect(screen.getByRole('link', { name: /Rotation/i }).getAttribute('href')).toBe('/time-planning/rotation?eventId=59')
+    expect(screen.getByRole('link', { name: /Bahnplanung/i }).getAttribute('href')).toBe('/time-planning/rotation?eventId=59')
+    expect(screen.getByRole('link', { name: /Rotationsuebersicht/i }).getAttribute('href')).toBe('/time-planning/rotation-overview?eventId=59')
     expect(screen.getByRole('link', { name: /Zeitplan-Tabelle/i }).getAttribute('href')).toBe('/time-planning/matrix?eventId=59')
   })
 })

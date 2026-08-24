@@ -27,6 +27,10 @@ import {
   getSessionParticipantCount,
 } from '../sessionsViewUtils';
 
+const SESSION_CARD_ACTIVE_CLASS = 'bg-blue-50 border-blue-500';
+const SESSION_CARD_DEFAULT_CLASS = 'bg-white hover:border-gray-300';
+const ENTER_KEY = 'Enter';
+
 interface SessionsViewProps {
   sessionGroups: SessionGroup[];
   selectedSession: number | null;
@@ -103,12 +107,12 @@ export function SessionsView({
               key={group.session}
               className={`w-full text-left border rounded-lg p-4 transition-colors ${
                 selectedGroup?.session === group.session
-                  ? 'bg-blue-50 border-blue-500'
-                  : 'bg-white hover:border-gray-300'
+                  ? SESSION_CARD_ACTIVE_CLASS
+                  : SESSION_CARD_DEFAULT_CLASS
               }`}
               onClick={() => setSelectedSession(group.session)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === ENTER_KEY || e.key === ' ') {
                   e.preventDefault()
                   setSelectedSession(group.session)
                 }

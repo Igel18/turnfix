@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { buildBahnenForRound, generateRoundRobinSchedule } from "./useTimePlanningRotationModel";
 import type { TimePlanningRotationProps } from "./TimePlanningRotation.types";
 
+const ROTATION_ROW_EVEN_CLASS = "bg-white";
+const ROTATION_ROW_ODD_CLASS = "bg-gray-50";
+
 type TimePlanningRotationOverviewProps = Pick<
   TimePlanningRotationProps,
   "competitions" | "devices" | "selectedRound" | "squads"
@@ -107,7 +110,7 @@ export default function TimePlanningRotationOverview({
                         schedule.map((round, idx) => (
                           <tr
                             key={idx}
-                            className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                            className={idx % 2 === 0 ? ROTATION_ROW_EVEN_CLASS : ROTATION_ROW_ODD_CLASS}
                           >
                             <td className="border border-gray-300 px-4 py-3 font-semibold text-blue-700">
                               {t("timePlanning.rotationNumber")} {round[0]?.rotation}
