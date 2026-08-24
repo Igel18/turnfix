@@ -1,32 +1,123 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { buildBahnenForRound, generateRoundRobinSchedule } from "./useTimePlanningRotationModel";
 import type { TimePlanningRotationProps } from "./TimePlanningRotation.types";
+import type { Bahn } from "./TimePlanningRotation.types";
 
 const ROTATION_ROW_EVEN_CLASS = "bg-white";
 const ROTATION_ROW_ODD_CLASS = "bg-gray-50";
 
 type TimePlanningRotationOverviewProps = Pick<
   TimePlanningRotationProps,
-  "competitions" | "devices" | "selectedRound" | "squads"
+  "competitions" | "devices" | "selectedRound" | "squads" | "onSelectedRoundChange"
 >;
 
 export default function TimePlanningRotationOverview({
   competitions,
   devices,
+  onSelectedRoundChange,
   selectedRound,
   squads,
 }: TimePlanningRotationOverviewProps) {
   const { t } = useTranslation();
-  const activeRound = selectedRound ?? 1;
+  const [internalSelectedRound, setInternalSelectedRound] = useState<number>(selectedRound ?? 1);
 
-  const bahnen = useMemo(
+  useEffect(() => {
+    if (selectedRound !== undefined) {
+      setInternalSelectedRound(selectedRound);
+    }
+  }, [selectedRound]);
+
+  const activeRound = selectedRound ?? internalSelectedRound;
+
+  const setActiveRound = (round: number) => {
+    if (onSelectedRoundChange) {
+      onSelectedRoundChange(round);
+      return;
+    }
+    setInternalSelectedRound(round);
+  };
+
+  const competitionsByRound = useMemo(() => {
+    const grouped = new Map<number, TimePlanningRotationProps["competitions"]>();
+    competitions.forEach((comp) => {
+      const round = comp.round || 1;
+      if (!grouped.has(round)) {
+        grouped.set(round, []);
+      }
+      grouped.get(round)!.push(comp);
+    });
+
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([round, comps]) => ({ round, competitions: comps }));
+  }, [competitions]);
+
+  useEffect(() => {
+    if (competitionsByRound.length === 0) {
+      return;
+    }
+
+    const hasActiveRound = competitionsByRound.some(({ round }) => round === activeRound);
+    if (hasActiveRound) {
+      return;
+    }
+
+    setActiveRound(competitionsByRound[0].round);
+  }, [competitionsByRound, activeRound]);
+
+  const bahnenInRound = useMemo(
     () => buildBahnenForRound(competitions, squads, activeRound),
     [competitions, squads, activeRound],
   );
 
+  const allEventLaneNumbers = useMemo(() => {
+    const lanes = Array.from(
+      new Set(
+        competitions
+          .map((comp) => comp.int_bahn)
+          .filter((lane): lane is number => typeof lane === "number" && lane > 0),
+      ),
+    ).sort((a, b) => a - b);
+
+    return lanes.length > 0 ? lanes : [1];
+  }, [competitions]);
+
+  const bahnen = useMemo(() => {
+    const byNumber = new Map<number, Bahn>(bahnenInRound.map((bahn) => [bahn.bahnNumber, bahn]));
+    return allEventLaneNumbers.map((bahnNumber) => byNumber.get(bahnNumber) || { bahnNumber, competitions: [] });
+  }, [allEventLaneNumbers, bahnenInRound]);
+
   return (
     <div className="space-y-4">
+      {competitionsByRound.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              {t("timePlanning.session")}:
+            </span>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {competitionsByRound.map(({ round, competitions: roundComps }) => (
+              <button
+                key={round}
+                onClick={() => setActiveRound(round)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeRound === round
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {t("timePlanning.session")} {round}
+                <span className="ml-2 text-xs opacity-75">
+                  ({roundComps.length} {roundComps.length === 1 ? t("timePlanning.competitionSingle") : t("timePlanning.competitions")})
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold text-gray-900">
           {t("timePlanning.rotationMatrix")}

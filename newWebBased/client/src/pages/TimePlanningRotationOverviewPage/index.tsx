@@ -7,7 +7,6 @@ import {
   Cog6ToothIcon,
   DocumentChartBarIcon,
   InformationCircleIcon,
-  TableCellsIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline'
 
@@ -202,21 +201,9 @@ export default function TimePlanningRotationOverviewPage() {
         </div>
       ) : (
         <div className="bg-white border rounded-lg p-6">
-          <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <TableCellsIcon className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                {t('timePlanning.rotationOverviewWidgetTitle')}
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                {t('timePlanning.rotationOverviewWidgetSubtitle')}
-              </p>
-            </div>
-          </div>
           <TimePlanningRotationOverview
             selectedRound={selectedRotationRound}
+            onSelectedRoundChange={setSelectedRotationRound}
             squads={mappedSquads}
             devices={mappedDevices}
             competitions={competitions}
