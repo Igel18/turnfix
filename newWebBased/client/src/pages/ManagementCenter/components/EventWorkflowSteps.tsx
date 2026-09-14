@@ -190,7 +190,7 @@ export function EventWorkflowSteps({
           isCollapsed={isTimePlanningCollapsed}
           onToggle={onToggleTimePlanning}
           actions={timePlanningActions}
-          gridCols="lg:grid-cols-3"
+          gridCols="lg:grid-cols-4"
           eventId={selectedEvent?.int_eventid ?? null}
         />
         <WorkflowStepCard
@@ -201,7 +201,7 @@ export function EventWorkflowSteps({
           isCollapsed={isCompetitionDayCollapsed}
           onToggle={onToggleCompetitionDay}
           actions={competitionDayActions.filter(action => action.name !== 'Individual Scoring')}
-          gridCols="lg:grid-cols-3"
+          gridCols="lg:grid-cols-4"
           eventId={selectedEvent?.int_eventid ?? null}
         />
         <WorkflowStepCard
