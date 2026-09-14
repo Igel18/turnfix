@@ -13,6 +13,7 @@ import {
   getSessionVisibleColumns,
   getAvailableSessions,
   buildDisciplineLaneMap,
+  buildSquadDisciplineOptions,
 } from '../../pages/TimePlanning/components/ScheduleMatrixView';
 
 // ── addMinutesToTime ──────────────────────────────────────────────────────────
@@ -350,5 +351,51 @@ describe('buildDisciplineLaneMap', () => {
 
     expect(result.get(20)).toEqual([1, 2]);
     expect(result.get(40)).toEqual([3]);
+  });
+});
+
+describe('buildSquadDisciplineOptions', () => {
+  const squads = [
+    { name: 'R1', competitionIds: [10, 20] },
+    { name: 'R2', competitionIds: [30] },
+  ];
+
+  const competitions = [
+    { id: 10, round: 1 },
+    { id: 20, round: 2 },
+    { id: 30, round: 1 },
+  ];
+
+  const disciplineCache = {
+    10: [{ int_disziplinenid: 100, var_name: 'Boden', var_kurz1: 'BO' }],
+    20: [{ int_disziplinenid: 200, var_name: 'Sprung', var_kurz1: 'SP' }],
+    30: [{ int_disziplinenid: 300, var_name: 'Reck', var_kurz1: 'RE' }],
+  };
+
+  const fallback = [{ id: 999, name: 'Fallback', shortName: 'FB' }];
+
+  it('filters options by selected session', () => {
+    const result = buildSquadDisciplineOptions(
+      squads as any,
+      competitions as any,
+      1,
+      disciplineCache,
+      fallback,
+    );
+
+    expect(result.R1.map(d => d.id)).toEqual([100]);
+    expect(result.R2.map(d => d.id)).toEqual([300]);
+  });
+
+  it('includes all sessions when session is not selected', () => {
+    const result = buildSquadDisciplineOptions(
+      squads as any,
+      competitions as any,
+      null,
+      disciplineCache,
+      fallback,
+    );
+
+    expect(result.R1.map(d => d.id)).toEqual([100, 200]);
   });
 });

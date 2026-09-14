@@ -15,7 +15,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
 import { apiGet, apiPut } from '@/utils/api';
-import type { TimeSettings, MatrixData, SessionGroup } from '../TimePlanning.types';
+import type { Competition, MatrixData, MatrixDiscipline, SessionGroup, Squad, TimeSettings } from '../TimePlanning.types';
 import {
   parseStoredColumns,
   serializeColumns,
@@ -34,6 +34,12 @@ import {
 const LS_KEY = (eventId: string) => `schedule-matrix-cols-${eventId}`;
 const SESSION_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white shadow-md';
 const SESSION_BUTTON_DEFAULT_CLASS = 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100';
+const IST_TIMES_KEY = (eventId: string, session: number | null) => `time-planning-ist-times-${eventId}-${session ?? 'all'}`;
+
+interface SquadCellActualTimes {
+  actualStart: string;
+  actualEnd: string;
+}
 
 // ── Pure helpers (exported for unit testing) ─────────────────────────────────
 
@@ -235,11 +241,61 @@ export function buildDisciplineLaneMap(
   return result;
 }
 
+export function buildSquadDisciplineOptions(
+  squads: Pick<Squad, 'name' | 'competitionIds'>[],
+  competitions: Pick<Competition, 'id' | 'round'>[],
+  selectedSession: number | null,
+  disciplineCache: Record<number, any[]>,
+  fallbackDisciplines: MatrixDiscipline[],
+): Record<string, MatrixDiscipline[]> {
+  const result: Record<string, MatrixDiscipline[]> = {};
+  const competitionMap = new Map(competitions.map(comp => [comp.id, comp]));
+
+  for (const squad of squads) {
+    const optionMap = new Map<number, MatrixDiscipline>();
+    const compIds = squad.competitionIds ?? [];
+    for (const competitionId of compIds) {
+      const competition = competitionMap.get(competitionId);
+      if (!competition) {
+        continue;
+      }
+      if (selectedSession !== null && competition.round !== selectedSession) {
+        continue;
+      }
+
+      const disciplines = disciplineCache[competitionId] ?? [];
+      for (const discipline of disciplines) {
+        const id = Number(discipline.int_disziplinenid ?? discipline.id);
+        if (!id || Number.isNaN(id)) {
+          continue;
+        }
+        if (!optionMap.has(id)) {
+          optionMap.set(id, {
+            id,
+            name: String(discipline.var_name ?? discipline.name ?? ''),
+            shortName: String(discipline.var_kurz1 ?? discipline.shortName ?? ''),
+          });
+        }
+      }
+    }
+
+    const options = Array.from(optionMap.values()).sort((left, right) =>
+      (left.shortName || left.name).localeCompare(right.shortName || right.name),
+    );
+    result[squad.name] = options.length > 0 ? options : fallbackDisciplines;
+  }
+
+  return result;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface ScheduleMatrixViewProps {
   eventId: string;
   timeSettings: TimeSettings;
+  competitions: Competition[];
+  squads: Squad[];
+  disciplineCache: Record<number, any[]>;
   /** Earliest competition start time (HH:MM) used as round-1 anchor. Falls back to '09:00'. */
   baseStartTime: string | null;
   /** The selected event (used for PDF header/footer). */
@@ -257,12 +313,26 @@ interface ScheduleMatrixViewProps {
   sessionGroups?: SessionGroup[];
 }
 
-export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selectedEvent, onRegisterPrint, sessionGroups }: ScheduleMatrixViewProps) {
+export function ScheduleMatrixView({
+  eventId,
+  timeSettings,
+  competitions,
+  squads,
+  disciplineCache,
+  baseStartTime,
+  selectedEvent,
+  onRegisterPrint,
+  sessionGroups,
+}: ScheduleMatrixViewProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
   const [localMaxRound, setLocalMaxRound] = useState(1);
+  const [averageMinutesPerParticipant, setAverageMinutesPerParticipant] = useState<number>(3);
+  const [scheduleStartTime, setScheduleStartTime] = useState<string>(baseStartTime || '09:00');
+  const [squadCellSaving, setSquadCellSaving] = useState<string | null>(null);
+  const [actualTimesByRound, setActualTimesByRound] = useState<Record<number, SquadCellActualTimes>>({});
   const [storedColumns, setStoredColumns] = useState<StoredColumn[]>([]);
   const [savingCell, setSavingCell] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -308,6 +378,52 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
     setSelectedSession(null);
   }, [eventId]);
 
+  useEffect(() => {
+    setScheduleStartTime(baseStartTime || '09:00');
+  }, [baseStartTime]);
+
+  useEffect(() => {
+    if (!matrixData) {
+      setActualTimesByRound({});
+      return;
+    }
+
+    const availableSessions = getAvailableSessions(sessionGroups, matrixData.sessionDisciplineIds);
+    const effectiveSession =
+      selectedSession !== null && availableSessions.includes(selectedSession)
+        ? selectedSession
+        : null;
+
+    const storageKey = IST_TIMES_KEY(eventId, effectiveSession);
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) {
+      setActualTimesByRound({});
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Record<number, SquadCellActualTimes>;
+      setActualTimesByRound(parsed || {});
+    } catch {
+      setActualTimesByRound({});
+    }
+  }, [eventId, matrixData, selectedSession, sessionGroups]);
+
+  useEffect(() => {
+    if (!matrixData) {
+      return;
+    }
+
+    const availableSessions = getAvailableSessions(sessionGroups, matrixData.sessionDisciplineIds);
+    const effectiveSession =
+      selectedSession !== null && availableSessions.includes(selectedSession)
+        ? selectedSession
+        : null;
+
+    const storageKey = IST_TIMES_KEY(eventId, effectiveSession);
+    localStorage.setItem(storageKey, JSON.stringify(actualTimesByRound));
+  }, [actualTimesByRound, eventId, matrixData, selectedSession, sessionGroups]);
+
   const getCellValue = (disciplineId: number, round: number): string => {
     if (!matrixData) return '';
     return matrixData.assignments.find(a => a.disciplineId === disciplineId && a.round === round)?.squadName ?? '';
@@ -343,6 +459,53 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
       loadMatrix(); // revert optimistic update on error
     } finally {
       setSavingCell(null);
+    }
+  };
+
+  const getSquadRoundDiscipline = (squadName: string, round: number): number | null => {
+    const assignment = matrixData?.squadRoundAssignments?.find(
+      item => item.squadName === squadName && item.round === round,
+    );
+    return assignment?.disciplineId ?? null;
+  };
+
+  const handleSquadRoundCellChange = async (squadName: string, round: number, disciplineId: number | null) => {
+    const key = `${squadName}_${round}`;
+    setSquadCellSaving(key);
+    setSaveError(null);
+
+    setMatrixData(prev => {
+      if (!prev) {
+        return prev;
+      }
+
+      const filtered = (prev.squadRoundAssignments ?? []).filter(
+        item => !(item.squadName === squadName && item.round === round),
+      );
+
+      const nextAssignments = disciplineId === null
+        ? filtered
+        : [...filtered, { squadName, round, disciplineId }];
+
+      return {
+        ...prev,
+        squadRoundAssignments: nextAssignments,
+      };
+    });
+
+    try {
+      await apiPut('/time-planning/matrix/squad-cell', {
+        eventId: parseInt(eventId, 10),
+        squadName,
+        round,
+        disciplineId,
+      });
+    } catch (error) {
+      console.error('[ScheduleMatrixView] Failed to save squad-round cell', error);
+      setSaveError(t('timePlanning.matrix.saveError'));
+      loadMatrix();
+    } finally {
+      setSquadCellSaving(null);
     }
   };
 
@@ -490,7 +653,7 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
 
   if (!matrixData) return null;
 
-  const { squads } = matrixData;
+  const { squads: squadNames } = matrixData;
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
   const hasMultipleSessions = Boolean(sessionGroups && sessionGroups.length > 1);
@@ -538,6 +701,38 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
   const filteredRoundRows = effectiveSelectedSession === null
     ? allRoundRows
     : allRoundRows.filter(row => row.sessionInfo?.session === effectiveSelectedSession);
+
+  const activeSessionSquadNames = getSessionSquads(
+    effectiveSelectedSession,
+    sessionGroups,
+    squadNames,
+  );
+  const activeSquadObjects = squads.filter(squad => activeSessionSquadNames.includes(squad.name));
+  const squadDisciplineOptions = buildSquadDisciplineOptions(
+    activeSquadObjects,
+    competitions,
+    effectiveSelectedSession,
+    disciplineCache,
+    matrixData.disciplines,
+  );
+  const maxParticipants = activeSquadObjects.length > 0
+    ? Math.max(...activeSquadObjects.map(squad => squad.participantCount || 1))
+    : 1;
+  const slotDurationMinutes = Math.max(1, Math.round(averageMinutesPerParticipant * maxParticipants));
+
+  const plannedScheduleRows = filteredRoundRows.map((row, index) => {
+    const plannedStart = addMinutesToTime(scheduleStartTime, index * slotDurationMinutes);
+    const plannedEnd = addMinutesToTime(plannedStart, slotDurationMinutes);
+    return {
+      round: row.round,
+      plannedStart,
+      plannedEnd,
+      switchTime: plannedEnd,
+    };
+  });
+  const plannedCompetitionEnd = plannedScheduleRows.length > 0
+    ? plannedScheduleRows[plannedScheduleRows.length - 1].plannedEnd
+    : scheduleStartTime;
 
   const activeSessionForColumns = effectiveSelectedSession;
   const activeColumns = getSessionVisibleColumns(
@@ -677,6 +872,170 @@ export function ScheduleMatrixView({ eventId, timeSettings, baseStartTime, selec
           <button onClick={() => setSaveError(null)} className="ml-3 text-red-400 hover:text-red-600">✕</button>
         </div>
       )}
+
+      <div className="px-4 py-4 border-b bg-white">
+        <div className="flex flex-wrap items-end gap-4 mb-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              {t('timePlanning.matrix.squadRoundPlan.averageTimePerParticipant')}
+            </label>
+            <input
+              type="number"
+              min={1}
+              step={0.5}
+              value={averageMinutesPerParticipant}
+              onChange={(event) => setAverageMinutesPerParticipant(Number(event.target.value) || 1)}
+              className="w-28 px-2 py-1.5 text-sm border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              {t('timePlanning.matrix.squadRoundPlan.scheduleStartTime')}
+            </label>
+            <input
+              type="time"
+              value={scheduleStartTime}
+              onChange={(event) => setScheduleStartTime(event.target.value)}
+              className="w-32 px-2 py-1.5 text-sm border border-gray-300 rounded-md"
+            />
+          </div>
+          <div className="text-sm text-gray-600">
+            <div>
+              {t('timePlanning.matrix.squadRoundPlan.maxParticipants', { count: maxParticipants })}
+            </div>
+            <div className="font-semibold text-gray-900">
+              {t('timePlanning.matrix.squadRoundPlan.slotDuration', { minutes: slotDurationMinutes })}
+            </div>
+          </div>
+          <div className="text-sm text-gray-600 ml-auto">
+            <div>
+              {t('timePlanning.matrix.squadRoundPlan.competitionEnd')}
+            </div>
+            <div className="font-semibold text-gray-900">{plannedCompetitionEnd}</div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  {t('timePlanning.round')}
+                </th>
+                {activeSquadObjects.map(squad => (
+                  <th key={squad.name} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
+                    {squad.name}
+                  </th>
+                ))}
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('timePlanning.matrix.squadRoundPlan.plannedStart')}
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('timePlanning.matrix.squadRoundPlan.plannedEnd')}
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('timePlanning.matrix.squadRoundPlan.switchTime')}
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('timePlanning.matrix.squadRoundPlan.actualStart')}
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('timePlanning.matrix.squadRoundPlan.actualEnd')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {plannedScheduleRows.map((row) => (
+                <tr key={`squad-round-${row.round}`}>
+                  <td className="px-3 py-2 text-sm font-medium text-blue-700">
+                    {t('timePlanning.round')} {row.round}
+                  </td>
+                  {activeSquadObjects.map(squad => {
+                    const options = squadDisciplineOptions[squad.name] ?? [];
+                    const currentDisciplineId = getSquadRoundDiscipline(squad.name, row.round);
+                    const rowKey = `${squad.name}_${row.round}`;
+                    const isSavingRow = squadCellSaving === rowKey;
+                    const hasCurrentValueInOptions = currentDisciplineId !== null && options.some(option => option.id === currentDisciplineId);
+                    const currentValueFallback = !hasCurrentValueInOptions && currentDisciplineId !== null
+                      ? matrixData.disciplines.find(item => item.id === currentDisciplineId)
+                      : null;
+
+                    return (
+                      <td key={`${squad.name}_${row.round}`} className="px-3 py-2">
+                        <select
+                          value={currentDisciplineId ?? ''}
+                          disabled={isSavingRow}
+                          onChange={(event) => {
+                            const nextValue = event.target.value ? Number(event.target.value) : null;
+                            handleSquadRoundCellChange(squad.name, row.round, nextValue);
+                          }}
+                          className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
+                        >
+                          <option value="">{t('timePlanning.matrix.squadRoundPlan.emptyOption')}</option>
+                          {currentValueFallback && (
+                            <option value={currentValueFallback.id}>
+                              {currentValueFallback.shortName || currentValueFallback.name}
+                            </option>
+                          )}
+                          {options.map(option => (
+                            <option key={`${squad.name}_${option.id}`} value={option.id}>
+                              {option.shortName || option.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-2 text-sm font-mono text-gray-700">{row.plannedStart}</td>
+                  <td className="px-3 py-2 text-sm font-mono text-gray-700">{row.plannedEnd}</td>
+                  <td className="px-3 py-2 text-sm font-mono text-gray-700">{row.switchTime}</td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="time"
+                      value={actualTimesByRound[row.round]?.actualStart || ''}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setActualTimesByRound(prev => ({
+                          ...prev,
+                          [row.round]: {
+                            actualStart: value,
+                            actualEnd: prev[row.round]?.actualEnd || '',
+                          },
+                        }));
+                      }}
+                      className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="time"
+                      value={actualTimesByRound[row.round]?.actualEnd || ''}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setActualTimesByRound(prev => ({
+                          ...prev,
+                          [row.round]: {
+                            actualStart: prev[row.round]?.actualStart || '',
+                            actualEnd: value,
+                          },
+                        }));
+                      }}
+                      className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
+                    />
+                  </td>
+                </tr>
+              ))}
+              {plannedScheduleRows.length === 0 && (
+                <tr>
+                  <td colSpan={Math.max(activeSquadObjects.length + 6, 2)} className="px-4 py-6 text-center text-sm text-gray-500">
+                    {t('timePlanning.noData')}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Table */}
       <div className="overflow-x-auto">

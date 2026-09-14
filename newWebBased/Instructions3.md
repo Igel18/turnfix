@@ -111,16 +111,18 @@ c.) TDD!
 | Create/Edit Discipline | DisciplineFormModal | HIGH (15+ fields) | UnifiedDialog |
 | Create/Edit Competition | CompetitionFormModalNew | HIGH (15+ fields) | UnifiedDialog |
 | Import GymNet XML | EventImportModal | HIGH (file + progress) | UnifiedDialog |
+-> In GitHub #106
 
 134. [Feature] PDF Export vereinheitlichen
 a.) Reihenfolge der Spalten muss einheitlich sein (so wie bei "event-participants")
 b.) Button zum PDF Generieren muss überall identisch benannt sein und ggf. auch ein einheitliches Icon haben 
 c.) Seitenformat sollte eher im Querformat sein (bevor man Zeilenumbrüche erhält) 
 d.) Spaltenbezeichnung muss einheitlich sein (mal steht alter, mal Geburtsdatum drin -> so wie bei "event-participants") 
+-> In GitHub #105
 
 135. [Refactoring] AddParticipantModal.tsx 
 In dieser Datei ist ziemlich viel Code, der auch in der Klasse AddParticipantModal drin sein sollte weil mit beiden UIs eine Person zur DB hinzugefügt werden kann. Hier sollten wahrscheinlich utils verwenden, was wir ja bisher so gemacht haben... 
-
+-> In GitHub #107
 
 137. Beim Import der XML kommt es zu Fehlern: 
 Warnungen
@@ -349,7 +351,7 @@ Bei dem Report steht dran, dass
 0 Participants unmatched 
 0 Disziplines unmatched 
 🚀 In Arbeit (unvollständig)
-
+-> in Github #101
 
 185. [improvement] Ergebnisse XML Export. Manche Teilnehmer können nicht gematched werden. Zu diesen müssen noch detaillierte Infos, wenn das möglich ist. 
 
@@ -359,6 +361,7 @@ a.) alle Durchgänge anzeigen, aber gruppiert (vgl. Ergebnis UI)
 b.) Durchgänge lassen sich mittels dem Filter auswählen statt mit dem jetzigen auswahl button. 
 c.) neue Zeilen sollten sich dann mit einem Hinzufügen Button links oben ergänzen lassen. 
 d.) PDF Export muss umgesetzt werden 
+-> In Github #98 
 
 🚀 In Arbeit (unvollständig)
 #	Titel

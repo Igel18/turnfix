@@ -690,6 +690,33 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       select: { int_disziplinenid: true, int_runde: true, var_riege: true, bol_erstes_geraet: true },
     });
     const assignments = deduplicateAssignments(rawAssignments);
+    const squadRoundAssignmentsMap = new Map<string, { squadName: string; round: number; disciplineId: number; hasExplicitRound: boolean }>();
+    for (const row of rawAssignments) {
+      const squadName = row.var_riege ?? '';
+      if (!squadName) {
+        continue;
+      }
+      const round = row.int_runde ?? 1;
+      const key = `${squadName}_${round}`;
+      const existing = squadRoundAssignmentsMap.get(key);
+      const hasExplicitRound = row.int_runde !== null;
+      if (!existing || hasExplicitRound) {
+        squadRoundAssignmentsMap.set(key, {
+          squadName,
+          round,
+          disciplineId: row.int_disziplinenid,
+          hasExplicitRound,
+        });
+      }
+    }
+    const squadRoundAssignments = Array.from(squadRoundAssignmentsMap.values())
+      .sort((left, right) => {
+        if (left.round !== right.round) {
+          return left.round - right.round;
+        }
+        return left.squadName.localeCompare(right.squadName);
+      })
+      .map(({ squadName, round, disciplineId }) => ({ squadName, round, disciplineId }));
 
     // Merge disciplines that have assignments but are not linked to competitions
     const assignmentDiscIds = new Set(rawAssignments.map(a => a.int_disziplinenid));
@@ -730,7 +757,16 @@ router.get('/matrix', authenticateToken, async (req: AuthRequest, res) => {
       : 0;
     const maxRound = Math.max(maxAssignedRound, squads.length, 1);
 
-    res.json({ disciplines, availableDisciplines, assignments, squads, sessionDisciplineIds, sessionLaneDisciplineIds, maxRound });
+    res.json({
+      disciplines,
+      availableDisciplines,
+      assignments,
+      squadRoundAssignments,
+      squads,
+      sessionDisciplineIds,
+      sessionLaneDisciplineIds,
+      maxRound,
+    });
   } catch (error) {
     console.error('Error fetching matrix data:', error);
     res.status(500).json({ error: 'Failed to fetch matrix data' });
@@ -777,6 +813,63 @@ router.put('/matrix/cell', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error updating matrix cell:', error);
     res.status(500).json({ error: 'Failed to update matrix cell' });
+  }
+});
+
+// PUT /time-planning/matrix/squad-cell
+// Upsert (or delete) a discipline assignment for one squad+round cell.
+router.put('/matrix/squad-cell', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const schema = z.object({
+      eventId: z.number().int().positive(),
+      squadName: z.string().min(1),
+      round: z.number().int().min(1),
+      disciplineId: z.number().int().positive().nullable(),
+    });
+    const { eventId, squadName, round, disciplineId } = schema.parse(req.body);
+
+    if (round === 1) {
+      await prisma.tfx_riegen_x_disziplinen.deleteMany({
+        where: {
+          int_veranstaltungenid: eventId,
+          var_riege: squadName,
+          OR: [{ int_runde: 1 }, { int_runde: null }],
+        },
+      });
+    } else {
+      await prisma.tfx_riegen_x_disziplinen.deleteMany({
+        where: {
+          int_veranstaltungenid: eventId,
+          var_riege: squadName,
+          int_runde: round,
+        },
+      });
+    }
+
+    if (disciplineId === null) {
+      return res.json({ success: true, action: 'deleted' });
+    }
+
+    const status = await prisma.tfx_status.findFirst({ orderBy: { int_statusid: 'asc' } });
+    if (!status) {
+      return res.status(500).json({ error: 'No status available in database' });
+    }
+
+    await prisma.tfx_riegen_x_disziplinen.create({
+      data: {
+        int_veranstaltungenid: eventId,
+        int_disziplinenid: disciplineId,
+        int_statusid: status.int_statusid,
+        var_riege: squadName,
+        int_runde: round,
+        bol_erstes_geraet: false,
+      },
+    });
+
+    res.json({ success: true, action: 'saved', squadName, disciplineId, round });
+  } catch (error) {
+    console.error('Error updating matrix squad cell:', error);
+    res.status(500).json({ error: 'Failed to update matrix squad cell' });
   }
 });
 

@@ -2471,7 +2471,20 @@
       "dragHint": "Drag columns to reorder",
       "saveError": "Failed to save. Please try again.",
       "print": "Print",
-      "printTitle": "Schedule Table"
+      "printTitle": "Schedule Table",
+      "squadRoundPlan": {
+        "averageTimePerParticipant": "Average time per participant (minutes)",
+        "scheduleStartTime": "Start time",
+        "maxParticipants": "Largest squad: {{count}} participants",
+        "slotDuration": "Target duration per round: {{minutes}} min.",
+        "competitionEnd": "Estimated competition end",
+        "plannedStart": "Planned start",
+        "plannedEnd": "Planned end",
+        "switchTime": "Planned switch",
+        "actualStart": "Actual start",
+        "actualEnd": "Actual end",
+        "emptyOption": "Select discipline"
+      }
     },
     "timeRange": {
       "from": "From",

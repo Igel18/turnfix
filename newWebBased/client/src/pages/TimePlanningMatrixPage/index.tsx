@@ -49,6 +49,8 @@ export default function TimePlanningMatrixPage() {
     loading,
     competitions,
     sessionGroups,
+    squads,
+    disciplineCache,
     refetch,
   } = useTimePlanningData({ eventId })
 
@@ -132,6 +134,9 @@ export default function TimePlanningMatrixPage() {
         <ScheduleMatrixView
           eventId={eventId}
           timeSettings={timeSettings}
+          competitions={competitions}
+          squads={squads}
+          disciplineCache={disciplineCache.current}
           selectedEvent={selectedEvent}
           baseStartTime={
             sessionGroups.length > 0 && sessionGroups[0].startTime

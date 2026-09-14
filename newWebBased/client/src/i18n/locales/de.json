@@ -2504,7 +2504,20 @@
       "dragHint": "Spalten per Drag & Drop verschieben",
       "saveError": "Fehler beim Speichern. Bitte erneut versuchen.",
       "print": "Drucken",
-      "printTitle": "Zeitplan-Tabelle"
+      "printTitle": "Zeitplan-Tabelle",
+      "squadRoundPlan": {
+        "averageTimePerParticipant": "Durchschnittszeit pro Teilnehmer (Minuten)",
+        "scheduleStartTime": "Startzeit",
+        "maxParticipants": "Größte Riege: {{count}} Teilnehmer",
+        "slotDuration": "Vorgabezeit pro Runde: {{minutes}} Min.",
+        "competitionEnd": "Voraussichtliches Wettkampfende",
+        "plannedStart": "Soll Start",
+        "plannedEnd": "Soll Ende",
+        "switchTime": "Soll Wechsel",
+        "actualStart": "Ist Start",
+        "actualEnd": "Ist Ende",
+        "emptyOption": "Disziplin auswählen"
+      }
     },
     "addRound": "Durchgang hinzufügen",
     "addBahn": "Bahn hinzufügen",

@@ -169,6 +169,9 @@ describe('Time Planning API', () => {
           '2': [disciplineB.int_disziplinenid],
         },
       });
+
+      expect(response.body.squadRoundAssignments).toBeDefined();
+      expect(Array.isArray(response.body.squadRoundAssignments)).toBe(true);
     });
   });
 

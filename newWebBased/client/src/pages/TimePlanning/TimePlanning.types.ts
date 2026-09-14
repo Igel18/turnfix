@@ -81,11 +81,18 @@ export interface MatrixAssignment {
   isFirstDevice: boolean
 }
 
+export interface MatrixSquadRoundAssignment {
+  squadName: string
+  round: number
+  disciplineId: number
+}
+
 export interface MatrixData {
   disciplines: MatrixDiscipline[]
   /** All disciplines not yet shown as columns — used for the column picker. */
   availableDisciplines: MatrixDiscipline[]
   assignments: MatrixAssignment[]
+  squadRoundAssignments?: MatrixSquadRoundAssignment[]
   squads: string[]
   sessionDisciplineIds?: Record<string, number[]>
   sessionLaneDisciplineIds?: Record<string, Record<string, number[]>>
