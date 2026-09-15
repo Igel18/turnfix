@@ -8,3 +8,4 @@ export { useTimeCalculation } from './useTimeCalculation';
 export { useTimePlanningData } from './useTimePlanningData';
 export { useCalculateDeviceSchedule } from './useCalculateDeviceSchedule';
 export { useExportTimeplan } from './useExportTimeplan';
+export { useTimePlanningPageFilters, filterTimePlanningData } from './useTimePlanningPageFilters';

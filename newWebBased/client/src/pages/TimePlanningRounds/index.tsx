@@ -22,6 +22,7 @@ import {
   HelpPanels,
   EditCompetitionModal,
   TimePlanningWizard,
+  TimePlanningFilters,
 } from '@/pages/TimePlanning/components'
 import SquadStartDeviceEditor from '@/pages/TimePlanning/components/SquadStartDeviceEditor'
 import {
@@ -30,6 +31,7 @@ import {
   useTimePlanningData,
   useCalculateDeviceSchedule,
   useExportTimeplan,
+  useTimePlanningPageFilters,
 } from '@/pages/TimePlanning/hooks'
 import type { TimeSettings, Competition, DeviceSchedule } from '@/pages/TimePlanning/TimePlanning.types'
 import { DEFAULT_TIME_SETTINGS } from '@/pages/TimePlanning/TimePlanning.types'
@@ -96,6 +98,12 @@ export default function TimePlanningRounds() {
     sessionGroups,
     squads,
     t,
+  })
+
+  const timePlanningFilters = useTimePlanningPageFilters({
+    competitions,
+    squads,
+    sessionGroups,
   })
 
   const { handleDragStart, handleDragOver, handleDrop } = useDragDrop({
@@ -213,6 +221,27 @@ export default function TimePlanningRounds() {
       showViewToggle={false}
       showAddButton={false}
       loading={loading}
+      showFilters={timePlanningFilters.showFilters}
+      onToggleFilters={timePlanningFilters.toggleFilters}
+      filterSection={
+        <TimePlanningFilters
+          searchTerm={timePlanningFilters.searchTerm}
+          onSearchTermChange={timePlanningFilters.setSearchTerm}
+          sessionFilter={timePlanningFilters.sessionFilter}
+          onSessionFilterChange={timePlanningFilters.setSessionFilter}
+          laneFilter={timePlanningFilters.laneFilter}
+          onLaneFilterChange={timePlanningFilters.setLaneFilter}
+          squadFilter={timePlanningFilters.squadFilter}
+          onSquadFilterChange={timePlanningFilters.setSquadFilter}
+          competitionFilter={timePlanningFilters.competitionFilter}
+          onCompetitionFilterChange={timePlanningFilters.setCompetitionFilter}
+          sessionOptions={timePlanningFilters.sessionOptions}
+          laneOptions={timePlanningFilters.laneOptions}
+          squadOptions={timePlanningFilters.squadOptions}
+          competitionOptions={timePlanningFilters.competitionOptions}
+          onResetFilters={timePlanningFilters.resetFilters}
+        />
+      }
       customBelowActions={
         <div className="flex space-x-2">
           <button
@@ -282,7 +311,7 @@ export default function TimePlanningRounds() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
           <p className="mt-2 text-sm text-gray-600">{t('timePlanning.loading')}</p>
         </div>
-      ) : competitions.length === 0 && squads.length === 0 ? (
+      ) : timePlanningFilters.filteredCompetitions.length === 0 && timePlanningFilters.filteredSquads.length === 0 ? (
         <div className="text-center py-8">
           <ClockIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('timePlanning.noData')}</h3>
@@ -290,7 +319,7 @@ export default function TimePlanningRounds() {
         </div>
       ) : (
         <SessionsView
-          sessionGroups={sessionGroups}
+          sessionGroups={timePlanningFilters.filteredSessionGroups}
           selectedSession={selectedSession}
           setSelectedSession={setSelectedSession}
           timeSettings={timeSettings}

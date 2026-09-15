@@ -2519,6 +2519,10 @@
         "emptyOption": "Disziplin auswählen"
       }
     },
+    "filters": {
+      "searchPlaceholder": "Nach Wettkampf oder Riege suchen...",
+      "competition": "Wettkampf"
+    },
     "addRound": "Durchgang hinzufügen",
     "addBahn": "Bahn hinzufügen",
     "timeRange": {

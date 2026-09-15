@@ -1143,7 +1143,7 @@ export function ScheduleMatrixView({
               const sessionSquads = getSessionSquads(
                 effectiveSelectedSession ?? sessionInfo?.session ?? null,
                 sessionGroups,
-                squads,
+                squadNames,
               );
               return (
                 <React.Fragment key={round}>

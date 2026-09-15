@@ -16,12 +16,14 @@ import UnifiedModal from '@/components/UnifiedModal'
 import TimePlanningRotationOverview from '@/pages/TimePlanningRotationOverview'
 import {
   HelpPanels,
+  TimePlanningFilters,
   TimeSettingsModal,
   TimePlanningWizard,
 } from '@/pages/TimePlanning/components'
 import {
   useTimePlanningData,
   useExportTimeplan,
+  useTimePlanningPageFilters,
 } from '@/pages/TimePlanning/hooks'
 import type { TimeSettings } from '@/pages/TimePlanning/TimePlanning.types'
 import { DEFAULT_TIME_SETTINGS } from '@/pages/TimePlanning/TimePlanning.types'
@@ -69,6 +71,12 @@ export default function TimePlanningRotationOverviewPage() {
     t,
   })
 
+  const timePlanningFilters = useTimePlanningPageFilters({
+    competitions,
+    squads,
+    sessionGroups,
+  })
+
   useEffect(() => {
     if (!eventId) return
     setSelectedRotationRound(loadRotationRoundFromStorage(eventId))
@@ -100,7 +108,7 @@ export default function TimePlanningRotationOverviewPage() {
     )
   }
 
-  const mappedSquads = squads.map(s => {
+  const mappedSquads = timePlanningFilters.filteredSquads.map(s => {
     const mappedCompetitionIds: number[] = []
 
     if (Array.isArray((s as any).competitionIds) && (s as any).competitionIds.length > 0) {
@@ -111,7 +119,7 @@ export default function TimePlanningRotationOverviewPage() {
       }
     } else if (Array.isArray(s.competitions) && s.competitions.length > 0) {
       for (const competitionName of s.competitions) {
-        const compObj = competitions.find(c => c.name === competitionName)
+        const compObj = timePlanningFilters.filteredCompetitions.find(c => c.name === competitionName)
         if (compObj) {
           mappedCompetitionIds.push(compObj.id)
         }
@@ -128,8 +136,8 @@ export default function TimePlanningRotationOverviewPage() {
   })
 
   const mappedDevices = (() => {
-    if (sessionGroups.length > 0 && sessionGroups[0].competitions.length > 0) {
-      const comp = sessionGroups[0].competitions[0]
+    if (timePlanningFilters.filteredSessionGroups.length > 0 && timePlanningFilters.filteredSessionGroups[0].competitions.length > 0) {
+      const comp = timePlanningFilters.filteredSessionGroups[0].competitions[0]
       const filtered = squadDisciplines.filter(sd => sd.tfx_disziplinen && sd.tfx_wettkaempfeid === comp.id)
       if (filtered.length > 0) return filtered.map(sd => ({ name: sd.tfx_disziplinen.var_name }))
       if (disciplineCache.current[comp.id]?.length > 0) {
@@ -153,6 +161,27 @@ export default function TimePlanningRotationOverviewPage() {
       showViewToggle={false}
       showAddButton={false}
       loading={loading}
+      showFilters={timePlanningFilters.showFilters}
+      onToggleFilters={timePlanningFilters.toggleFilters}
+      filterSection={
+        <TimePlanningFilters
+          searchTerm={timePlanningFilters.searchTerm}
+          onSearchTermChange={timePlanningFilters.setSearchTerm}
+          sessionFilter={timePlanningFilters.sessionFilter}
+          onSessionFilterChange={timePlanningFilters.setSessionFilter}
+          laneFilter={timePlanningFilters.laneFilter}
+          onLaneFilterChange={timePlanningFilters.setLaneFilter}
+          squadFilter={timePlanningFilters.squadFilter}
+          onSquadFilterChange={timePlanningFilters.setSquadFilter}
+          competitionFilter={timePlanningFilters.competitionFilter}
+          onCompetitionFilterChange={timePlanningFilters.setCompetitionFilter}
+          sessionOptions={timePlanningFilters.sessionOptions}
+          laneOptions={timePlanningFilters.laneOptions}
+          squadOptions={timePlanningFilters.squadOptions}
+          competitionOptions={timePlanningFilters.competitionOptions}
+          onResetFilters={timePlanningFilters.resetFilters}
+        />
+      }
       customActions={[
         <button
           key="wizard"
@@ -206,7 +235,7 @@ export default function TimePlanningRotationOverviewPage() {
             onSelectedRoundChange={setSelectedRotationRound}
             squads={mappedSquads}
             devices={mappedDevices}
-            competitions={competitions}
+            competitions={timePlanningFilters.filteredCompetitions}
           />
         </div>
       )}

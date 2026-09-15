@@ -15,11 +15,12 @@ import { EventManagementTemplate } from '@/components/templates/EventManagementT
 import UnifiedModal from '@/components/UnifiedModal'
 import {
   HelpPanels,
+  TimePlanningFilters,
   TimeSettingsModal,
   TimePlanningWizard,
 } from '@/pages/TimePlanning/components'
 import { ScheduleMatrixView } from '@/pages/TimePlanning/components/ScheduleMatrixView'
-import { useTimePlanningData } from '@/pages/TimePlanning/hooks'
+import { useTimePlanningData, useTimePlanningPageFilters } from '@/pages/TimePlanning/hooks'
 import type { TimeSettings } from '@/pages/TimePlanning/TimePlanning.types'
 import { DEFAULT_TIME_SETTINGS } from '@/pages/TimePlanning/TimePlanning.types'
 import {
@@ -54,6 +55,12 @@ export default function TimePlanningMatrixPage() {
     refetch,
   } = useTimePlanningData({ eventId })
 
+  const timePlanningFilters = useTimePlanningPageFilters({
+    competitions,
+    squads,
+    sessionGroups,
+  })
+
   const saveTimeSettings = () => {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings)
     setShowTimeSettings(false)
@@ -84,6 +91,27 @@ export default function TimePlanningMatrixPage() {
       showViewToggle={false}
       showAddButton={false}
       loading={loading}
+      showFilters={timePlanningFilters.showFilters}
+      onToggleFilters={timePlanningFilters.toggleFilters}
+      filterSection={
+        <TimePlanningFilters
+          searchTerm={timePlanningFilters.searchTerm}
+          onSearchTermChange={timePlanningFilters.setSearchTerm}
+          sessionFilter={timePlanningFilters.sessionFilter}
+          onSessionFilterChange={timePlanningFilters.setSessionFilter}
+          laneFilter={timePlanningFilters.laneFilter}
+          onLaneFilterChange={timePlanningFilters.setLaneFilter}
+          squadFilter={timePlanningFilters.squadFilter}
+          onSquadFilterChange={timePlanningFilters.setSquadFilter}
+          competitionFilter={timePlanningFilters.competitionFilter}
+          onCompetitionFilterChange={timePlanningFilters.setCompetitionFilter}
+          sessionOptions={timePlanningFilters.sessionOptions}
+          laneOptions={timePlanningFilters.laneOptions}
+          squadOptions={timePlanningFilters.squadOptions}
+          competitionOptions={timePlanningFilters.competitionOptions}
+          onResetFilters={timePlanningFilters.resetFilters}
+        />
+      }
       customActions={[
         <button
           key="wizard"
@@ -134,16 +162,16 @@ export default function TimePlanningMatrixPage() {
         <ScheduleMatrixView
           eventId={eventId}
           timeSettings={timeSettings}
-          competitions={competitions}
-          squads={squads}
+          competitions={timePlanningFilters.filteredCompetitions}
+          squads={timePlanningFilters.filteredSquads}
           disciplineCache={disciplineCache.current}
           selectedEvent={selectedEvent}
           baseStartTime={
-            sessionGroups.length > 0 && sessionGroups[0].startTime
-              ? sessionGroups[0].startTime
+            timePlanningFilters.filteredSessionGroups.length > 0 && timePlanningFilters.filteredSessionGroups[0].startTime
+              ? timePlanningFilters.filteredSessionGroups[0].startTime
               : null
           }
-          sessionGroups={sessionGroups}
+          sessionGroups={timePlanningFilters.filteredSessionGroups}
           onRegisterPrint={fn => { matrixPrintFnRef.current = fn }}
         />
       )}

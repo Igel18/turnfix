@@ -2486,6 +2486,10 @@
         "emptyOption": "Select discipline"
       }
     },
+    "filters": {
+      "searchPlaceholder": "Search competition or squad...",
+      "competition": "Competition"
+    },
     "timeRange": {
       "from": "From",
       "to": "To"
