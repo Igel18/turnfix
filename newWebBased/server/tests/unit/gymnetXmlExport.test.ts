@@ -42,7 +42,11 @@ describe('gymnetXmlExport', () => {
     expect(xml).toContain('<perGeburt>30.04.2014</perGeburt>');
     expect(xml).toContain('<wedDisName>Stufenbarren</wedDisName>');
     expect(xml).toContain('<wedDisNr>270</wedDisNr>');
+    expect(xml).toContain('<wtdWertung>12.345</wtdWertung>');
     expect(xml).toContain('<wtdPunkte>12.345</wtdPunkte>');
+    expect(xml).toContain('<etPunkte>12.345</etPunkte>');
+    expect(xml).toContain('<etPlatzierung>1</etPlatzierung>');
+    expect(xml).toContain('<etErfasst>1</etErfasst>');
   });
 
   it('prefers base wedDisNr from discipline name when discipline ID differs across databases', () => {
@@ -80,5 +84,54 @@ describe('gymnetXmlExport', () => {
 
     expect(xml).toContain('<wedDisName>Stufenbarren</wedDisName>');
     expect(xml).toContain('<wedDisNr>270</wedDisNr>');
+  });
+
+  it('computes ranking from total score when rank is not provided', () => {
+    const xml = buildGymNetResultsXml([
+      {
+        competitionId: 2,
+        competitionNumber: '102',
+        competitionName: 'Rangtest',
+        genderMale: true,
+        genderFemale: false,
+        ageFrom: 12,
+        ageTo: 14,
+        participants: [
+          {
+            participantId: 1,
+            firstName: 'Max',
+            lastName: 'A',
+            birthDate: null,
+            gender: 0,
+            clubId: null,
+            clubName: '',
+            startNumber: null,
+            disciplines: [
+              { disciplineId: 1, name: 'Boden', score: 11.2, position: 1 },
+              { disciplineId: 2, name: 'Sprung', score: 11.1, position: 2 },
+            ],
+          },
+          {
+            participantId: 2,
+            firstName: 'Tom',
+            lastName: 'B',
+            birthDate: null,
+            gender: 0,
+            clubId: null,
+            clubName: '',
+            startNumber: null,
+            disciplines: [
+              { disciplineId: 1, name: 'Boden', score: 10.0, position: 1 },
+              { disciplineId: 2, name: 'Sprung', score: 10.5, position: 2 },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    expect(xml).toContain('<etPunkte>22.300</etPunkte>');
+    expect(xml).toContain('<etPunkte>20.500</etPunkte>');
+    expect(xml).toContain('<etPlatzierung>1</etPlatzierung>');
+    expect(xml).toContain('<etPlatzierung>2</etPlatzierung>');
   });
 });

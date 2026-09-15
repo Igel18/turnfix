@@ -13,13 +13,18 @@ describe('mergeGymNetTemplateWithResults', () => {
         <perVorname>Anna</perVorname>
         <perGeburt>14.03.2014</perGeburt>
         <verKurzname>TV Test</verKurzname>
+        <etErfasst>0</etErfasst>
+        <etPunkte>0,000</etPunkte>
+        <etPlatzierung>0</etPlatzierung>
         <Disziplinen>
           <Disziplin>
             <wedDisName>Sprung w</wedDisName>
+            <wtdWertung></wtdWertung>
             <wtdPunkte></wtdPunkte>
           </Disziplin>
           <Disziplin>
             <wedDisName>Boden w</wedDisName>
+            <wtdWertung></wtdWertung>
             <wtdPunkte></wtdPunkte>
           </Disziplin>
         </Disziplinen>
@@ -65,6 +70,11 @@ describe('mergeGymNetTemplateWithResults', () => {
     expect(result.report.summary.competitionsUnmatched).toBe(0);
     expect(result.report.summary.participantsUnmatched).toBe(0);
     expect(result.report.summary.disciplinesUnmatched).toBe(0);
+    expect(result.xml).toContain('<etErfasst>1</etErfasst>');
+    expect(result.xml).toContain('<etPunkte>23.412</etPunkte>');
+    expect(result.xml).toContain('<etPlatzierung>1</etPlatzierung>');
+    expect(result.xml).toContain('<wtdWertung>12.300</wtdWertung>');
+    expect(result.xml).toContain('<wtdWertung>11.112</wtdWertung>');
     expect(result.xml).toContain('<wtdPunkte>12.300</wtdPunkte>');
     expect(result.xml).toContain('<wtdPunkte>11.112</wtdPunkte>');
   });
