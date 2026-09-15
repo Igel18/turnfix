@@ -7,15 +7,20 @@ describe('mergeGymNetTemplateWithResults', () => {
   <Wettkampf>
     <waNr>101</waNr>
     <waBezeichnung>WK weiblich 11-12</waBezeichnung>
-    <Teilnehmer>
-      <TN>
-        <perName>Muster</perName>
-        <perVorname>Anna</perVorname>
-        <perGeburt>14.03.2014</perGeburt>
-        <verKurzname>TV Test</verKurzname>
+    <Mannschaften>
+      <Mannschaft>
         <etErfasst>0</etErfasst>
         <etPunkte>0,000</etPunkte>
         <etPlatzierung>0</etPlatzierung>
+        <verKurzname>TV Test</verKurzname>
+        <Teilnehmer>
+          <TN>
+            <perName>Muster</perName>
+            <perVorname>Anna</perVorname>
+            <perGeburt>14.03.2014</perGeburt>
+            <verKurzname>TV Test</verKurzname>
+          </TN>
+        </Teilnehmer>
         <Disziplinen>
           <Disziplin>
             <wedDisName>Sprung w</wedDisName>
@@ -28,8 +33,8 @@ describe('mergeGymNetTemplateWithResults', () => {
             <wtdPunkte></wtdPunkte>
           </Disziplin>
         </Disziplinen>
-      </TN>
-    </Teilnehmer>
+      </Mannschaft>
+    </Mannschaften>
   </Wettkampf>
 </Wettkämpfe>`;
 
@@ -70,6 +75,7 @@ describe('mergeGymNetTemplateWithResults', () => {
     expect(result.report.summary.competitionsUnmatched).toBe(0);
     expect(result.report.summary.participantsUnmatched).toBe(0);
     expect(result.report.summary.disciplinesUnmatched).toBe(0);
+    expect(result.xml).toContain('<Mannschaft>');
     expect(result.xml).toContain('<etErfasst>1</etErfasst>');
     expect(result.xml).toContain('<etPunkte>23.412</etPunkte>');
     expect(result.xml).toContain('<etPlatzierung>1</etPlatzierung>');
@@ -101,5 +107,69 @@ describe('mergeGymNetTemplateWithResults', () => {
     expect(result.report.unmatchedParticipants[0]).toContain('101');
     expect(result.report.unmatchedParticipants[0]).toContain('Anna Muster');
     expect(result.xml).toContain('<wtdPunkte/>');
+  });
+
+  it('maps AK and absent participants to team-level etErfasst values', async () => {
+    const akResult = await mergeGymNetTemplateWithResults(templateXml, [
+      {
+        competitionId: 1,
+        competitionNumber: '101',
+        competitionName: 'WK weiblich 11-12',
+        genderMale: false,
+        genderFemale: true,
+        ageFrom: 11,
+        ageTo: 12,
+        participants: [
+          {
+            participantId: 7,
+            firstName: 'Anna',
+            lastName: 'Muster',
+            birthDate: new Date('2014-03-14'),
+            gender: 1,
+            clubId: 3,
+            clubName: 'TV Test',
+            startNumber: 12,
+            isOutOfCompetition: true,
+            disciplines: [
+              { disciplineId: 1, name: 'Sprung w', score: 12.3, position: 1 },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    expect(akResult.xml).toContain('<etErfasst>2</etErfasst>');
+    expect(akResult.xml).toContain('<etPlatzierung>0</etPlatzierung>');
+
+    const absentResult = await mergeGymNetTemplateWithResults(templateXml, [
+      {
+        competitionId: 1,
+        competitionNumber: '101',
+        competitionName: 'WK weiblich 11-12',
+        genderMale: false,
+        genderFemale: true,
+        ageFrom: 11,
+        ageTo: 12,
+        participants: [
+          {
+            participantId: 7,
+            firstName: 'Anna',
+            lastName: 'Muster',
+            birthDate: new Date('2014-03-14'),
+            gender: 1,
+            clubId: 3,
+            clubName: 'TV Test',
+            startNumber: 12,
+            isAbsent: true,
+            disciplines: [
+              { disciplineId: 1, name: 'Sprung w', score: null, position: 1 },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    expect(absentResult.xml).toContain('<etErfasst>3</etErfasst>');
+    expect(absentResult.xml).toContain('<etPlatzierung>0</etPlatzierung>');
   });
 });

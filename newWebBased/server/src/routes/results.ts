@@ -87,12 +87,13 @@ async function loadGymNetExportPayload(eventId: number, competitionId: number | 
         t.int_geschlecht,
         v.int_vereineid,
         COALESCE(v.var_name, '') AS club_name,
-        wr.int_startnummer
+        wr.int_startnummer,
+        COALESCE(wr.bol_ak, false) AS bol_ak,
+        COALESCE(wr.bol_startet_nicht, false) AS bol_startet_nicht
       FROM tfx_wertungen wr
       JOIN tfx_teilnehmer t ON t.int_teilnehmerid = wr.int_teilnehmerid
       LEFT JOIN tfx_vereine v ON v.int_vereineid = t.int_vereineid
       WHERE wr.int_wettkaempfeid = ANY($1::int[])
-        AND COALESCE(wr.bol_startet_nicht, false) = false
       ORDER BY wr.int_wettkaempfeid, wr.int_startnummer NULLS LAST, t.var_nachname, t.var_vorname
     `, competitionIds) as any[];
 
@@ -164,6 +165,8 @@ async function loadGymNetExportPayload(eventId: number, competitionId: number | 
         clubId: participant.int_vereineid,
         clubName: participant.club_name,
         startNumber: participant.int_startnummer,
+        isOutOfCompetition: participant.bol_ak === true,
+        isAbsent: participant.bol_startet_nicht === true,
         disciplines: competitionDisciplines.map((discipline, index) => {
           const scoreKey = `${competition.int_wettkaempfeid}:${participant.int_teilnehmerid}:${discipline.int_disziplinenid}`;
 

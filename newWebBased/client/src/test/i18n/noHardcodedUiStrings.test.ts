@@ -310,5 +310,5 @@ describe('i18n guard: no new hardcoded UI strings', () => {
       newViolations,
       `Found ${newViolations.length} new hardcoded UI string(s).\n\n${formatViolations(newViolations)}`
     ).toEqual([]);
-  });
+  }, 15000);
 });

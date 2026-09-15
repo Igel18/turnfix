@@ -23,6 +23,8 @@ export interface GymNetExportParticipant {
   totalScore?: number | null;
   rank?: number | null;
   captured?: GymNetCapturedValue | null;
+  isOutOfCompetition?: boolean | null;
+  isAbsent?: boolean | null;
 }
 
 export interface GymNetExportCompetition {
@@ -69,12 +71,28 @@ function sumDisciplineScores(participant: GymNetExportParticipant): number | nul
 }
 
 function buildRankMap(participants: GymNetExportParticipant[]): Map<number, number> {
-  const scored = participants
-    .map((participant) => ({
+  const scored = participants.reduce<Array<{
+    participantId: number;
+    total: number;
+    captured: GymNetCapturedValue | null | undefined;
+    isOutOfCompetition: boolean | null | undefined;
+    isAbsent: boolean | null | undefined;
+  }>>((entries, participant) => {
+    const total = participant.totalScore ?? sumDisciplineScores(participant);
+    if (total === null) {
+      return entries;
+    }
+
+    entries.push({
       participantId: participant.participantId,
-      total: participant.totalScore ?? sumDisciplineScores(participant),
-    }))
-    .filter((entry): entry is { participantId: number; total: number } => entry.total !== null)
+      total,
+      captured: participant.captured,
+      isOutOfCompetition: participant.isOutOfCompetition,
+      isAbsent: participant.isAbsent,
+    });
+    return entries;
+  }, [])
+    .filter((entry) => entry.isOutOfCompetition !== true && entry.isAbsent !== true && entry.captured !== 2 && entry.captured !== 3)
     .sort((a, b) => b.total - a.total);
 
   const rankMap = new Map<number, number>();
@@ -93,12 +111,28 @@ function buildRankMap(participants: GymNetExportParticipant[]): Map<number, numb
 }
 
 function resolveCapturedValue(participant: GymNetExportParticipant, hasAnyScore: boolean): GymNetCapturedValue {
+  if (participant.isAbsent === true) {
+    return 3;
+  }
+
+  if (participant.isOutOfCompetition === true) {
+    return 2;
+  }
+
   if (participant.captured === 0 || participant.captured === 1 || participant.captured === 2 || participant.captured === 3) {
     return participant.captured;
   }
 
   // Exported result rows should be marked as captured for GymNet import.
   return hasAnyScore ? 1 : 1;
+}
+
+function resolvePlacement(participant: GymNetExportParticipant, rankMap: Map<number, number>, captured: GymNetCapturedValue): number {
+  if (captured === 2 || captured === 3) {
+    return 0;
+  }
+
+  return participant.rank ?? rankMap.get(participant.participantId) ?? 0;
 }
 
 function getCompetitionGenderValue(genderMale: boolean, genderFemale: boolean): string {
@@ -154,6 +188,7 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
             TN: competition.participants.map((participant) => {
               const resolvedTotal = participant.totalScore ?? sumDisciplineScores(participant);
               const hasAnyScore = resolvedTotal !== null;
+              const captured = resolveCapturedValue(participant, hasAnyScore);
 
               return {
                 perID: String(participant.participantId),
@@ -164,9 +199,9 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
                 verID: participant.clubId !== null && participant.clubId !== undefined ? String(participant.clubId) : '',
                 verKurzname: participant.clubName || '',
                 espStartnummer: participant.startNumber !== null && participant.startNumber !== undefined ? String(participant.startNumber) : '',
-                etPunkte: formatScore(resolvedTotal),
-                etPlatzierung: String(participant.rank ?? rankMap.get(participant.participantId) ?? 0),
-                etErfasst: String(resolveCapturedValue(participant, hasAnyScore)),
+                etPunkte: captured === 3 ? '' : formatScore(resolvedTotal),
+                etPlatzierung: String(resolvePlacement(participant, rankMap, captured)),
+                etErfasst: String(captured),
                 Disziplinen: {
                   Disziplin: participant.disciplines.map((discipline) => {
                     const wedDisNrById = turnFixIdToWedDisNr(discipline.disciplineId);

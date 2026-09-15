@@ -101,12 +101,28 @@ function sumDisciplineScores(participant: GymNetExportParticipant): number | nul
 }
 
 function buildRankMap(participants: GymNetExportParticipant[]): Map<number, number> {
-  const scored = participants
-    .map((participant) => ({
+  const scored = participants.reduce<Array<{
+    participantId: number;
+    total: number;
+    captured: number | null | undefined;
+    isOutOfCompetition: boolean | null | undefined;
+    isAbsent: boolean | null | undefined;
+  }>>((entries, participant) => {
+    const total = participant.totalScore ?? sumDisciplineScores(participant);
+    if (total === null) {
+      return entries;
+    }
+
+    entries.push({
       participantId: participant.participantId,
-      total: participant.totalScore ?? sumDisciplineScores(participant),
-    }))
-    .filter((entry): entry is { participantId: number; total: number } => entry.total !== null)
+      total,
+      captured: participant.captured,
+      isOutOfCompetition: participant.isOutOfCompetition,
+      isAbsent: participant.isAbsent,
+    });
+    return entries;
+  }, [])
+    .filter((entry) => entry.isOutOfCompetition !== true && entry.isAbsent !== true && entry.captured !== 2 && entry.captured !== 3)
     .sort((a, b) => b.total - a.total);
 
   const rankMap = new Map<number, number>();
@@ -125,16 +141,23 @@ function buildRankMap(participants: GymNetExportParticipant[]): Map<number, numb
 }
 
 function applyOverallResultFields(
-  participantNode: any,
+  resultNode: any,
   matchedParticipant: GymNetExportParticipant,
   rankMap: Map<number, number>
 ) {
   const totalScore = matchedParticipant.totalScore ?? sumDisciplineScores(matchedParticipant);
-  const rank = matchedParticipant.rank ?? rankMap.get(matchedParticipant.participantId) ?? 0;
+  const captured = matchedParticipant.isAbsent === true
+    ? 3
+    : matchedParticipant.isOutOfCompetition === true
+      ? 2
+      : matchedParticipant.captured ?? 1;
+  const rank = captured === 2 || captured === 3
+    ? 0
+    : matchedParticipant.rank ?? rankMap.get(matchedParticipant.participantId) ?? 0;
 
-  participantNode.etPunkte = formatScore(totalScore);
-  participantNode.etPlatzierung = String(rank);
-  participantNode.etErfasst = String(matchedParticipant.captured ?? 1);
+  resultNode.etPunkte = captured === 3 ? '' : formatScore(totalScore);
+  resultNode.etPlatzierung = String(rank);
+  resultNode.etErfasst = String(captured);
 }
 
 function findCompetitionNode(parsed: any): any[] {
@@ -196,6 +219,7 @@ function findParticipantMatch(
 }
 
 interface TemplateParticipantEntry {
+  resultNode: any;
   participantNode: any;
   disciplineNodes: any[];
   clubName: string;
@@ -211,6 +235,7 @@ function extractTemplateCompetitionEntries(competitionNode: any): TemplatePartic
   directParticipants.forEach((participantNode) => {
     const participantDisciplines = toArray(participantNode?.Disziplinen?.Disziplin);
     entries.push({
+      resultNode: participantNode,
       participantNode,
       disciplineNodes: participantDisciplines.length > 0 ? participantDisciplines : directDisciplines,
       clubName: String(participantNode?.verKurzname || participantNode?.verName || ''),
@@ -227,6 +252,7 @@ function extractTemplateCompetitionEntries(competitionNode: any): TemplatePartic
     teamParticipants.forEach((participantNode) => {
       const participantDisciplines = toArray(participantNode?.Disziplinen?.Disziplin);
       entries.push({
+        resultNode: teamNode,
         participantNode,
         disciplineNodes: participantDisciplines.length > 0 ? participantDisciplines : teamDisciplines,
         clubName: teamClubName,
@@ -353,7 +379,7 @@ export async function mergeGymNetTemplateWithResults(
     const rankMap = buildRankMap(matchedCompetition.participants);
 
     const participantEntries = extractTemplateCompetitionEntries(competitionNode);
-    participantEntries.forEach(({ participantNode, disciplineNodes, clubName }) => {
+    participantEntries.forEach(({ resultNode, participantNode, disciplineNodes, clubName }) => {
       const matchedParticipant = findParticipantMatch(matchedCompetition.participants, participantNode, clubName);
       if (!matchedParticipant) {
         const participantLabel = `${String(participantNode?.perVorname || '').trim()} ${String(participantNode?.perName || '').trim()}`.trim();
@@ -363,7 +389,7 @@ export async function mergeGymNetTemplateWithResults(
       }
 
       stats.participantsMatched += 1;
-      applyOverallResultFields(participantNode, matchedParticipant, rankMap);
+      applyOverallResultFields(resultNode, matchedParticipant, rankMap);
 
       disciplineNodes.forEach((disciplineNode) => {
         const hasTemplateDiscipline = normalizeText(disciplineNode?.wedDisName || disciplineNode?.wedDisNr);

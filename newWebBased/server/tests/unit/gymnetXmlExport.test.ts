@@ -134,4 +134,53 @@ describe('gymnetXmlExport', () => {
     expect(xml).toContain('<etPlatzierung>1</etPlatzierung>');
     expect(xml).toContain('<etPlatzierung>2</etPlatzierung>');
   });
+
+  it('maps AK and absent participants to GymNet etErfasst semantics', () => {
+    const xml = buildGymNetResultsXml([
+      {
+        competitionId: 3,
+        competitionNumber: '103',
+        competitionName: 'Status-Test',
+        genderMale: false,
+        genderFemale: true,
+        ageFrom: 18,
+        ageTo: null,
+        participants: [
+          {
+            participantId: 1,
+            firstName: 'AK',
+            lastName: 'Teilnehmerin',
+            birthDate: null,
+            gender: 1,
+            clubId: null,
+            clubName: '',
+            startNumber: null,
+            isOutOfCompetition: true,
+            disciplines: [
+              { disciplineId: 68, name: 'Stufenbarren', score: 9.5, position: 1 },
+            ],
+          },
+          {
+            participantId: 2,
+            firstName: 'NA',
+            lastName: 'Teilnehmerin',
+            birthDate: null,
+            gender: 1,
+            clubId: null,
+            clubName: '',
+            startNumber: null,
+            isAbsent: true,
+            disciplines: [
+              { disciplineId: 68, name: 'Stufenbarren', score: null, position: 1 },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    expect(xml).toContain('<etErfasst>2</etErfasst>');
+    expect(xml).toContain('<etPunkte>9.500</etPunkte>');
+    expect(xml).toContain('<etPlatzierung>0</etPlatzierung>');
+    expect(xml).toContain('<etErfasst>3</etErfasst>');
+  });
 });
