@@ -303,6 +303,7 @@ const Results = () => {
           <ResultsGymNetExportWizard
             isOpen={showGymNetExportWizard}
             onClose={() => setShowGymNetExportWizard(false)}
+            eventId={eventId}
             eventName={eventName}
             selectedCompetitionLabel={selectedCompetitionLabel}
             certificateParticipants={getAllParticipantsForCertificates()}

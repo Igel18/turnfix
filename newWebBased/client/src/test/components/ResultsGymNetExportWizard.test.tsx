@@ -7,6 +7,11 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
 }))
 
+const apiGetMock = vi.fn()
+vi.mock('@/utils/api', () => ({
+  apiGet: (...args: unknown[]) => apiGetMock(...args)
+}))
+
 const defaultPaperFormats = {
   A4: { width: 595, height: 842, name: 'A4' },
   A3: { width: 842, height: 1191, name: 'A3' }
@@ -159,5 +164,65 @@ describe('ResultsGymNetExportWizard', () => {
     expect(onExportPdf).not.toHaveBeenCalled()
     expect(onExportXml).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('lets the user reuse a previously imported XML file tagged with the event ID', async () => {
+    const user = userEvent.setup()
+    const suggestion = {
+      filename: 'gymnet-event7-2026-01-01T00-00-00-000Z-original.xml',
+      url: '/api/documents/download/xml/gymnet-event7-2026-01-01T00-00-00-000Z-original.xml',
+      modified: '2026-01-01T00:00:00.000Z'
+    }
+    apiGetMock.mockResolvedValue({ files: [suggestion] })
+
+    const xmlBlob = new Blob(['<Wettkämpfe />'], { type: 'application/xml' })
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, blob: () => Promise.resolve(xmlBlob) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const onExportXml = vi.fn().mockResolvedValue(null)
+
+    render(
+      <ResultsGymNetExportWizard
+        isOpen={true}
+        onClose={vi.fn()}
+        eventId="7"
+        eventName="Test Event"
+        selectedCompetitionLabel="Wettkampf A"
+        certificateParticipants={defaultParticipants}
+        certificateLayouts={defaultLayouts}
+        selectedCertificateLayout={defaultLayouts[0]}
+        onCertificateLayoutChange={vi.fn()}
+        selectedPaperFormat={'A4'}
+        onPaperFormatChange={vi.fn()}
+        paperFormats={defaultPaperFormats}
+        certificateSortOrder={'desc'}
+        onCertificateSortOrderChange={vi.fn()}
+        onExportCsv={vi.fn()}
+        onExportPdf={vi.fn()}
+        onPrepareCertificates={vi.fn()}
+        onExportCertificates={vi.fn()}
+        onExportXml={onExportXml}
+      />
+    )
+
+    await user.click(screen.getByText('results.exportWizard.exportTypes.xml').closest('button') as HTMLButtonElement)
+    await user.click(screen.getByRole('button', { name: 'common.next' }))
+
+    await waitFor(() => expect(apiGetMock).toHaveBeenCalledWith('/documents/xml-for-event/7'))
+    const suggestionButton = await screen.findByText(suggestion.filename)
+    await user.click(suggestionButton)
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(suggestion.url))
+
+    await user.click(screen.getByRole('button', { name: 'common.next' }))
+
+    const outputInput = document.getElementById('results-gymnet-output-input') as HTMLInputElement
+    await waitFor(() => expect(outputInput.value).toMatch(/^gymnet-event7-2026-01-01T00-00-00-000Z-original_Results_\d{4}-\d{2}-\d{2}\.xml$/))
+
+    await user.click(screen.getByRole('button', { name: 'common.next' }))
+    await user.click(screen.getByRole('button', { name: 'results.exportWizard.actions.startExport' }))
+
+    await waitFor(() => expect(onExportXml).toHaveBeenCalledTimes(1))
+    expect(onExportXml.mock.calls[0][0]).toEqual(expect.objectContaining({ name: suggestion.filename }))
   })
 })

@@ -208,6 +208,31 @@ router.get('/count', (_req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/documents/xml-for-event/:eventId
+ * Finds previously imported GymNet XML files tagged with this event ID
+ * (see gymnetImport.ts, which renames the source file on successful import).
+ * Lets the results export wizard suggest the matching file instead of asking the user to browse for it again.
+ */
+router.get('/xml-for-event/:eventId', (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId, 10);
+    if (Number.isNaN(eventId)) {
+      return res.status(400).json({ error: 'Invalid eventId' });
+    }
+
+    const prefix = `gymnet-event${eventId}-`;
+    const files = readDir(CATEGORIES.xml)
+      .filter(f => f.filename.startsWith(prefix))
+      .sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
+
+    res.json({ files });
+  } catch (error) {
+    console.error('[Documents] Error finding XML files for event:', error);
+    res.status(500).json({ error: 'Failed to find XML files for event' });
+  }
+});
+
+/**
  * GET /api/documents/categories
  * Returns list of categories with file counts
  */

@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import eventsRouter from '../../src/routes/events';
 import { TestUtils } from '../utils/testUtils';
@@ -92,6 +93,19 @@ describe('GymNet Team Import', () => {
       }).catch(() => {});
     }
 
+    // 7. Delete the event-tagged XML file gymnetImport.ts keeps on disk after a successful import
+    if (createdEventId) {
+      const xmlDir = path.resolve(__dirname, '../../uploads/xml');
+      const prefix = `gymnet-event${createdEventId}-`;
+      if (fs.existsSync(xmlDir)) {
+        for (const filename of fs.readdirSync(xmlDir)) {
+          if (filename.startsWith(prefix)) {
+            fs.unlinkSync(path.join(xmlDir, filename));
+          }
+        }
+      }
+    }
+
     // Reset tracking
     createdEventId = null;
     createdClubIds = [];
@@ -170,6 +184,20 @@ describe('GymNet Team Import', () => {
 
     return response;
   }
+
+  describe('Imported XML is tagged with the event ID (kept for GymNet results export)', () => {
+    it('renames the uploaded XML to include the created event ID instead of deleting it', async () => {
+      const response = await importXmlAndTrack(teamFixturePath);
+      expect(response.body.createdEvent?.id).toBeDefined();
+
+      const xmlDir = path.resolve(__dirname, '../../uploads/xml');
+      const prefix = `gymnet-event${response.body.createdEvent.id}-`;
+      const taggedFile = fs.readdirSync(xmlDir).find(f => f.startsWith(prefix));
+
+      expect(taggedFile).toBeDefined();
+      expect(taggedFile).toContain('team-import-test.xml');
+    });
+  });
 
   describe('Multi-person Mannschaft creates teams', () => {
     it('should import XML and create teams from multi-person Mannschaft nodes', async () => {

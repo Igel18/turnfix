@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DocumentArrowUpIcon, DocumentArrowDownIcon, PlayIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { apiGet } from '@/utils/api'
 import type { GymNetMatchReport } from '../hooks/useExport'
 import type { CertificateLayout, PaperFormat, Participant } from '../Results.types'
 
@@ -46,9 +47,16 @@ const toStepTitleKey = (step: ResultsGymNetExportWizardStep) => {
   }
 }
 
+export interface SuggestedTemplateFile {
+  filename: string
+  url: string
+  modified: string
+}
+
 export interface UseResultsGymNetExportWizardProps {
   isOpen: boolean
   onClose: () => void
+  eventId?: string | null
   eventName: string
   selectedCompetitionLabel: string
   certificateParticipants: Participant[]
@@ -69,6 +77,7 @@ export interface UseResultsGymNetExportWizardProps {
 export function useResultsGymNetExportWizard({
   isOpen,
   onClose,
+  eventId,
   eventName,
   selectedCompetitionLabel,
   certificateParticipants,
@@ -94,6 +103,8 @@ export function useResultsGymNetExportWizard({
   const [isExporting, setIsExporting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [report, setReport] = useState<GymNetMatchReport | null>(null)
+  const [suggestedTemplates, setSuggestedTemplates] = useState<SuggestedTemplateFile[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
 
   useEffect(() => {
     if (!isOpen) {
@@ -107,7 +118,40 @@ export function useResultsGymNetExportWizard({
     setIsExporting(false)
     setErrorMessage(null)
     setReport(null)
+    setSuggestedTemplates([])
   }, [isOpen])
+
+  // Fetch previously imported GymNet XML files tagged with this event once the
+  // user reaches the template step, so they can reuse one instead of browsing.
+  useEffect(() => {
+    if (!isOpen || step !== STEP_KEYS.template || !eventId) {
+      return
+    }
+
+    let cancelled = false
+    setIsLoadingSuggestions(true)
+
+    apiGet(`/documents/xml-for-event/${eventId}`)
+      .then((data) => {
+        if (!cancelled) {
+          setSuggestedTemplates(data?.files ?? [])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSuggestedTemplates([])
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingSuggestions(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, step, eventId])
 
   const steps = useMemo(
     () => {
@@ -149,6 +193,7 @@ export function useResultsGymNetExportWizard({
     setIsExporting(false)
     setErrorMessage(null)
     setReport(null)
+    setSuggestedTemplates([])
   }
 
   const handleClose = () => {
@@ -171,6 +216,21 @@ export function useResultsGymNetExportWizard({
     const baseName = file.name.replace(/\.[^.]+$/, '')
     const proposedName = `${baseName}_Results_${todayDatePart()}.xml`
     setOutputFileName(proposedName)
+  }
+
+  const handleSelectSuggestedFile = async (suggestion: SuggestedTemplateFile) => {
+    setErrorMessage(null)
+    try {
+      const response = await fetch(suggestion.url)
+      if (!response.ok) {
+        throw new Error('Download failed')
+      }
+      const blob = await response.blob()
+      const file = new File([blob], suggestion.filename, { type: 'application/xml' })
+      handleTemplateSelect(file)
+    } catch {
+      setErrorMessage(t('results.exportWizard.errors.templateSuggestionFailed'))
+    }
   }
 
   const handleExportTypeSelect = (type: ResultsExportType) => {
@@ -319,8 +379,11 @@ export function useResultsGymNetExportWizard({
     isExporting,
     errorMessage,
     report,
+    suggestedTemplates,
+    isLoadingSuggestions,
     handleClose,
     handleTemplateSelect,
+    handleSelectSuggestedFile,
     goNext,
     goBack,
     runExport,

@@ -224,6 +224,18 @@ describe('Documents API', () => {
       res.sendFile(filePath);
     });
 
+    router.get('/xml-for-event/:eventId', (req, res) => {
+      const eventId = parseInt(req.params.eventId, 10);
+      if (Number.isNaN(eventId)) {
+        return res.status(400).json({ error: 'Invalid eventId' });
+      }
+      const prefix = `gymnet-event${eventId}-`;
+      const files = readDir(CATEGORIES.xml)
+        .filter(f => f.filename.startsWith(prefix))
+        .sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
+      res.json({ files });
+    });
+
     router.get('/', (req, res) => {
       const categoryFilter = req.query.category as string | undefined;
       const search = (req.query.search as string || '').toLowerCase();
@@ -798,6 +810,60 @@ describe('Documents API', () => {
         .expect(200);
 
       expect(res.text).toContain('<root>');
+    });
+  });
+
+  // ===================================================================
+  // GET /api/documents/xml-for-event/:eventId
+  // ===================================================================
+
+  describe('GET /api/documents/xml-for-event/:eventId', () => {
+    afterEach(() => {
+      // Remove event-tagged fixtures created in these tests so they don't
+      // leak into the fixed file counts asserted by other describe blocks.
+      for (const filename of fs.readdirSync(xmlDir)) {
+        if (filename.startsWith('gymnet-event')) {
+          fs.unlinkSync(path.join(xmlDir, filename));
+        }
+      }
+    });
+
+    it('returns files tagged with the given event ID, newest first', async () => {
+      const olderPath = path.join(xmlDir, 'gymnet-event42-2026-01-01T00-00-00-000Z-a.xml');
+      const newerPath = path.join(xmlDir, 'gymnet-event42-2026-02-01T00-00-00-000Z-b.xml');
+      fs.writeFileSync(olderPath, '<root/>');
+      fs.writeFileSync(newerPath, '<root/>');
+      const olderTime = new Date('2026-01-01T00:00:00Z');
+      const newerTime = new Date('2026-02-01T00:00:00Z');
+      fs.utimesSync(olderPath, olderTime, olderTime);
+      fs.utimesSync(newerPath, newerTime, newerTime);
+
+      const res = await request(app).get('/api/documents/xml-for-event/42').expect(200);
+
+      expect(res.body.files.map((f: any) => f.filename)).toEqual([
+        'gymnet-event42-2026-02-01T00-00-00-000Z-b.xml',
+        'gymnet-event42-2026-01-01T00-00-00-000Z-a.xml',
+      ]);
+    });
+
+    it('does not match a different event ID sharing the same numeric prefix', async () => {
+      fs.writeFileSync(path.join(xmlDir, 'gymnet-event42-x.xml'), '<root/>');
+
+      const res = await request(app).get('/api/documents/xml-for-event/4').expect(200);
+
+      expect(res.body.files).toEqual([]);
+    });
+
+    it('returns an empty list when no file is tagged for the event', async () => {
+      const res = await request(app).get('/api/documents/xml-for-event/999').expect(200);
+
+      expect(res.body.files).toEqual([]);
+    });
+
+    it('rejects a non-numeric eventId', async () => {
+      const res = await request(app).get('/api/documents/xml-for-event/not-a-number').expect(400);
+
+      expect(res.body.error).toBeDefined();
     });
   });
 

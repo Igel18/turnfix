@@ -2967,6 +2967,9 @@
       },
       "templateInputLabel": "GymNet template XML",
       "selectedTemplate": "Selected template",
+      "suggestedTemplates": "Use a previously imported file",
+      "suggestedTemplatesHint": "This file was uploaded during this event's GymNet import and matched automatically.",
+      "loadingSuggestions": "Looking for a matching import file...",
       "outputFileNameLabel": "Output file name",
       "outputFileNamePlaceholder": "e.g. gymnet_results_event.xml",
       "outputFileNameHint": "Tip: You can choose any file name. .xml is appended automatically if missing.",
@@ -2988,6 +2991,7 @@
         "exportTypeRequired": "Please choose an export format first.",
         "certificateLayoutRequired": "Please select a certificate layout.",
         "templateRequired": "Please select a GymNet XML template file.",
+        "templateSuggestionFailed": "Could not load the suggested file. Please select one manually.",
         "outputFileNameRequired": "Please provide an output file name.",
         "exportFailed": "GymNet XML export failed."
       }

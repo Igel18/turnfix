@@ -15,6 +15,7 @@ import { Router } from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import multer = require('multer');
 import * as fs from 'fs';
+import * as path from 'path';
 import prisma from '../lib/prisma';
 import {
   parseXmlAsync,
@@ -58,6 +59,30 @@ const upload = multer({
   },
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
+
+/**
+ * Prefix used to tag a stored XML file with the event it was imported into,
+ * e.g. "gymnet-event42-2026-09-23T10-11-12-123Z-original.xml".
+ * Kept files can later be looked up via GET /api/documents/xml-for-event/:eventId.
+ */
+export function xmlEventFilePrefix(eventId: number): string {
+  return `gymnet-event${eventId}-`;
+}
+
+export function renameImportedXmlFilesForEvent(filePaths: string[], eventId: number): void {
+  const prefix = xmlEventFilePrefix(eventId);
+  for (const filePath of filePaths) {
+    if (!fs.existsSync(filePath)) continue;
+    try {
+      const dir = path.dirname(filePath);
+      const oldName = path.basename(filePath);
+      const newName = oldName.startsWith('gymnet-') ? `${prefix}${oldName.slice('gymnet-'.length)}` : `${prefix}${oldName}`;
+      fs.renameSync(filePath, path.join(dir, newName));
+    } catch (error) {
+      console.error('⚠️ Failed to tag imported XML file with event ID:', error);
+    }
+  }
+}
 
 // ============================================================================
 // Health Check
@@ -357,10 +382,16 @@ router.post('/import-gymnet', authenticateToken, upload.array('files', 10), asyn
 
     res.status(createdEvent ? 200 : 400).json(responseData);
 
-    // Cleanup uploaded files after response is sent
-    for (const p of uploadedFilePaths) {
-      if (fs.existsSync(p)) {
-        try { fs.unlinkSync(p); } catch { /* ignore */ }
+    if (createdEvent) {
+      // Keep the source XML (renamed with the event ID) so a later GymNet results
+      // export can find and reuse it automatically instead of asking the user again.
+      renameImportedXmlFilesForEvent(uploadedFilePaths, createdEvent.int_veranstaltungenid);
+    } else {
+      // Import failed — no event to attach the file to, discard the temp upload.
+      for (const p of uploadedFilePaths) {
+        if (fs.existsSync(p)) {
+          try { fs.unlinkSync(p); } catch { /* ignore */ }
+        }
       }
     }
 

@@ -21,6 +21,7 @@ const INACTIVE_SORT_BUTTON_CLASS = 'flex-1 px-3 py-2 rounded-md border text-sm f
 interface ResultsGymNetExportWizardProps {
   isOpen: boolean
   onClose: () => void
+  eventId?: string | null
   eventName: string
   selectedCompetitionLabel: string
   certificateParticipants: Participant[]
@@ -42,6 +43,7 @@ interface ResultsGymNetExportWizardProps {
 export function ResultsGymNetExportWizard({
   isOpen,
   onClose,
+  eventId,
   eventName,
   selectedCompetitionLabel,
   certificateParticipants,
@@ -63,6 +65,7 @@ export function ResultsGymNetExportWizard({
   const wizard = useResultsGymNetExportWizard({
     isOpen,
     onClose,
+    eventId,
     eventName,
     selectedCompetitionLabel,
     certificateParticipants,
@@ -211,6 +214,30 @@ export function ResultsGymNetExportWizard({
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
               <p>{t('results.exportWizard.help.template')}</p>
             </div>
+
+            {wizard.isLoadingSuggestions && (
+              <p className="text-sm text-gray-500">{t('results.exportWizard.loadingSuggestions')}</p>
+            )}
+
+            {!wizard.isLoadingSuggestions && wizard.suggestedTemplates.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">{t('results.exportWizard.suggestedTemplates')}</p>
+                <div className="space-y-2">
+                  {wizard.suggestedTemplates.map((suggestion) => (
+                    <button
+                      key={suggestion.filename}
+                      type="button"
+                      onClick={() => wizard.handleSelectSuggestedFile(suggestion)}
+                      className={wizard.templateFile?.name === suggestion.filename ? ACTIVE_TYPE_BUTTON_CLASS : INACTIVE_TYPE_BUTTON_CLASS}
+                    >
+                      <div className="font-medium text-gray-900 truncate">{suggestion.filename}</div>
+                      <div className="text-xs text-gray-500">{new Date(suggestion.modified).toLocaleString()}</div>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-gray-500">{t('results.exportWizard.suggestedTemplatesHint')}</p>
+              </div>
+            )}
 
             <div>
               <label htmlFor={TEMPLATE_FILE_INPUT_ID} className="block text-sm font-medium text-gray-700 mb-2">

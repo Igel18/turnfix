@@ -3001,6 +3001,9 @@
       },
       "templateInputLabel": "GymNet Vorlage (XML)",
       "selectedTemplate": "Ausgewählte Vorlage",
+      "suggestedTemplates": "Bereits importierte Datei verwenden",
+      "suggestedTemplatesHint": "Diese Datei wurde beim GymNet-Import dieser Veranstaltung hochgeladen und automatisch zugeordnet.",
+      "loadingSuggestions": "Suche nach passender Import-Datei...",
       "outputFileNameLabel": "Ausgabe-Dateiname",
       "outputFileNamePlaceholder": "z.B. gymnet_ergebnisse_veranstaltung.xml",
       "outputFileNameHint": "Tipp: Sie können jeden Dateinamen verwenden. .xml wird bei Bedarf automatisch ergänzt.",
@@ -3022,6 +3025,7 @@
         "exportTypeRequired": "Bitte wählen Sie zuerst ein Exportformat aus.",
         "certificateLayoutRequired": "Bitte wählen Sie ein Urkunden-Layout aus.",
         "templateRequired": "Bitte wählen Sie eine GymNet-XML-Vorlage aus.",
+        "templateSuggestionFailed": "Die vorgeschlagene Datei konnte nicht geladen werden. Bitte manuell auswählen.",
         "outputFileNameRequired": "Bitte geben Sie einen Ausgabe-Dateinamen an.",
         "exportFailed": "GymNet XML Export fehlgeschlagen."
       }
