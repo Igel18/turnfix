@@ -5,6 +5,7 @@ import { isDebugEnabled, setDebugMode } from '@/utils/debug'
 import type { GymNetMatchReport } from '../hooks/useExport'
 import type { CertificateLayout, PaperFormat, Participant } from '../Results.types'
 import { useResultsGymNetExportWizard, RESULTS_GYMNET_EXPORT_STEP_KEYS } from './useResultsGymNetExportWizard'
+import { GymnetResultsServiceLink } from './GymnetResultsServiceLink'
 
 const WIZARD_MODAL_SIZE = '3xl'
 const XML_FILE_ACCEPT = '.xml,text/xml,application/xml'
@@ -215,6 +216,8 @@ export function ResultsGymNetExportWizard({
               <p>{t('results.exportWizard.help.template')}</p>
             </div>
 
+            <GymnetResultsServiceLink eventId={eventId} />
+
             {wizard.isLoadingSuggestions && (
               <p className="text-sm text-gray-500">{t('results.exportWizard.loadingSuggestions')}</p>
             )}
@@ -388,6 +391,8 @@ export function ResultsGymNetExportWizard({
                 {t('results.matchReport.noReport')}
               </div>
             )}
+
+            <GymnetResultsServiceLink eventId={eventId} showUploadForm={false} />
           </div>
         )}
 

@@ -3007,6 +3007,14 @@
       "outputFileNameLabel": "Ausgabe-Dateiname",
       "outputFileNamePlaceholder": "z.B. gymnet_ergebnisse_veranstaltung.xml",
       "outputFileNameHint": "Tipp: Sie können jeden Dateinamen verwenden. .xml wird bei Bedarf automatisch ergänzt.",
+      "gymnetEventId": {
+        "title": "GymNet Ergebnisdienst",
+        "matched": "Zugeordnet zu \"{{name}}\" ({{start}} - {{stop}}).",
+        "openLink": "Ergebnisdienst öffnen",
+        "notLinked": "Für diese Veranstaltung ist noch keine GymNet Event-ID hinterlegt.",
+        "help": "Die Event-ID finden Sie in GymNet unter \"Meldungen erfassen\" → Reiter \"Meldungen\" → Funktionen → Standardexport.xls. Laden Sie diese Datei hier hoch, um den Link zum Ergebnisdienst zu erhalten.",
+        "uploadLabel": "Standardexport.xls hochladen"
+      },
       "summary": {
         "exportType": "Exporttyp",
         "event": "Veranstaltung",

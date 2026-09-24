@@ -42,6 +42,8 @@ const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const gymnetXmlExport_1 = require("../utils/gymnetXmlExport");
 const gymnetTemplateResultsExport_1 = require("../utils/gymnetTemplateResultsExport");
+const gymnetStandardExportParser_1 = require("../utils/gymnetStandardExportParser");
+const gymnetEventIdStore_1 = require("../utils/gymnetEventIdStore");
 const multer_1 = __importDefault(require("multer"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -66,6 +68,19 @@ const templateUpload = (0, multer_1.default)({
         }
         else {
             cb(new Error('Only XML files are allowed'));
+        }
+    }
+});
+const standardExportUpload = (0, multer_1.default)({
+    storage: multer_1.default.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+        const lowerName = file.originalname.toLowerCase();
+        if (lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx')) {
+            cb(null, true);
+        }
+        else {
+            cb(new Error('Only XLS/XLSX files are allowed'));
         }
     }
 });
@@ -269,6 +284,53 @@ router.post('/export-gymnet-xml-template', authBypass_1.authenticateToken, templ
         console.error('Error exporting GymNet XML from template:', error);
         return res.status(500).json({ error: 'Failed to export GymNet XML from template' });
     }
+});
+// POST /results/gymnet-event-id/:eventId
+// Parses GymNet's "Standardexport.xls" (Meldungen erfassen → Meldungen → Funktionen → Standardexport.xls)
+// and stores its evID for this TurnFix event, so the results service link can be shown later.
+router.post('/gymnet-event-id/:eventId', authBypass_1.authenticateToken, standardExportUpload.single('xlsFile'), async (req, res) => {
+    try {
+        const eventId = parseInt(req.params.eventId, 10);
+        if (Number.isNaN(eventId)) {
+            return res.status(400).json({ error: 'Invalid eventId' });
+        }
+        if (!req.file?.buffer) {
+            return res.status(400).json({ error: 'Standardexport-Datei ist erforderlich' });
+        }
+        const parsed = (0, gymnetStandardExportParser_1.parseGymnetStandardExport)(req.file.buffer);
+        if (!parsed.evId) {
+            return res.status(400).json({ error: 'In der Datei wurde keine evID gefunden' });
+        }
+        const mapping = (0, gymnetEventIdStore_1.saveGymnetEventIdMapping)(eventId, {
+            gymnetEventId: parsed.evId,
+            evName: parsed.evName,
+            evStart: parsed.evStart,
+            evStop: parsed.evStop,
+        });
+        res.json({
+            mapping,
+            resultsServiceUrl: (0, gymnetEventIdStore_1.buildGymnetResultsServiceUrl)(mapping.gymnetEventId),
+            warning: parsed.hasInconsistentEventId
+                ? 'Die Datei enthält unterschiedliche evID-Werte. Es wurde die erste gefundene ID verwendet.'
+                : null,
+        });
+    }
+    catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : 'Import fehlgeschlagen' });
+    }
+});
+// GET /results/gymnet-event-id/:eventId
+// Returns the previously stored GymNet evID mapping for this TurnFix event, if any.
+router.get('/gymnet-event-id/:eventId', authBypass_1.authenticateToken, (req, res) => {
+    const eventId = parseInt(req.params.eventId, 10);
+    if (Number.isNaN(eventId)) {
+        return res.status(400).json({ error: 'Invalid eventId' });
+    }
+    const mapping = (0, gymnetEventIdStore_1.loadGymnetEventIdMapping)(eventId);
+    if (!mapping) {
+        return res.status(404).json({ error: 'Keine GymNet Event-ID hinterlegt' });
+    }
+    res.json({ mapping, resultsServiceUrl: (0, gymnetEventIdStore_1.buildGymnetResultsServiceUrl)(mapping.gymnetEventId) });
 });
 // Get all results with pagination
 router.get('/', authBypass_1.authenticateToken, async (req, res) => {

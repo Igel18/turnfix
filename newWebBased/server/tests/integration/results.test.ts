@@ -1,5 +1,8 @@
 import request from 'supertest';
 import express from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as XLSX from 'xlsx';
 import { PrismaClient } from '@prisma/client';
 import resultRoutes from '../../src/routes/results';
 import { TestUtils } from '../utils/testUtils';
@@ -237,6 +240,93 @@ describe('Results API', () => {
         .expect(400);
 
       expect(response.body.error).toContain('Template XML file is required');
+    });
+  });
+
+  describe('GymNet Event ID (Standardexport.xls)', () => {
+    function buildStandardExportBuffer(rows: string[][]): Buffer {
+      const worksheet = XLSX.utils.aoa_to_sheet([['evName', 'evStart', 'evStop', 'evID'], ...rows]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Meldungen');
+      return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+    }
+
+    afterEach(() => {
+      const filePath = path.join(process.cwd(), 'uploads', 'gymnet-meta', `event-${testEvent.int_veranstaltungenid}.json`);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+
+    it('returns 404 when no mapping has been imported yet', async () => {
+      await request(app)
+        .get(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .expect(404);
+    });
+
+    it('imports the Standardexport.xls and stores the evID', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Test Event for Results', '2026-05-01', '2026-05-02', '654321'],
+      ]);
+
+      const response = await request(app)
+        .post(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      expect(response.body.mapping.gymnetEventId).toBe('654321');
+      expect(response.body.resultsServiceUrl).toBe(
+        'https://m.ergebnisse.dtb-gymnet.de/index.php?eventID=654321'
+      );
+      expect(response.body.warning).toBeNull();
+    });
+
+    it('returns the stored mapping on subsequent GET requests', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Test Event for Results', '2026-05-01', '2026-05-02', '777777'],
+      ]);
+      await request(app)
+        .post(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      const response = await request(app)
+        .get(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .expect(200);
+
+      expect(response.body.mapping.gymnetEventId).toBe('777777');
+    });
+
+    it('warns when the evID is inconsistent across rows', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Test Event for Results', '2026-05-01', '2026-05-02', '111'],
+        ['Test Event for Results', '2026-05-01', '2026-05-02', '222'],
+      ]);
+
+      const response = await request(app)
+        .post(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      expect(response.body.warning).toContain('unterschiedliche evID');
+    });
+
+    it('returns 400 when the file is missing required columns', async () => {
+      const worksheet = XLSX.utils.aoa_to_sheet([['name'], ['Test Event']]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Meldungen');
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+      await request(app)
+        .post(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(400);
+    });
+
+    it('returns 400 for a non-numeric eventId', async () => {
+      await request(app)
+        .get('/api/results/gymnet-event-id/not-a-number')
+        .expect(400);
     });
   });
 });

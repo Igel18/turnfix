@@ -2973,6 +2973,14 @@
       "outputFileNameLabel": "Output file name",
       "outputFileNamePlaceholder": "e.g. gymnet_results_event.xml",
       "outputFileNameHint": "Tip: You can choose any file name. .xml is appended automatically if missing.",
+      "gymnetEventId": {
+        "title": "GymNet results service",
+        "matched": "Linked to \"{{name}}\" ({{start}} - {{stop}}).",
+        "openLink": "Open results service",
+        "notLinked": "No GymNet event ID has been linked to this event yet.",
+        "help": "Find the event ID in GymNet under \"Meldungen erfassen\" → tab \"Meldungen\" → Funktionen → Standardexport.xls. Upload that file here to get the results service link.",
+        "uploadLabel": "Upload Standardexport.xls"
+      },
       "summary": {
         "exportType": "Export type",
         "event": "Event",
