@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import * as XLSX from 'xlsx';
 import { PrismaClient } from '@prisma/client';
 import eventsRouter from '../../src/routes/events';
 import { TestUtils } from '../utils/testUtils';
@@ -196,6 +197,66 @@ describe('GymNet Team Import', () => {
 
       expect(taggedFile).toBeDefined();
       expect(taggedFile).toContain('team-import-test.xml');
+    });
+  });
+
+  describe('POST /api/events/gymnet-standard-export/parse', () => {
+    function buildStandardExportBuffer(rows: string[][]): Buffer {
+      const worksheet = XLSX.utils.aoa_to_sheet([['evName', 'evStart', 'evStop', 'evID'], ...rows]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Meldungen');
+      return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+    }
+
+    it('parses the file and returns evName/evStart/evStop/evId without persisting anything', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Landesmeisterschaft 2026', '2026-05-01', '2026-05-02', '654321'],
+      ]);
+
+      const response = await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      expect(response.body).toEqual({
+        evName: 'Landesmeisterschaft 2026',
+        evStart: '2026-05-01',
+        evStop: '2026-05-02',
+        evId: '654321',
+        warning: null,
+      });
+    });
+
+    it('warns when the evID is inconsistent across rows', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Event', '2026-05-01', '2026-05-02', '111'],
+        ['Event', '2026-05-01', '2026-05-02', '222'],
+      ]);
+
+      const response = await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      expect(response.body.warning).toContain('unterschiedliche evID');
+    });
+
+    it('returns 400 when no file is attached', async () => {
+      await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .expect(400);
+    });
+
+    it('returns 400 when required columns are missing', async () => {
+      const worksheet = XLSX.utils.aoa_to_sheet([['name'], ['Event']]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Meldungen');
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+      await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(400);
     });
   });
 

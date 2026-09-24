@@ -847,6 +847,13 @@
         "databaseSetupHintTitle": "Datenbank-Konfiguration prüfen",
         "databaseSetupHint": "Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus."
       },
+      "standardExport": {
+        "title": "GymNet Standardexport (optional)",
+        "help": "In GymNet unter \"Meldungen erfassen\" → Reiter \"Meldungen\" → Funktionen → Standardexport.xls. Diese Datei füllt Veranstaltungsname, Start- und Enddatum automatisch aus.",
+        "uploadLabel": "Standardexport.xls hochladen",
+        "parsing": "Datei wird gelesen...",
+        "applied": "Übernommen: {{name}} ({{start}} – {{stop}})"
+      },
       "progress": {
         "parsing": "XML-Datei wird geparst...",
         "uploading": "Datei wird hochgeladen und verarbeitet...",

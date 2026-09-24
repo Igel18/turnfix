@@ -569,3 +569,176 @@ describe('useEventImportWizard – handleAcceptHint', () => {
     expect(result.current.acceptedHints.has(102)).toBe(true);
   });
 });
+
+// ── handleStandardExportFile (optional GymNet Standardexport.xls) ────────────
+
+describe('useEventImportWizard – handleStandardExportFile', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const standardExportFile = () => new File(['xls-content'], 'Standardexport.xls', { type: 'application/vnd.ms-excel' });
+
+  it('prefills eventName/startDate/endDate and stores the evID on success', async () => {
+    server.use(
+      http.post('/api/events/gymnet-standard-export/parse', () =>
+        HttpResponse.json({ evName: 'Landesmeisterschaft 2026', evStart: '2026-05-01', evStop: '2026-05-02', evId: '654321', warning: null }),
+      ),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    await act(async () => {
+      await result.current.handleStandardExportFile(standardExportFile());
+    });
+
+    expect(result.current.importEventData.eventName).toBe('Landesmeisterschaft 2026');
+    expect(result.current.importEventData.startDate).toBe('2026-05-01');
+    expect(result.current.importEventData.endDate).toBe('2026-05-02');
+    expect(result.current.standardExportData).toEqual({
+      gymnetEventId: '654321',
+      evName: 'Landesmeisterschaft 2026',
+      evStart: '2026-05-01',
+      evStop: '2026-05-02',
+    });
+    expect(result.current.standardExportWarning).toBeNull();
+    expect(result.current.standardExportError).toBeNull();
+  });
+
+  it('converts German-formatted dates (DD.MM.YYYY) to the <input type="date"> format', async () => {
+    server.use(
+      http.post('/api/events/gymnet-standard-export/parse', () =>
+        HttpResponse.json({ evName: 'Test Event', evStart: '01.05.2026', evStop: '02.05.2026', evId: '111', warning: null }),
+      ),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    await act(async () => {
+      await result.current.handleStandardExportFile(standardExportFile());
+    });
+
+    expect(result.current.importEventData.startDate).toBe('2026-05-01');
+    expect(result.current.importEventData.endDate).toBe('2026-05-02');
+  });
+
+  it('surfaces the inconsistent-evID warning from the server', async () => {
+    server.use(
+      http.post('/api/events/gymnet-standard-export/parse', () =>
+        HttpResponse.json({
+          evName: 'Test Event',
+          evStart: '2026-05-01',
+          evStop: '2026-05-02',
+          evId: '111',
+          warning: 'Die Datei enthält unterschiedliche evID-Werte. Es wurde die erste gefundene ID verwendet.',
+        }),
+      ),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    await act(async () => {
+      await result.current.handleStandardExportFile(standardExportFile());
+    });
+
+    expect(result.current.standardExportWarning).toContain('unterschiedliche evID');
+  });
+
+  it('sets standardExportError when parsing fails', async () => {
+    server.use(
+      http.post('/api/events/gymnet-standard-export/parse', () =>
+        HttpResponse.json({ error: 'Erforderliche Spalten fehlen in der Datei: evId' }, { status: 400 }),
+      ),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    await act(async () => {
+      await result.current.handleStandardExportFile(standardExportFile());
+    });
+
+    expect(result.current.standardExportError).toContain('Erforderliche Spalten fehlen');
+    expect(result.current.standardExportData).toBeNull();
+  });
+
+  it('links the parsed evID to the newly created event after a successful import', async () => {
+    server.use(
+      http.post('/api/events/gymnet-standard-export/parse', () =>
+        HttpResponse.json({ evName: 'Test Event', evStart: '2026-05-01', evStop: '2026-05-02', evId: '654321', warning: null }),
+      ),
+      http.post('/api/events/import-gymnet', () => HttpResponse.json(successImportResponse)),
+    );
+
+    let linkedBody: unknown = null;
+    let linkedUrl: string | null = null;
+    server.use(
+      http.put('/api/results/gymnet-event-id/:eventId', async ({ request, params }) => {
+        linkedUrl = String(params.eventId);
+        linkedBody = await request.json();
+        return HttpResponse.json({ mapping: {}, resultsServiceUrl: '' });
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    await act(async () => {
+      await result.current.handleStandardExportFile(standardExportFile());
+    });
+
+    setEventName(result, 'Test Event');
+    act(() => {
+      result.current.setImportFiles([makeFile()]);
+    });
+
+    await act(async () => {
+      result.current.goNextFromFileSelection();
+      await new Promise(r => setTimeout(r, 50));
+    });
+
+    expect(linkedUrl).toBe(String(successImportResponse.createdEvent.id));
+    expect(linkedBody).toEqual({
+      gymnetEventId: '654321',
+      evName: 'Test Event',
+      evStart: '2026-05-01',
+      evStop: '2026-05-02',
+    });
+  });
+
+  it('does not attempt to link when no Standardexport.xls was uploaded', async () => {
+    server.use(
+      http.post('/api/events/import-gymnet', () => HttpResponse.json(successImportResponse)),
+    );
+
+    let linkCalled = false;
+    server.use(
+      http.put('/api/results/gymnet-event-id/:eventId', () => {
+        linkCalled = true;
+        return HttpResponse.json({ mapping: {}, resultsServiceUrl: '' });
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useEventImportWizard({ ...baseProps, isOpen: true }),
+    );
+
+    setEventName(result);
+    act(() => {
+      result.current.setImportFiles([makeFile()]);
+    });
+
+    await act(async () => {
+      result.current.goNextFromFileSelection();
+      await new Promise(r => setTimeout(r, 50));
+    });
+
+    expect(linkCalled).toBe(false);
+  });
+});

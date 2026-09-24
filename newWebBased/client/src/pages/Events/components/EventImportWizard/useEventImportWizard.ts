@@ -12,8 +12,24 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { debugLog } from '../../../../utils/debug'
 import type { WizardStepDef } from '../../../../components/WizardModal'
-import type { Venue, ImportEventData, ImportApiResult, DisciplineHint } from '../../Events.types'
+import type { Venue, ImportEventData, ImportApiResult, DisciplineHint, GymnetStandardExportData } from '../../Events.types'
 import { EMPTY_IMPORT_DATA } from '../../Events.types'
+
+// ── Helpers ────────────────────────────────────────────────────
+
+/** Converts a GymNet date string ("YYYY-MM-DD..." or "DD.MM.YYYY") to the format required by <input type="date">. */
+function normalizeGymnetDateToInputValue(value: string): string {
+  const trimmed = value.trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+    return trimmed.slice(0, 10)
+  }
+  const germanMatch = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)
+  if (germanMatch) {
+    const [, day, month, year] = germanMatch
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  }
+  return ''
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -47,8 +63,12 @@ export function useEventImportWizard({
   const [importEventData, setImportEventData] = useState<ImportEventData>({ ...EMPTY_IMPORT_DATA })
   const [acceptedHints, setAcceptedHints] = useState<Set<number>>(new Set())
   const [acceptingHint, setAcceptingHint] = useState<number | null>(null)
+  const [standardExportData, setStandardExportData] = useState<GymnetStandardExportData | null>(null)
+  const [isParsingStandardExport, setIsParsingStandardExport] = useState(false)
+  const [standardExportWarning, setStandardExportWarning] = useState<string | null>(null)
+  const [standardExportError, setStandardExportError] = useState<string | null>(null)
 
-  // ── Reset when opened ──────────────────────────────────────────────────────
+  // ── Reset when opened ────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return
     setStep('eventDetails')
@@ -61,6 +81,10 @@ export function useEventImportWizard({
     setImportEventData({ ...EMPTY_IMPORT_DATA })
     setAcceptedHints(new Set())
     setAcceptingHint(null)
+    setStandardExportData(null)
+    setIsParsingStandardExport(false)
+    setStandardExportWarning(null)
+    setStandardExportError(null)
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-advance from 'importing' to 'results' when import finishes ────────
@@ -106,6 +130,43 @@ export function useEventImportWizard({
     }
   }
 
+  // ── GymNet Standardexport.xls (optional) ──────────────────────────────────
+  const handleStandardExportFile = async (file: File) => {
+    setIsParsingStandardExport(true)
+    setStandardExportError(null)
+    setStandardExportWarning(null)
+    try {
+      const fd = new FormData()
+      fd.append('xlsFile', file)
+      const response = await fetch('/api/events/gymnet-standard-export/parse', {
+        method: 'POST',
+        body: fd,
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Import fehlgeschlagen')
+      }
+
+      setStandardExportData({
+        gymnetEventId: data.evId,
+        evName: data.evName,
+        evStart: data.evStart,
+        evStop: data.evStop,
+      })
+      setImportEventData(prev => ({
+        ...prev,
+        eventName: data.evName || prev.eventName,
+        startDate: normalizeGymnetDateToInputValue(data.evStart || '') || prev.startDate,
+        endDate: normalizeGymnetDateToInputValue(data.evStop || '') || prev.endDate,
+      }))
+      setStandardExportWarning(data.warning ?? null)
+    } catch (error) {
+      setStandardExportError(error instanceof Error ? error.message : 'Import fehlgeschlagen')
+    } finally {
+      setIsParsingStandardExport(false)
+    }
+  }
+
   // ── Import logic ──────────────────────────────────────────────────────────
   const handleImportFile = async () => {
     setImportState('uploading')
@@ -132,6 +193,16 @@ export function useEventImportWizard({
         setProgressPercent(100)
         setImportResult(result)
         setImportState('completed')
+
+        if (standardExportData && result.createdEvent?.id) {
+          // Best-effort: link the previously parsed evID to the newly created event.
+          // The results export wizard can still add/fix this later, so failures here are non-fatal.
+          void fetch(`/api/results/gymnet-event-id/${result.createdEvent.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(standardExportData),
+          }).catch(() => {})
+        }
       } else {
         throw new Error(result.message || 'Import failed')
       }
@@ -178,6 +249,10 @@ export function useEventImportWizard({
     setImportEventData({ ...EMPTY_IMPORT_DATA })
     setAcceptedHints(new Set())
     setAcceptingHint(null)
+    setStandardExportData(null)
+    setIsParsingStandardExport(false)
+    setStandardExportWarning(null)
+    setStandardExportError(null)
     if (importState === 'completed' && importResult?.success) {
       onImportComplete()
     }
@@ -201,6 +276,11 @@ export function useEventImportWizard({
     setAcceptedHints,
     acceptingHint,
     setAcceptingHint,
+    standardExportData,
+    isParsingStandardExport,
+    standardExportWarning,
+    standardExportError,
+    handleStandardExportFile,
     wizardSteps,
     title,
     canGoNextEventDetails,

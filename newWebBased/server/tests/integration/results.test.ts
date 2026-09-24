@@ -328,5 +328,29 @@ describe('Results API', () => {
         .get('/api/results/gymnet-event-id/not-a-number')
         .expect(400);
     });
+
+    it('saves an already-parsed mapping directly via PUT, without re-uploading the file', async () => {
+      const response = await request(app)
+        .put(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .send({ gymnetEventId: '555444', evName: 'Test Event for Results', evStart: '2026-05-01', evStop: '2026-05-02' })
+        .expect(200);
+
+      expect(response.body.mapping.gymnetEventId).toBe('555444');
+      expect(response.body.resultsServiceUrl).toBe(
+        'https://m.ergebnisse.dtb-gymnet.de/index.php?eventID=555444'
+      );
+
+      const getResponse = await request(app)
+        .get(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .expect(200);
+      expect(getResponse.body.mapping.gymnetEventId).toBe('555444');
+    });
+
+    it('returns 400 from PUT when gymnetEventId is missing', async () => {
+      await request(app)
+        .put(`/api/results/gymnet-event-id/${testEvent.int_veranstaltungenid}`)
+        .send({ evName: 'Test Event for Results' })
+        .expect(400);
+    });
   });
 });

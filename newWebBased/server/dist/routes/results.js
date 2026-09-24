@@ -332,6 +332,27 @@ router.get('/gymnet-event-id/:eventId', authBypass_1.authenticateToken, (req, re
     }
     res.json({ mapping, resultsServiceUrl: (0, gymnetEventIdStore_1.buildGymnetResultsServiceUrl)(mapping.gymnetEventId) });
 });
+// PUT /results/gymnet-event-id/:eventId
+// Saves an already-parsed evID mapping directly (JSON body), without re-uploading the
+// Standardexport.xls. Used by the Events import wizard: the file is parsed once, before
+// the event exists, and linked to the real TurnFix event ID right after it is created.
+router.put('/gymnet-event-id/:eventId', authBypass_1.authenticateToken, (req, res) => {
+    const eventId = parseInt(req.params.eventId, 10);
+    if (Number.isNaN(eventId)) {
+        return res.status(400).json({ error: 'Invalid eventId' });
+    }
+    const { gymnetEventId, evName, evStart, evStop } = req.body ?? {};
+    if (!gymnetEventId || typeof gymnetEventId !== 'string') {
+        return res.status(400).json({ error: 'gymnetEventId ist erforderlich' });
+    }
+    const mapping = (0, gymnetEventIdStore_1.saveGymnetEventIdMapping)(eventId, {
+        gymnetEventId,
+        evName: typeof evName === 'string' ? evName : '',
+        evStart: typeof evStart === 'string' ? evStart : '',
+        evStop: typeof evStop === 'string' ? evStop : '',
+    });
+    res.json({ mapping, resultsServiceUrl: (0, gymnetEventIdStore_1.buildGymnetResultsServiceUrl)(mapping.gymnetEventId) });
+});
 // Get all results with pagination
 router.get('/', authBypass_1.authenticateToken, async (req, res) => {
     try {

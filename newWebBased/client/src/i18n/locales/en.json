@@ -847,6 +847,13 @@
         "databaseSetupHintTitle": "Check database configuration",
         "databaseSetupHint": "Open Settings > Database Configuration, launch the setup wizard, and run the database connection and schema creation steps."
       },
+      "standardExport": {
+        "title": "GymNet Standardexport (optional)",
+        "help": "In GymNet under \"Meldungen erfassen\" → tab \"Meldungen\" → Funktionen → Standardexport.xls. This file automatically fills in the event name, start and end date.",
+        "uploadLabel": "Upload Standardexport.xls",
+        "parsing": "Reading file...",
+        "applied": "Applied: {{name}} ({{start}} – {{stop}})"
+      },
       "progress": {
         "parsing": "Parsing XML file...",
         "uploading": "Uploading and processing file...",

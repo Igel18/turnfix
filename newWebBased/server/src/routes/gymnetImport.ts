@@ -27,6 +27,7 @@ import {
 } from '../utils/gymnetXmlParser';
 import { importGymnetData } from '../utils/gymnetDbImport';
 import { normalizeImportScoringMode, withEventScoringMode } from '../utils/eventScoringMode';
+import { parseGymnetStandardExport } from '../utils/gymnetStandardExportParser';
 
 const router = Router();
 
@@ -87,6 +88,46 @@ export function renameImportedXmlFilesForEvent(filePaths: string[], eventId: num
 // ============================================================================
 // Health Check
 // ============================================================================
+
+const standardExportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const lowerName = file.originalname.toLowerCase();
+    if (lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Nur XLS/XLSX-Dateien sind erlaubt'));
+    }
+  }
+});
+
+// POST /events/gymnet-standard-export/parse
+// Parses GymNet's "Standardexport.xls" (Meldungen erfassen → Meldungen → Funktionen → Standardexport.xls)
+// before an event exists, so the import wizard can prefill the event name/dates.
+// The parsed evID is not saved yet — the wizard links it afterwards via
+// PUT /results/gymnet-event-id/:eventId once the event has been created.
+router.post('/gymnet-standard-export/parse', authenticateToken, standardExportUpload.single('xlsFile'), (req: AuthRequest, res) => {
+  try {
+    if (!req.file?.buffer) {
+      return res.status(400).json({ error: 'Standardexport-Datei ist erforderlich' });
+    }
+
+    const parsed = parseGymnetStandardExport(req.file.buffer);
+
+    res.json({
+      evName: parsed.evName,
+      evStart: parsed.evStart,
+      evStop: parsed.evStop,
+      evId: parsed.evId,
+      warning: parsed.hasInconsistentEventId
+        ? 'Die Datei enthält unterschiedliche evID-Werte. Es wurde die erste gefundene ID verwendet.'
+        : null,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : 'Import fehlgeschlagen' });
+  }
+});
 
 router.get('/import-gymnet-test', (_req, res) => {
   res.json({
