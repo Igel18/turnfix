@@ -27,9 +27,7 @@ const TimePlanningRotation = forwardRef<
 >(({ eventId: _eventId, squads, devices, competitions, onDataChange, selectedRound, onSelectedRoundChange }, ref) => {
   const { t } = useTranslation();
   const {
-    activeSelectedRound,
     bahnen,
-    competitionsByRound,
     currentRoundSquads,
     currentRoundUnassignedCompetitions,
     handleAddBahn,
@@ -38,7 +36,6 @@ const TimePlanningRotation = forwardRef<
     loading,
     selectedLane,
     selectedLaneData,
-    setActiveSelectedRound,
     setSelectedLane,
   } = useTimePlanningRotationModel({
     competitions,
@@ -58,34 +55,6 @@ const TimePlanningRotation = forwardRef<
   // Render Bahnen with squads (drag-and-drop)
   return (
     <div className="max-w-7xl mx-auto p-6">
-      {competitionsByRound.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {t('timePlanning.session')}:
-            </span>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {competitionsByRound.map(({ round, competitions: roundComps }) => (
-              <button
-                key={round}
-                onClick={() => setActiveSelectedRound(round)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeSelectedRound === round
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {t('timePlanning.session')} {round}
-                <span className="ml-2 text-xs opacity-75">
-                  ({roundComps.length} {roundComps.length === 1 ? t('timePlanning.competitionSingle') : t('timePlanning.competitions')})
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 min-h-[72vh] items-stretch">
         <div className="xl:col-span-1 flex flex-col min-h-[72vh]">
           <h3 className="text-md font-semibold text-gray-900 mb-3">

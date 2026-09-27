@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import TimePlanningRotationOverview from '@/pages/TimePlanningRotationOverview'
 
 vi.mock('react-i18next', () => ({
@@ -27,7 +27,7 @@ vi.mock('react-i18next', () => ({
 describe('TimePlanningRotationOverview', () => {
   const devices = [{ name: 'Boden' }, { name: 'Sprung' }]
 
-  it('renders round selector and calls onSelectedRoundChange', () => {
+  it('uses the selected round without rendering a round selector', () => {
     const onSelectedRoundChange = vi.fn()
 
     render(
@@ -46,8 +46,9 @@ describe('TimePlanningRotationOverview', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /session\s+2/i }))
-    expect(onSelectedRoundChange).toHaveBeenCalledWith(2)
+    expect(screen.getByText(/session\s+1/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /session\s+2/i })).not.toBeInTheDocument()
+    expect(onSelectedRoundChange).not.toHaveBeenCalled()
   })
 
   it('shows overview cards for all event lanes in selected round, including empty lanes', () => {

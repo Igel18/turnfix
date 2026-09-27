@@ -6,8 +6,6 @@ import type { Bahn } from "./TimePlanningRotation.types";
 
 const ROTATION_ROW_EVEN_CLASS = "bg-white";
 const ROTATION_ROW_ODD_CLASS = "bg-gray-50";
-const SESSION_BUTTON_ACTIVE_CLASS = "bg-blue-600 text-white shadow-md";
-const SESSION_BUTTON_DEFAULT_CLASS = "bg-gray-100 text-gray-700 hover:bg-gray-200";
 
 type TimePlanningRotationOverviewProps = Pick<
   TimePlanningRotationProps,
@@ -92,34 +90,6 @@ export default function TimePlanningRotationOverview({
 
   return (
     <div className="space-y-4">
-      {competitionsByRound.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {t("timePlanning.session")}:
-            </span>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {competitionsByRound.map(({ round, competitions: roundComps }) => (
-              <button
-                key={round}
-                onClick={() => setActiveRound(round)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeRound === round
-                    ? SESSION_BUTTON_ACTIVE_CLASS
-                    : SESSION_BUTTON_DEFAULT_CLASS
-                }`}
-              >
-                {t("timePlanning.session")} {round}
-                <span className="ml-2 text-xs opacity-75">
-                  ({roundComps.length} {roundComps.length === 1 ? t("timePlanning.competitionSingle") : t("timePlanning.competitions")})
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold text-gray-900">
           {t("timePlanning.rotationMatrix")}

@@ -32,8 +32,6 @@ import {
 } from '../matrixColumnHelpers';
 
 const LS_KEY = (eventId: string) => `schedule-matrix-cols-${eventId}`;
-const SESSION_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white shadow-md';
-const SESSION_BUTTON_DEFAULT_CLASS = 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100';
 const IST_TIMES_KEY = (eventId: string, session: number | null) => `time-planning-ist-times-${eventId}-${session ?? 'all'}`;
 
 interface SquadCellActualTimes {
@@ -327,7 +325,6 @@ export function ScheduleMatrixView({
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
-  const [selectedSession, setSelectedSession] = useState<number | null>(null);
   const [localMaxRound, setLocalMaxRound] = useState(1);
   const [averageMinutesPerParticipant, setAverageMinutesPerParticipant] = useState<number>(3);
   const [scheduleStartTime, setScheduleStartTime] = useState<string>(baseStartTime || '09:00');
@@ -375,10 +372,6 @@ export function ScheduleMatrixView({
   }, [eventId, loadMatrix]);
 
   useEffect(() => {
-    setSelectedSession(null);
-  }, [eventId]);
-
-  useEffect(() => {
     setScheduleStartTime(baseStartTime || '09:00');
   }, [baseStartTime]);
 
@@ -388,13 +381,7 @@ export function ScheduleMatrixView({
       return;
     }
 
-    const availableSessions = getAvailableSessions(sessionGroups, matrixData.sessionDisciplineIds);
-    const effectiveSession =
-      selectedSession !== null && availableSessions.includes(selectedSession)
-        ? selectedSession
-        : null;
-
-    const storageKey = IST_TIMES_KEY(eventId, effectiveSession);
+    const storageKey = IST_TIMES_KEY(eventId, null);
     const raw = localStorage.getItem(storageKey);
     if (!raw) {
       setActualTimesByRound({});
@@ -407,22 +394,16 @@ export function ScheduleMatrixView({
     } catch {
       setActualTimesByRound({});
     }
-  }, [eventId, matrixData, selectedSession, sessionGroups]);
+  }, [eventId, matrixData, sessionGroups]);
 
   useEffect(() => {
     if (!matrixData) {
       return;
     }
 
-    const availableSessions = getAvailableSessions(sessionGroups, matrixData.sessionDisciplineIds);
-    const effectiveSession =
-      selectedSession !== null && availableSessions.includes(selectedSession)
-        ? selectedSession
-        : null;
-
-    const storageKey = IST_TIMES_KEY(eventId, effectiveSession);
+    const storageKey = IST_TIMES_KEY(eventId, null);
     localStorage.setItem(storageKey, JSON.stringify(actualTimesByRound));
-  }, [actualTimesByRound, eventId, matrixData, selectedSession, sessionGroups]);
+  }, [actualTimesByRound, eventId, matrixData, sessionGroups]);
 
   const getCellValue = (disciplineId: number, round: number): string => {
     if (!matrixData) return '';
@@ -657,12 +638,9 @@ export function ScheduleMatrixView({
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
   const hasMultipleSessions = Boolean(sessionGroups && sessionGroups.length > 1);
-  const availableSessions = getAvailableSessions(sessionGroups, matrixData.sessionDisciplineIds);
-  const hasSessionSelector = availableSessions.length > 1;
-  const effectiveSelectedSession =
-    selectedSession !== null && availableSessions.includes(selectedSession)
-      ? selectedSession
-      : null;
+  // Session narrowing is handled entirely by the page-level filter now; the
+  // matrix always renders all (already-filtered) sessions grouped together.
+  const effectiveSelectedSession: number | null = null;
 
   // Per-session rotation intervals based on max squad size × exercise duration.
   // Falls back to the fixed rotationIntervalMinutes when no sessionGroups are available.
@@ -823,39 +801,6 @@ export function ScheduleMatrixView({
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
-      {hasSessionSelector && (
-        <div className="px-4 py-3 border-b bg-gray-50">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-medium text-gray-700">{t('timePlanning.session')}:</span>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setSelectedSession(null)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                effectiveSelectedSession === null
-                  ? SESSION_BUTTON_ACTIVE_CLASS
-                  : SESSION_BUTTON_DEFAULT_CLASS
-              }`}
-            >
-              {t('timePlanning.sessions')}
-            </button>
-            {availableSessions.map(session => (
-              <button
-                key={session}
-                onClick={() => setSelectedSession(session)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  effectiveSelectedSession === session
-                    ? SESSION_BUTTON_ACTIVE_CLASS
-                    : SESSION_BUTTON_DEFAULT_CLASS
-                }`}
-              >
-                {t('timePlanning.session')} {session}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Info strip */}
       <div className="px-4 py-3 bg-blue-50 border-b border-blue-100 text-sm text-blue-700 flex items-center gap-3">
         <span>{t('timePlanning.matrix.info', { interval: intervalMinutes })}</span>
@@ -1148,14 +1093,16 @@ export function ScheduleMatrixView({
               return (
                 <React.Fragment key={round}>
                   {isNewSession && (
-                    <tr className="bg-blue-600 text-white">
-                      <td colSpan={visibleColumns.length + 1} className="px-4 py-2 font-semibold text-sm">
-                        {t('timePlanning.round', 'Durchgang')} {sessionInfo!.session}
-                        <span className="ml-3 font-normal opacity-90 text-xs">
-                          {t('timePlanning.startTime', 'Startzeit')}: {sessionInfo!.startTime}
-                        </span>
-                      </td>
-                    </tr>
+                      <tr className="bg-gradient-to-r from-blue-600 to-blue-700">
+                        <td colSpan={visibleColumns.length + 1} className="px-4 py-3">
+                          <div className="text-base font-bold text-white">
+                            {t('timePlanning.round', 'Durchgang')} {sessionInfo!.session}
+                          </div>
+                          <div className="text-blue-100 text-xs">
+                            {t('timePlanning.startTime', 'Startzeit')}: {sessionInfo!.startTime}
+                          </div>
+                        </td>
+                      </tr>
                   )}
                   {hasMultipleSessions && effectiveSelectedSession === null && isNewSession && (
                     <tr className="bg-gray-50">

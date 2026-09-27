@@ -76,21 +76,15 @@ function RotationHost({ competitions = baseCompetitions }: { competitions?: Test
 }
 
 describe('TimePlanningRotation round selection', () => {
-  it('keeps the selected round after a remount', async () => {
+  it('does not render an internal round selector', () => {
     render(<RotationHost />);
 
-    const round2Button = screen.getByRole('button', { name: /session\s+2/i });
-    fireEvent.click(round2Button);
-
-    await waitFor(() => {
-      expect(round2Button.className).toContain('bg-blue-600');
-    });
+    expect(screen.queryByRole('button', { name: /session\s+2/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'hide-rotation' }));
     fireEvent.click(screen.getByRole('button', { name: 'show-rotation' }));
 
-    const round2ButtonAfterRemount = screen.getByRole('button', { name: /session\s+2/i });
-    expect(round2ButtonAfterRemount.className).toContain('bg-blue-600');
+    expect(screen.queryByRole('button', { name: /session\s+2/i })).not.toBeInTheDocument();
   });
 
   it('falls back to first available round when selected round no longer exists', async () => {
