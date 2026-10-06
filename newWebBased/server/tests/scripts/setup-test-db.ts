@@ -13,14 +13,27 @@ import { Client } from 'pg';
 import path from 'path';
 import dotenv from 'dotenv';
 
-// Load test environment
+// Always use test credentials; the per-run DB name is supplied separately.
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), override: true });
 
-const DB_NAME = process.env.DATABASE_NAME || 'turnfix_test_db';
+const DB_NAME = process.env.TURNFIX_TEST_DATABASE_NAME || process.env.DATABASE_NAME || 'turnfix_test_db';
 const DB_USER = process.env.DATABASE_USER || 'postgres';
 const DB_PASSWORD = process.env.DATABASE_PASSWORD || '';
 const DB_HOST = process.env.DATABASE_HOST || 'localhost';
 const DB_PORT = parseInt(process.env.DATABASE_PORT || '5432', 10);
+
+if (!/^turnfix_(test|e2e)_[a-z0-9_]+$/i.test(DB_NAME)) {
+  throw new Error(`Refusing to modify non-test database name: ${DB_NAME}`);
+}
+
+const configuredDatabaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+if (!configuredDatabaseUrl) {
+  throw new Error('Test DATABASE_URL is not configured');
+}
+const testDatabaseUrl = new URL(configuredDatabaseUrl);
+testDatabaseUrl.pathname = `/${DB_NAME}`;
+process.env.DATABASE_URL = testDatabaseUrl.toString();
+process.env.TEST_DATABASE_URL = testDatabaseUrl.toString();
 
 /**
  * Connect to the default `postgres` database to create/drop the test DB.
@@ -173,14 +186,21 @@ export async function truncateAllTables(): Promise<void> {
 export async function setupTestDatabase(): Promise<void> {
   console.log('\n🚀 Setting up test database...\n');
 
-  await createTestDatabase();
-  await applySchema();
+  try {
+    await createTestDatabase();
+    await applySchema();
 
-  // Seed test data (imported dynamically to avoid Prisma import order issues)
-  const { seedTestData } = require('../fixtures/seed-test-data');
-  await seedTestData();
+    // Seed test data (imported dynamically to avoid Prisma import order issues)
+    const { seedTestData } = require('../fixtures/seed-test-data');
+    await seedTestData();
 
-  console.log('\n✅ Test database ready!\n');
+    console.log('\n✅ Test database ready!\n');
+  } catch (error) {
+    await dropTestDatabase().catch((cleanupError) => {
+      console.error('❌ Failed to remove incomplete test database:', cleanupError);
+    });
+    throw error;
+  }
 }
 
 // Allow direct execution

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const allowServerReuse = process.env.TURNFIX_E2E_ALLOW_REUSE === '1';
+const testDatabaseName = process.env.TURNFIX_TEST_DATABASE_NAME || `turnfix_e2e_${process.pid}_${Date.now()}`;
+process.env.TURNFIX_TEST_DATABASE_NAME = testDatabaseName;
 
 /**
  * Playwright E2E Test Configuration for TurnFix
@@ -56,6 +57,7 @@ export default defineConfig({
 
   /* Test timeout */
   timeout: 30_000,
+  globalTeardown: './e2e/global-teardown-db.cjs',
 
   /* Project dependency chain: setup → tests → teardown */
   projects: [
@@ -96,8 +98,9 @@ export default defineConfig({
     {
       command: 'node scripts/start-e2e-stack.js',
       cwd: '../server',
+      env: { TURNFIX_TEST_DATABASE_NAME: testDatabaseName },
       port: 3001,
-      reuseExistingServer: allowServerReuse,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -106,7 +109,7 @@ export default defineConfig({
       command: 'node src/index.js',
       cwd: '../jury-server',
       port: 3002,
-      reuseExistingServer: allowServerReuse,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -115,7 +118,7 @@ export default defineConfig({
       command: 'npx vite',
       cwd: '.',
       port: 5173,
-      reuseExistingServer: allowServerReuse,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',

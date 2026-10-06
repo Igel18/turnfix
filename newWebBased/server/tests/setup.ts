@@ -3,7 +3,13 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Load test environment so DATABASE_URL points at the dedicated test DB.
-dotenv.config({ path: path.resolve(__dirname, '../.env.test'), override: true });
+dotenv.config({ path: path.resolve(__dirname, '../.env.test'), override: false });
+
+const isolatedTestDatabaseUrl = (globalThis as any).__TURNFIX_TEST_DATABASE_URL as string | undefined;
+if (isolatedTestDatabaseUrl) {
+  process.env.DATABASE_URL = isolatedTestDatabaseUrl;
+  process.env.TEST_DATABASE_URL = isolatedTestDatabaseUrl;
+}
 
 // Global test setup — runs once per test file
 let prisma: PrismaClient;

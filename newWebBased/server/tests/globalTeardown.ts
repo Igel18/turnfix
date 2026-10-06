@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 
 export default async function globalTeardown(): Promise<void> {
   // Load test environment
-  dotenv.config({ path: path.resolve(__dirname, '../.env.test'), override: true });
+  dotenv.config({ path: path.resolve(__dirname, '../.env.test'), override: false });
 
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🧹 Jest Global Teardown — Cleaning up');
