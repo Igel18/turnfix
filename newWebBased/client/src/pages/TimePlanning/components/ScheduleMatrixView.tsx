@@ -11,280 +11,24 @@
  * Column order is persisted in localStorage per eventId (no schema change needed).
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
-import { apiGet, apiPut } from '@/utils/api';
-import type { Competition, MatrixData, MatrixDiscipline, SessionGroup, Squad, TimeSettings } from '../TimePlanning.types';
+import type { Competition, SessionGroup, Squad, TimeSettings } from '../TimePlanning.types';
+import { ScheduleRoundPlanTable } from './ScheduleRoundPlanTable';
 import {
-  parseStoredColumns,
-  serializeColumns,
-  buildColumnList,
-  consolidateColumns,
-  addDisciplineColumn,
-  removeLastDisciplineColumn,
-  removeDisciplineColumn,
-  reorderColumns,
-  colKey,
-  type StoredColumn,
-  type AnyColumn,
-  type DisciplineColumn,
-} from '../matrixColumnHelpers';
-
-const LS_KEY = (eventId: string) => `schedule-matrix-cols-${eventId}`;
-const IST_TIMES_KEY = (eventId: string, session: number | null) => `time-planning-ist-times-${eventId}-${session ?? 'all'}`;
-
-interface SquadCellActualTimes {
-  actualStart: string;
-  actualEnd: string;
-}
-
-// ── Pure helpers (exported for unit testing) ─────────────────────────────────
-
-/** Add minutes to a HH:MM time string. Wraps at 24 h. */
-export function addMinutesToTime(timeStr: string, minutes: number): string {
-  const [hours, mins] = timeStr.split(':').map(Number);
-  const totalMinutes = hours * 60 + mins + minutes;
-  const newHours = Math.floor(totalMinutes / 60) % 24;
-  const newMins = totalMinutes % 60;
-  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
-}
-
-/**
- * Calculate the wall-clock time for a given rotation slot.
- * Round 1 = baseTime, Round 2 = baseTime + intervalMinutes, …
- */
-export function calculateRoundTime(baseTime: string, round: number, intervalMinutes: number): string {
-  return addMinutesToTime(baseTime, (round - 1) * intervalMinutes);
-}
-
-/**
- * Build a round → time map for the schedule matrix.
- *
- * The rotation interval for each session is derived from:
- *   maxSquadParticipantCount × exerciseDurationMinutes
- * (the same formula used in the Durchgänge view).
- *
- * Sessions are separated by their configured startTime.  The number of rounds
- * that fit in a session is:  floor((nextSessionStart - thisSessionStart) / interval).
- * The last (or only) session receives all remaining rounds.
- *
- * Falls back to an empty map when sessionGroups is empty/missing, so callers
- * can fall back to the simple calculateRoundTime helper.
- */
-export function buildRoundTimeMap(
-  totalRounds: number,
-  sessionGroups: Pick<SessionGroup, 'session' | 'startTime' | 'squads'>[],
-  exerciseDurationMinutes: number,
-  fallbackIntervalMinutes: number
-): Map<number, string> {
-  const result = new Map<number, string>();
-
-  const sorted = [...sessionGroups]
-    .filter(sg => sg.startTime)
-    .sort((a, b) => (a.startTime! < b.startTime! ? -1 : 1));
-
-  if (sorted.length === 0) return result;
-
-  const toMinutes = (t: string): number => {
-    const [h, m] = t.split(':').map(Number);
-    return h * 60 + m;
-  };
-
-  let currentRound = 1;
-  for (let si = 0; si < sorted.length; si++) {
-    const sg = sorted[si];
-    const maxParticipants =
-      sg.squads.length > 0
-        ? Math.max(...sg.squads.map(s => s.participantCount || 1))
-        : 1;
-    const interval = Math.max(
-      1,
-      maxParticipants > 0 ? maxParticipants * exerciseDurationMinutes : fallbackIntervalMinutes
-    );
-    const start = sg.startTime!;
-
-    let roundsInSession: number;
-    if (si < sorted.length - 1) {
-      const nextStart = sorted[si + 1].startTime!;
-      const durationMinutes = toMinutes(nextStart) - toMinutes(start);
-      roundsInSession = Math.max(1, Math.floor(durationMinutes / interval));
-    } else {
-      roundsInSession = totalRounds - currentRound + 1;
-    }
-
-    for (let idx = 0; idx < roundsInSession && currentRound <= totalRounds; idx++, currentRound++) {
-      result.set(currentRound, addMinutesToTime(start, idx * interval));
-    }
-  }
-
-  return result;
-}
-
-/**
- * Compute the set of conflicting cell keys ("disciplineId_round") where the
- * same squad is assigned to more than one discipline in the same round.
- * Pure function — safe to call in tests without any React context.
- */
-export function buildConflictCells(assignments: { disciplineId: number; round: number; squadName: string }[]): Set<string> {
-  const result = new Set<string>();
-  // round → squadName → [disciplineIds]
-  const byRound = new Map<number, Map<string, number[]>>();
-  for (const a of assignments) {
-    if (!a.squadName) continue;
-    if (!byRound.has(a.round)) byRound.set(a.round, new Map());
-    const bySquad = byRound.get(a.round)!;
-    if (!bySquad.has(a.squadName)) bySquad.set(a.squadName, []);
-    bySquad.get(a.squadName)!.push(a.disciplineId);
-  }
-  for (const [round, bySquad] of byRound) {
-    for (const discIds of bySquad.values()) {
-      if (discIds.length > 1) {
-        for (const discId of discIds) {
-          result.add(`${discId}_${round}`);
-        }
-      }
-    }
-  }
-  return result;
-}
-
-export function getSessionSquads(
-  sessionNumber: number | null,
-  sessionGroups: Pick<SessionGroup, 'session' | 'squads'>[] | undefined,
-  fallbackSquads: string[]
-): string[] {
-  if (sessionNumber === null || !sessionGroups || sessionGroups.length === 0) {
-    return fallbackSquads;
-  }
-
-  const sessionGroup = sessionGroups.find(group => group.session === sessionNumber);
-  return sessionGroup?.squads.map(squad => squad.name) ?? fallbackSquads;
-}
-
-export function getSessionVisibleColumns(
-  columns: AnyColumn[],
-  sessionDisciplineIds: Record<string, number[]> | undefined,
-  sessionNumber: number | null
-): AnyColumn[] {
-  if (sessionNumber === null || !sessionDisciplineIds) {
-    return columns;
-  }
-
-  const allowedDisciplineIds = sessionDisciplineIds[String(sessionNumber)];
-  if (!allowedDisciplineIds || allowedDisciplineIds.length === 0) {
-    return columns;
-  }
-
-  const allowed = new Set(allowedDisciplineIds);
-  return columns.filter(column => {
-    if (column.kind === 'pause') {
-      return true;
-    }
-
-    return allowed.has(column.id);
-  });
-}
-
-export function getAvailableSessions(
-  sessionGroups: Pick<SessionGroup, 'session'>[] | undefined,
-  sessionDisciplineIds: Record<string, number[]> | undefined,
-): number[] {
-  const sessionSet = new Set<number>();
-
-  for (const group of sessionGroups ?? []) {
-    sessionSet.add(group.session);
-  }
-
-  for (const key of Object.keys(sessionDisciplineIds ?? {})) {
-    const parsed = Number(key);
-    if (!Number.isNaN(parsed)) {
-      sessionSet.add(parsed);
-    }
-  }
-
-  return Array.from(sessionSet).sort((left, right) => left - right);
-}
-
-export function buildDisciplineLaneMap(
-  sessionLaneDisciplineIds: Record<string, Record<string, number[]>> | undefined,
-  selectedSession: number | null,
-): Map<number, number[]> {
-  const laneMapByDiscipline = new Map<number, Set<number>>();
-
-  const sessionEntries = selectedSession === null
-    ? Object.entries(sessionLaneDisciplineIds ?? {})
-    : [[String(selectedSession), sessionLaneDisciplineIds?.[String(selectedSession)] ?? {}] as const];
-
-  for (const [, lanes] of sessionEntries) {
-    for (const [laneKey, disciplineIds] of Object.entries(lanes ?? {})) {
-      const laneNumber = Number(laneKey);
-      if (Number.isNaN(laneNumber)) {
-        continue;
-      }
-      for (const disciplineId of disciplineIds) {
-        if (!laneMapByDiscipline.has(disciplineId)) {
-          laneMapByDiscipline.set(disciplineId, new Set<number>());
-        }
-        laneMapByDiscipline.get(disciplineId)!.add(laneNumber);
-      }
-    }
-  }
-
-  const result = new Map<number, number[]>();
-  for (const [disciplineId, laneSet] of laneMapByDiscipline.entries()) {
-    result.set(disciplineId, Array.from(laneSet).sort((left, right) => left - right));
-  }
-
-  return result;
-}
-
-export function buildSquadDisciplineOptions(
-  squads: Pick<Squad, 'name' | 'competitionIds'>[],
-  competitions: Pick<Competition, 'id' | 'round'>[],
-  selectedSession: number | null,
-  disciplineCache: Record<number, any[]>,
-  fallbackDisciplines: MatrixDiscipline[],
-): Record<string, MatrixDiscipline[]> {
-  const result: Record<string, MatrixDiscipline[]> = {};
-  const competitionMap = new Map(competitions.map(comp => [comp.id, comp]));
-
-  for (const squad of squads) {
-    const optionMap = new Map<number, MatrixDiscipline>();
-    const compIds = squad.competitionIds ?? [];
-    for (const competitionId of compIds) {
-      const competition = competitionMap.get(competitionId);
-      if (!competition) {
-        continue;
-      }
-      if (selectedSession !== null && competition.round !== selectedSession) {
-        continue;
-      }
-
-      const disciplines = disciplineCache[competitionId] ?? [];
-      for (const discipline of disciplines) {
-        const id = Number(discipline.int_disziplinenid ?? discipline.id);
-        if (!id || Number.isNaN(id)) {
-          continue;
-        }
-        if (!optionMap.has(id)) {
-          optionMap.set(id, {
-            id,
-            name: String(discipline.var_name ?? discipline.name ?? ''),
-            shortName: String(discipline.var_kurz1 ?? discipline.shortName ?? ''),
-          });
-        }
-      }
-    }
-
-    const options = Array.from(optionMap.values()).sort((left, right) =>
-      (left.shortName || left.name).localeCompare(right.shortName || right.name),
-    );
-    result[squad.name] = options.length > 0 ? options : fallbackDisciplines;
-  }
-
-  return result;
-}
+  addMinutesToTime,
+  buildConflictCells,
+  buildDisciplineLaneMap,
+  buildRoundTimeMap,
+  buildSquadDisciplineOptions,
+  calculateRoundTime,
+  getSessionSquads,
+  getSessionVisibleColumns,
+} from '../scheduleMatrixUtils';
+import { printScheduleMatrixPdf } from '../scheduleMatrixPdf';
+import { ScheduleAssignmentTable } from './ScheduleAssignmentTable';
+import { useScheduleMatrixState } from '../hooks/useScheduleMatrixState';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -323,298 +67,51 @@ export function ScheduleMatrixView({
   sessionGroups,
 }: ScheduleMatrixViewProps) {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
-  const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
-  const [localMaxRound, setLocalMaxRound] = useState(1);
+  const {
+    loading,
+    matrixData,
+    localMaxRound,
+    setLocalMaxRound,
+    squadCellSaving,
+    actualTimesByRound,
+    savingCell,
+    saveError,
+    setSaveError,
+    localColumns,
+    dragColKey,
+    dragOverColKey,
+    handleCellChange,
+    getCellValue,
+    handleSquadRoundCellChange,
+    getSquadRoundDiscipline,
+    handleActualTimeChange,
+    handleColDragStart,
+    handleColDragOver,
+    handleColDrop,
+    handleColDragEnd,
+    handleAddColumn,
+    handleRemoveLastColumn,
+    handleRemoveUnlinkedColumn,
+    isDisciplineRemovable,
+    removePauseFromStored,
+    discColumnsCount,
+    availableForPicker,
+  } = useScheduleMatrixState(eventId, sessionGroups);
   const [averageMinutesPerParticipant, setAverageMinutesPerParticipant] = useState<number>(3);
   const [scheduleStartTime, setScheduleStartTime] = useState<string>(baseStartTime || '09:00');
-  const [squadCellSaving, setSquadCellSaving] = useState<string | null>(null);
-  const [actualTimesByRound, setActualTimesByRound] = useState<Record<number, SquadCellActualTimes>>({});
-  const [storedColumns, setStoredColumns] = useState<StoredColumn[]>([]);
-  const [savingCell, setSavingCell] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Derived: fully resolved column list (discipline + pause in stored order)
-  const localColumns = useMemo(
-    () => buildColumnList(storedColumns, matrixData?.disciplines ?? []),
-    [storedColumns, matrixData]
-  );
-
-  // Drag-and-drop column state (string key: 'd|<id>' or 'p|<pauseId>')
-  const [dragColKey, setDragColKey] = useState<string | null>(null);
-  const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
-
-  const loadMatrix = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data: MatrixData = await apiGet(`/time-planning/matrix?eventId=${eventId}`);
-      setMatrixData(data);
-      setLocalMaxRound(Math.max(data.maxRound, 1));
-      // Restore / initialise column order from localStorage
-      let stored = parseStoredColumns(localStorage.getItem(LS_KEY(eventId)));
-      if (stored.length === 0) {
-        // First visit: seed with default discipline order from API
-        stored = data.disciplines.map(d => ({ t: 'd' as const, id: d.id }));
-      } else {
-        // Ensure disciplines added to competitions after last save are appended
-        stored = consolidateColumns(stored, data.disciplines);
-      }
-      setStoredColumns(stored);
-    } catch (e) {
-      console.error('[ScheduleMatrixView] Failed to load matrix data', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId]);
-
-  useEffect(() => {
-    if (eventId) loadMatrix();
-  }, [eventId, loadMatrix]);
-
-  useEffect(() => {
-    setScheduleStartTime(baseStartTime || '09:00');
-  }, [baseStartTime]);
-
-  useEffect(() => {
-    if (!matrixData) {
-      setActualTimesByRound({});
-      return;
-    }
-
-    const storageKey = IST_TIMES_KEY(eventId, null);
-    const raw = localStorage.getItem(storageKey);
-    if (!raw) {
-      setActualTimesByRound({});
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as Record<number, SquadCellActualTimes>;
-      setActualTimesByRound(parsed || {});
-    } catch {
-      setActualTimesByRound({});
-    }
-  }, [eventId, matrixData, sessionGroups]);
-
-  useEffect(() => {
-    if (!matrixData) {
-      return;
-    }
-
-    const storageKey = IST_TIMES_KEY(eventId, null);
-    localStorage.setItem(storageKey, JSON.stringify(actualTimesByRound));
-  }, [actualTimesByRound, eventId, matrixData, sessionGroups]);
-
-  const getCellValue = (disciplineId: number, round: number): string => {
-    if (!matrixData) return '';
-    return matrixData.assignments.find(a => a.disciplineId === disciplineId && a.round === round)?.squadName ?? '';
-  };
-
-  const handleCellChange = async (disciplineId: number, round: number, squadName: string) => {
-    const cellKey = `${disciplineId}_${round}`;
-    setSavingCell(cellKey);
-    setSaveError(null);
-
-    // Optimistic update
-    setMatrixData(prev => {
-      if (!prev) return prev;
-      const newAssignments = prev.assignments.filter(
-        a => !(a.disciplineId === disciplineId && a.round === round)
-      );
-      if (squadName) {
-        newAssignments.push({ disciplineId, round, squadName, isFirstDevice: false });
-      }
-      return { ...prev, assignments: newAssignments };
-    });
-
-    try {
-      await apiPut('/time-planning/matrix/cell', {
-        eventId: parseInt(eventId),
-        disciplineId,
-        round,
-        squadName,
-      });
-    } catch (e) {
-      console.error('[ScheduleMatrixView] Failed to save cell', e);
-      setSaveError(t('timePlanning.matrix.saveError'));
-      loadMatrix(); // revert optimistic update on error
-    } finally {
-      setSavingCell(null);
-    }
-  };
-
-  const getSquadRoundDiscipline = (squadName: string, round: number): number | null => {
-    const assignment = matrixData?.squadRoundAssignments?.find(
-      item => item.squadName === squadName && item.round === round,
-    );
-    return assignment?.disciplineId ?? null;
-  };
-
-  const handleSquadRoundCellChange = async (squadName: string, round: number, disciplineId: number | null) => {
-    const key = `${squadName}_${round}`;
-    setSquadCellSaving(key);
-    setSaveError(null);
-
-    setMatrixData(prev => {
-      if (!prev) {
-        return prev;
-      }
-
-      const filtered = (prev.squadRoundAssignments ?? []).filter(
-        item => !(item.squadName === squadName && item.round === round),
-      );
-
-      const nextAssignments = disciplineId === null
-        ? filtered
-        : [...filtered, { squadName, round, disciplineId }];
-
-      return {
-        ...prev,
-        squadRoundAssignments: nextAssignments,
-      };
-    });
-
-    try {
-      await apiPut('/time-planning/matrix/squad-cell', {
-        eventId: parseInt(eventId, 10),
-        squadName,
-        round,
-        disciplineId,
-      });
-    } catch (error) {
-      console.error('[ScheduleMatrixView] Failed to save squad-round cell', error);
-      setSaveError(t('timePlanning.matrix.saveError'));
-      loadMatrix();
-    } finally {
-      setSquadCellSaving(null);
-    }
-  };
-
-  // ── Column drag-and-drop ─────────────────────────────────────────────────────
-
-  const handleColDragStart = (e: React.DragEvent, key: string) => {
-    setDragColKey(key);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleColDragOver = (e: React.DragEvent, key: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverColKey(key);
-  };
-
-  const handleColDrop = (e: React.DragEvent, targetKey: string) => {
-    e.preventDefault();
-    if (!dragColKey || dragColKey === targetKey) {
-      setDragColKey(null);
-      setDragOverColKey(null);
-      return;
-    }
-    const keyToStoredIdx = (k: string): number => {
-      if (k.startsWith('d|')) {
-        const id = parseInt(k.slice(2));
-        return storedColumns.findIndex(s => s.t === 'd' && s.id === id);
-      }
-      if (k.startsWith('p|')) {
-        const id = k.slice(2);
-        return storedColumns.findIndex(s => s.t === 'p' && s.id === id);
-      }
-      return -1;
-    };
-    const fromIdx = keyToStoredIdx(dragColKey);
-    const toIdx   = keyToStoredIdx(targetKey);
-    if (fromIdx === -1 || toIdx === -1) { setDragColKey(null); setDragOverColKey(null); return; }
-    setStoredColumns(prev => {
-      const next = reorderColumns(prev, fromIdx, toIdx);
-      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
-      return next;
-    });
-    setDragColKey(null);
-    setDragOverColKey(null);
-  };
-
-  const handleColDragEnd = () => {
-    setDragColKey(null);
-    setDragOverColKey(null);
-  };
 
   // ── printMatrix — defined here (before early returns) to satisfy Rules of Hooks ──
-
-  const printMatrix = useCallback(async () => {
-    try {
-      const { default: jsPDF } = await import('jspdf');
-      const { setupPDFWithHeaderFooter, getUnifiedTableStyles } = await import('@/utils/pdfUtils');
-      const autoTableModule = await import('jspdf-autotable');
-      const autoTable = autoTableModule.default;
-
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-      const contentArea = setupPDFWithHeaderFooter(doc, selectedEvent as any, t('timePlanning.matrix.printTitle'));
-
-      const startTimePdf = baseStartTime || '09:00';
-      const interval = timeSettings.rotationIntervalMinutes;
-
-      // Use the same per-session interval calculation as the UI
-      const pdfRoundTimeMap = buildRoundTimeMap(
-        localMaxRound,
-        sessionGroups ?? [],
-        timeSettings.exerciseDurationMinutes,
-        interval
-      );
-      const getPdfRoundTime = (r: number): string =>
-        pdfRoundTimeMap.get(r) ?? calculateRoundTime(startTimePdf, r, interval);
-
-      // PDF only shows discipline columns (pause columns are visual spacers only)
-      const pdfColumns = localColumns.filter((c): c is DisciplineColumn => c.kind === 'discipline');
-
-      const head = [
-        [t('timePlanning.matrix.time'), ...pdfColumns.map(d => d.shortName || d.name)],
-      ];
-
-      const colCount = pdfColumns.length + 1; // time column + discipline columns
-      const body: any[] = [];
-      let lastSession: number | null = null;
-
-      Array.from({ length: localMaxRound }, (_, i) => i + 1).forEach(round => {
-        const timeStr = getPdfRoundTime(round);
-
-        // Insert a Durchgang section header row when session changes
-        if (sessionGroups && sessionGroups.length >= 2) {
-          // Find which session this round belongs to (latest startTime <= roundTime)
-          let bestSg: { session: number; startTime: string } | null = null;
-          for (const sg of sessionGroups) {
-            if (sg.startTime && sg.startTime <= timeStr) {
-              if (!bestSg || sg.startTime > bestSg.startTime) {
-                bestSg = { session: sg.session, startTime: sg.startTime };
-              }
-            }
-          }
-          if (bestSg && bestSg.session !== lastSession) {
-            lastSession = bestSg.session;
-            const label = `${t('timePlanning.round', 'Durchgang')} ${bestSg.session}  –  ${t('timePlanning.startTime', 'Startzeit')}: ${bestSg.startTime}`;
-            body.push([{ content: label, colSpan: colCount, styles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', fontSize: 9 } }]);
-          }
-        }
-
-        body.push([timeStr, ...pdfColumns.map(d =>
-          matrixData?.assignments.find(a => a.disciplineId === d.id && a.round === round)?.squadName || ''
-        )]);
-      });
-
-      autoTable(doc, {
-        startY: contentArea.startY,
-        head,
-        body,
-        ...getUnifiedTableStyles(),
-        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 22 } },
-        margin: { left: 14, right: 14 },
-      });
-
-      doc.save(`zeitplan-tabelle-${eventId}.pdf`);
-    } catch (err) {
-      console.error('[ScheduleMatrixView] PDF print failed', err);
-    }
-  }, [localMaxRound, localColumns, matrixData, baseStartTime, timeSettings, selectedEvent, eventId, t]);
+  const printMatrix = useCallback(() => printScheduleMatrixPdf({
+    eventId,
+    totalRounds: localMaxRound,
+    columns: localColumns,
+    matrixData,
+    baseStartTime,
+    timeSettings,
+    selectedEvent,
+    sessionGroups,
+    t,
+  }), [eventId, localMaxRound, localColumns, matrixData, baseStartTime, timeSettings, selectedEvent, sessionGroups, t]);
 
   // Register print function with parent so the header button can trigger it
   useEffect(() => {
@@ -733,64 +230,6 @@ export function ScheduleMatrixView({
   // squad appears in more than one discipline in the same round (conflict).
   const conflictCells = buildConflictCells(matrixData?.assignments ?? []);
 
-  // localColumns is derived via useMemo (declared above printMatrix for closure access)
-  const discColumnsCount = localColumns.filter(c => c.kind === 'discipline').length;
-
-  const shownDiscIds = new Set(
-    localColumns.filter((c): c is DisciplineColumn => c.kind === 'discipline').map(c => c.id)
-  );
-  const availableForPicker = (matrixData.availableDisciplines ?? []).filter(d => !shownDiscIds.has(d.id));
-
-  const handleAddColumn = (disciplineIdStr: string) => {
-    const disciplineId = parseInt(disciplineIdStr);
-    if (!disciplineId) return;
-    setStoredColumns(prev => {
-      const next = addDisciplineColumn(prev, disciplineId);
-      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
-      return next;
-    });
-  };
-
-  const handleRemoveLastColumn = () => {
-    setStoredColumns(prev => {
-      const next = removeLastDisciplineColumn(prev);
-      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
-      return next;
-    });
-  };
-
-  /** Remove a specific (unlinked) discipline column from the visible matrix. */
-  const handleRemoveUnlinkedColumn = (disciplineId: number) => {
-    setStoredColumns(prev => {
-      const next = removeDisciplineColumn(prev, disciplineId);
-      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
-      return next;
-    });
-  };
-
-  // IDs of disciplines not linked to any competition for this event.
-  const unlinkeddiscIds = new Set((matrixData.availableDisciplines ?? []).map(d => d.id));
-
-  // A discipline column is considered a "pause" (removable) when:
-  //   - it is not linked to any competition (availableDisciplines), OR
-  //   - its name starts with "Pause" (case-insensitive convention)
-  // This covers Pause3/Pause4 that happen to be linked to a competition.
-  //
-  // TODO [TECH-DEBT TD-01]: The /^pause/i name check is a workaround because
-  // tfx_disziplinen has no dedicated bol_pause flag. Once the DB schema can be
-  // extended, replace this with `col.isPause === true` (see Instructions2.md).
-  const isDisciplineRemovable = (col: DisciplineColumn): boolean =>
-    unlinkeddiscIds.has(col.id) || /^pause/i.test(col.name);
-
-  // Backward-compat: handler for old localStorage pause columns (kind==='pause')
-  const removePauseFromStored = (pauseId: string) => {
-    setStoredColumns(prev => {
-      const next = prev.filter(s => !(s.t === 'p' && s.id === pauseId));
-      localStorage.setItem(LS_KEY(eventId), serializeColumns(next));
-      return next;
-    });
-  };
-
   if (discColumnsCount === 0 && availableForPicker.length === 0) {
     return (
       <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
@@ -818,403 +257,49 @@ export function ScheduleMatrixView({
         </div>
       )}
 
-      <div className="px-4 py-4 border-b bg-white">
-        <div className="flex flex-wrap items-end gap-4 mb-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              {t('timePlanning.matrix.squadRoundPlan.averageTimePerParticipant')}
-            </label>
-            <input
-              type="number"
-              min={1}
-              step={0.5}
-              value={averageMinutesPerParticipant}
-              onChange={(event) => setAverageMinutesPerParticipant(Number(event.target.value) || 1)}
-              className="w-28 px-2 py-1.5 text-sm border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              {t('timePlanning.matrix.squadRoundPlan.scheduleStartTime')}
-            </label>
-            <input
-              type="time"
-              value={scheduleStartTime}
-              onChange={(event) => setScheduleStartTime(event.target.value)}
-              className="w-32 px-2 py-1.5 text-sm border border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="text-sm text-gray-600">
-            <div>
-              {t('timePlanning.matrix.squadRoundPlan.maxParticipants', { count: maxParticipants })}
-            </div>
-            <div className="font-semibold text-gray-900">
-              {t('timePlanning.matrix.squadRoundPlan.slotDuration', { minutes: slotDurationMinutes })}
-            </div>
-          </div>
-          <div className="text-sm text-gray-600 ml-auto">
-            <div>
-              {t('timePlanning.matrix.squadRoundPlan.competitionEnd')}
-            </div>
-            <div className="font-semibold text-gray-900">{plannedCompetitionEnd}</div>
-          </div>
-        </div>
+      <ScheduleRoundPlanTable
+        squads={activeSquadObjects}
+        plannedRows={plannedScheduleRows}
+        disciplineOptions={squadDisciplineOptions}
+        disciplines={matrixData.disciplines}
+        squadCellSaving={squadCellSaving}
+        getSquadRoundDiscipline={getSquadRoundDiscipline}
+        onSquadRoundCellChange={handleSquadRoundCellChange}
+        actualTimesByRound={actualTimesByRound}
+        onActualTimeChange={handleActualTimeChange}
+        averageMinutesPerParticipant={averageMinutesPerParticipant}
+        onAverageMinutesPerParticipantChange={setAverageMinutesPerParticipant}
+        scheduleStartTime={scheduleStartTime}
+        onScheduleStartTimeChange={setScheduleStartTime}
+        maxParticipants={maxParticipants}
+        slotDurationMinutes={slotDurationMinutes}
+        plannedCompetitionEnd={plannedCompetitionEnd}
+      />
 
-        <div className="overflow-x-auto border border-gray-200 rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                  {t('timePlanning.round')}
-                </th>
-                {activeSquadObjects.map(squad => (
-                  <th key={squad.name} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
-                    {squad.name}
-                  </th>
-                ))}
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('timePlanning.matrix.squadRoundPlan.plannedStart')}
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('timePlanning.matrix.squadRoundPlan.plannedEnd')}
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('timePlanning.matrix.squadRoundPlan.switchTime')}
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('timePlanning.matrix.squadRoundPlan.actualStart')}
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('timePlanning.matrix.squadRoundPlan.actualEnd')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {plannedScheduleRows.map((row) => (
-                <tr key={`squad-round-${row.round}`}>
-                  <td className="px-3 py-2 text-sm font-medium text-blue-700">
-                    {t('timePlanning.round')} {row.round}
-                  </td>
-                  {activeSquadObjects.map(squad => {
-                    const options = squadDisciplineOptions[squad.name] ?? [];
-                    const currentDisciplineId = getSquadRoundDiscipline(squad.name, row.round);
-                    const rowKey = `${squad.name}_${row.round}`;
-                    const isSavingRow = squadCellSaving === rowKey;
-                    const hasCurrentValueInOptions = currentDisciplineId !== null && options.some(option => option.id === currentDisciplineId);
-                    const currentValueFallback = !hasCurrentValueInOptions && currentDisciplineId !== null
-                      ? matrixData.disciplines.find(item => item.id === currentDisciplineId)
-                      : null;
-
-                    return (
-                      <td key={`${squad.name}_${row.round}`} className="px-3 py-2">
-                        <select
-                          value={currentDisciplineId ?? ''}
-                          disabled={isSavingRow}
-                          onChange={(event) => {
-                            const nextValue = event.target.value ? Number(event.target.value) : null;
-                            handleSquadRoundCellChange(squad.name, row.round, nextValue);
-                          }}
-                          className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
-                        >
-                          <option value="">{t('timePlanning.matrix.squadRoundPlan.emptyOption')}</option>
-                          {currentValueFallback && (
-                            <option value={currentValueFallback.id}>
-                              {currentValueFallback.shortName || currentValueFallback.name}
-                            </option>
-                          )}
-                          {options.map(option => (
-                            <option key={`${squad.name}_${option.id}`} value={option.id}>
-                              {option.shortName || option.name}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                    );
-                  })}
-                  <td className="px-3 py-2 text-sm font-mono text-gray-700">{row.plannedStart}</td>
-                  <td className="px-3 py-2 text-sm font-mono text-gray-700">{row.plannedEnd}</td>
-                  <td className="px-3 py-2 text-sm font-mono text-gray-700">{row.switchTime}</td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="time"
-                      value={actualTimesByRound[row.round]?.actualStart || ''}
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        setActualTimesByRound(prev => ({
-                          ...prev,
-                          [row.round]: {
-                            actualStart: value,
-                            actualEnd: prev[row.round]?.actualEnd || '',
-                          },
-                        }));
-                      }}
-                      className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="time"
-                      value={actualTimesByRound[row.round]?.actualEnd || ''}
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        setActualTimesByRound(prev => ({
-                          ...prev,
-                          [row.round]: {
-                            actualStart: prev[row.round]?.actualStart || '',
-                            actualEnd: value,
-                          },
-                        }));
-                      }}
-                      className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
-                    />
-                  </td>
-                </tr>
-              ))}
-              {plannedScheduleRows.length === 0 && (
-                <tr>
-                  <td colSpan={Math.max(activeSquadObjects.length + 6, 2)} className="px-4 py-6 text-center text-sm text-gray-500">
-                    {t('timePlanning.noData')}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          {(!hasMultipleSessions || effectiveSelectedSession !== null) && (
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                  {t('timePlanning.matrix.time')}
-                </th>
-                {activeColumns.map(col => {
-                const key = colKey(col);
-                const isDragging = dragColKey === key;
-                const isDragOver = dragOverColKey === key;
-
-                if (col.kind === 'pause') {
-                  return (
-                    <th
-                      key={key}
-                      draggable
-                      onDragStart={e => handleColDragStart(e, key)}
-                      onDragOver={e => handleColDragOver(e, key)}
-                      onDrop={e => handleColDrop(e, key)}
-                      onDragEnd={handleColDragEnd}
-                      className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[80px] select-none transition-colors ${
-                        isDragging
-                          ? 'opacity-40 bg-gray-100'
-                          : isDragOver
-                          ? 'bg-gray-200 border-l-2 border-gray-400'
-                          : 'cursor-grab hover:bg-gray-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1">
-                        <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                        <span className="text-gray-400 italic flex-1 normal-case font-normal">{col.label}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); removePauseFromStored(col.id); }}
-                          className="text-gray-300 hover:text-red-500 transition-colors ml-1 flex-shrink-0 leading-none"
-                          title={t('timePlanning.matrix.removeUnlinked')}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </th>
-                  );
-                }
-
-                  return (
-                    <th
-                    key={key}
-                    draggable
-                    onDragStart={e => handleColDragStart(e, key)}
-                    onDragOver={e => handleColDragOver(e, key)}
-                    onDrop={e => handleColDrop(e, key)}
-                    onDragEnd={handleColDragEnd}
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] select-none transition-colors ${
-                      isDragging
-                        ? 'opacity-40 bg-blue-50'
-                        : isDragOver
-                        ? 'bg-blue-100 border-l-2 border-blue-400'
-                        : 'cursor-grab hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1">
-                      <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        {getLaneLabel(col.id) && (
-                          <div className="text-[10px] uppercase tracking-wide text-blue-600 font-semibold normal-case">
-                            {getLaneLabel(col.id)}
-                          </div>
-                        )}
-                        <div className="font-semibold text-gray-800">{col.shortName || col.name}</div>
-                        {col.shortName && col.name !== col.shortName && (
-                          <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{col.name}</div>
-                        )}
-                      </div>
-                      {isDisciplineRemovable(col) && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleRemoveUnlinkedColumn(col.id); }}
-                          className="text-gray-300 hover:text-red-500 transition-colors ml-1 flex-shrink-0 leading-none"
-                          title={t('timePlanning.matrix.removeUnlinked')}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-          )}
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredRoundRows.map((row, idx) => {
-              const { round, roundTime, sessionInfo } = row;
-              const prevSessionInfo = idx > 0 ? filteredRoundRows[idx - 1].sessionInfo : null;
-              const isNewSession =
-                effectiveSelectedSession === null
-                && sessionInfo !== null
-                && sessionInfo.session !== prevSessionInfo?.session;
-              const visibleColumns =
-                effectiveSelectedSession === null
-                  ? getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, sessionInfo?.session ?? null)
-                  : activeColumns;
-              const sessionSquads = getSessionSquads(
-                effectiveSelectedSession ?? sessionInfo?.session ?? null,
-                sessionGroups,
-                squadNames,
-              );
-              return (
-                <React.Fragment key={round}>
-                  {isNewSession && (
-                      <tr className="bg-gradient-to-r from-blue-600 to-blue-700">
-                        <td colSpan={visibleColumns.length + 1} className="px-4 py-3">
-                          <div className="text-base font-bold text-white">
-                            {t('timePlanning.round', 'Durchgang')} {sessionInfo!.session}
-                          </div>
-                          <div className="text-blue-100 text-xs">
-                            {t('timePlanning.startTime', 'Startzeit')}: {sessionInfo!.startTime}
-                          </div>
-                        </td>
-                      </tr>
-                  )}
-                  {hasMultipleSessions && effectiveSelectedSession === null && isNewSession && (
-                    <tr className="bg-gray-50">
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                        {t('timePlanning.matrix.time')}
-                      </th>
-                      {visibleColumns.map(col => {
-                        const key = colKey(col);
-                        if (col.kind === 'pause') {
-                          return null;
-                        }
-                        const isDragging = dragColKey === key;
-                        const isDragOver = dragOverColKey === key;
-                        return (
-                          <th
-                            key={key}
-                            draggable
-                            onDragStart={e => handleColDragStart(e, key)}
-                            onDragOver={e => handleColDragOver(e, key)}
-                            onDrop={e => handleColDrop(e, key)}
-                            onDragEnd={handleColDragEnd}
-                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] select-none transition-colors ${
-                              isDragging
-                                ? 'opacity-40 bg-blue-50'
-                                : isDragOver
-                                ? 'bg-blue-100 border-l-2 border-blue-400'
-                                : 'cursor-grab hover:bg-gray-100'
-                            }`}
-                          >
-                            <div className="flex items-center gap-1">
-                              <GripVertical className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                {getLaneLabel(col.id) && (
-                                  <div className="text-[10px] uppercase tracking-wide text-blue-600 font-semibold normal-case">
-                                    {getLaneLabel(col.id)}
-                                  </div>
-                                )}
-                                <div className="font-semibold text-gray-800">{col.shortName || col.name}</div>
-                                {col.shortName && col.name !== col.shortName && (
-                                  <div className="text-gray-400 font-normal normal-case text-xs mt-0.5">{col.name}</div>
-                                )}
-                              </div>
-                              {isDisciplineRemovable(col) && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleRemoveUnlinkedColumn(col.id); }}
-                                  className="text-gray-300 hover:text-red-500 transition-colors ml-1 flex-shrink-0 leading-none"
-                                  title={t('timePlanning.matrix.removeUnlinked')}
-                                >
-                                  ✕
-                                </button>
-                              )}
-                            </div>
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  )}
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
-                      {roundTime}
-                    </td>
-                    {visibleColumns.map(col => {
-                      if (col.kind === 'pause') {
-                        return (
-                          <td key={colKey(col)} className="px-3 py-2 bg-gray-50 border-x border-gray-100" />
-                        );
-                      }
-                      const cellKey = `${col.id}_${round}`;
-                      const isSaving = savingCell === cellKey;
-                      const value = getCellValue(col.id, round);
-                      const isConflict = conflictCells.has(cellKey);
-                      return (
-                        <td key={colKey(col)} className="px-3 py-2">
-                          <select
-                            value={value}
-                            onChange={e => handleCellChange(col.id, round, e.target.value)}
-                            disabled={isSaving}
-                            title={isConflict ? t('timePlanning.matrix.conflictTooltip', 'Diese Riege ist in diesem Zeitslot bereits einem anderen Gerät zugewiesen!') : undefined}
-                            className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                              isSaving
-                                ? 'opacity-50 cursor-wait bg-gray-100 border-gray-300'
-                                : isConflict
-                                ? 'bg-red-50 border-red-500 border-2 text-red-800 ring-1 ring-red-400'
-                                : value
-                                ? 'bg-blue-50 border-blue-300 text-blue-800'
-                                : 'bg-white border-gray-300 text-gray-500'
-                            }`}
-                          >
-                            <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>
-                            {sessionSquads.map(squad => (
-                              <option key={squad} value={squad}>
-                                {squad}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                </React.Fragment>
-              );
-            })}
-            {filteredRoundRows.length === 0 && (
-              <tr>
-                <td colSpan={Math.max(activeColumns.length + 1, 2)} className="px-4 py-6 text-center text-sm text-gray-500">
-                  {t('timePlanning.noData')}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ScheduleAssignmentTable
+        matrixData={matrixData}
+        localColumns={localColumns}
+        activeColumns={activeColumns}
+        roundRows={filteredRoundRows}
+        hasMultipleSessions={hasMultipleSessions}
+        selectedSession={effectiveSelectedSession}
+        sessionGroups={sessionGroups}
+        squadNames={squadNames}
+        dragColKey={dragColKey}
+        dragOverColKey={dragOverColKey}
+        onColumnDragStart={handleColDragStart}
+        onColumnDragOver={handleColDragOver}
+        onColumnDrop={handleColDrop}
+        onColumnDragEnd={handleColDragEnd}
+        getLaneLabel={getLaneLabel}
+        isDisciplineRemovable={isDisciplineRemovable}
+        onRemoveDiscipline={handleRemoveUnlinkedColumn}
+        onRemovePause={removePauseFromStored}
+        savingCell={savingCell}
+        conflictCells={conflictCells}
+        getCellValue={getCellValue}
+        onCellChange={handleCellChange}
+      />
 
       {/* Row + Column controls */}
       <div className="px-4 py-3 border-t bg-gray-50 flex flex-wrap items-center gap-3">

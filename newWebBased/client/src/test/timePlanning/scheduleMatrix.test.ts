@@ -14,7 +14,7 @@ import {
   getAvailableSessions,
   buildDisciplineLaneMap,
   buildSquadDisciplineOptions,
-} from '../../pages/TimePlanning/components/ScheduleMatrixView';
+} from '../../pages/TimePlanning/scheduleMatrixUtils';
 
 // ── addMinutesToTime ──────────────────────────────────────────────────────────
 
