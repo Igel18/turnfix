@@ -8,20 +8,7 @@
  */
 
 import type { ExtractedData } from '../../src/utils/gymnetXmlParser';
-
-// ============================================================================
-// Helper: merge function (mirrors the route's flatMap logic)
-// ============================================================================
-
-function mergeExtractedData(datasets: ExtractedData[]): ExtractedData {
-  return {
-    clubs:        datasets.flatMap(d => d.clubs),
-    competitions: datasets.flatMap(d => d.competitions),
-    participants: datasets.flatMap(d => d.participants),
-    devices:      datasets.flatMap(d => d.devices),
-    teams:        datasets.flatMap(d => d.teams),
-  };
-}
+import { mergeExtractedData, summarizeExtractedData } from '../../src/utils/gymnetImportData';
 
 function makeDataset(overrides: Partial<ExtractedData> = {}): ExtractedData {
   return {
@@ -185,49 +172,39 @@ describe('mergeExtractedData – does NOT deduplicate', () => {
 });
 
 // ============================================================================
-// Tests: summary deduplication counters (mirrors route response logic)
+// Tests: summary deduplication counters
 // ============================================================================
 
-describe('Summary unique-count calculation (mirrors route logic)', () => {
+describe('summarizeExtractedData', () => {
   it('uniqueClubNames counts distinct names case-insensitively across merged data', () => {
-    const clubs = [
-      { name: 'TSV Muster' },
-      { name: 'tsv muster' },        // duplicate (different case)
-      { name: 'SV Beispiel' },
-    ];
-    const uniqueNames = new Set(
-      clubs.map((c: any) => (c.name || '').trim().toLowerCase()).filter((n: string) => n.length > 0)
-    );
-    expect(uniqueNames.size).toBe(2);
+    const result = summarizeExtractedData(makeDataset({
+      clubs: [{ name: 'TSV Muster' }, { name: 'tsv muster' }, { name: 'SV Beispiel' }, { name: '' }],
+    }));
+    expect(result.clubsCount).toBe(2);
   });
 
   it('participant keys prefer perID; fall back to name+birthDate', () => {
-    const participants = [
-      { id: '10', firstName: 'Anna', lastName: 'A', birthDate: '2010-01-01' },
-      { id: '10', firstName: 'Anna', lastName: 'A', birthDate: '2010-01-01' }, // dup by id
-      { id: '',   firstName: 'Bob',  lastName: 'B', birthDate: '2011-02-02' },
-      { id: '',   firstName: 'Bob',  lastName: 'B', birthDate: '2011-02-02' }, // dup by name+date
-      { id: '',   firstName: 'Carol',lastName: 'C', birthDate: '2012-03-03' },
-    ];
-    const keys = new Set<string>();
-    for (const p of participants) {
-      if (p.id) {
-        keys.add(`id:${p.id}`);
-      } else {
-        keys.add(`${p.firstName.toLowerCase()}|${p.lastName.toLowerCase()}|${p.birthDate}`);
-      }
-    }
-    expect(keys.size).toBe(3); // Anna(id), Bob(name+date), Carol(name+date)
+    const result = summarizeExtractedData(makeDataset({
+      participants: [
+        { id: '10', firstName: 'Anna', lastName: 'A', birthDate: '2010-01-01' },
+        { id: '10', firstName: 'Anna', lastName: 'A', birthDate: '2010-01-01' },
+        { id: '', firstName: 'Bob', lastName: 'B', birthDate: '2011-02-02' },
+        { id: '', firstName: 'Bob', lastName: 'B', birthDate: '2011-02-02' },
+        { id: '', firstName: 'Carol', lastName: 'C', birthDate: '2012-03-03' },
+      ],
+    }));
+    expect(result.participantsCount).toBe(3);
   });
 
   it('device keys combine code and competitionWaNr', () => {
-    const devices = [
-      { code: '290', competitionWaNr: '01' },
-      { code: '290', competitionWaNr: '01' }, // dup
-      { code: '290', competitionWaNr: '02' }, // same code, different competition
-      { code: '280', competitionWaNr: '01' }, // different code, same competition
-    ];
-    const keys = new Set(devices.map((d: any) => `${d.code}|${d.competitionWaNr}`));
-    expect(keys.size).toBe(3);
+    const result = summarizeExtractedData(makeDataset({
+      devices: [
+        { code: '290', competitionWaNr: '01' },
+        { code: '290', competitionWaNr: '01' },
+        { code: '290', competitionWaNr: '02' },
+        { code: '280', competitionWaNr: '01' },
+      ],
+    }));
+    expect(result.devicesCount).toBe(3);
   });
 });

@@ -20,12 +20,12 @@ import prisma from '../lib/prisma';
 import {
   parseXmlAsync,
   extractAllData,
-  analyzeObject,
   findInObject,
-  searchForDevicesAggressively,
   type ExtractedData as ExtractedDataType
 } from '../utils/gymnetXmlParser';
+import { mergeExtractedData, summarizeExtractedData } from '../utils/gymnetImportData';
 import { importGymnetData } from '../utils/gymnetDbImport';
+import { buildGymnetImportResponse } from '../utils/gymnetImportResponse';
 import { normalizeImportScoringMode, withEventScoringMode } from '../utils/eventScoringMode';
 import { parseGymnetStandardExport } from '../utils/gymnetStandardExportParser';
 
@@ -218,13 +218,7 @@ router.post('/import-gymnet', authenticateToken, upload.array('files', 10), asyn
     }));
 
     // Merge extracted data from all files
-    const extractedData: ExtractedDataType = {
-      clubs:        allClusters.flatMap(d => d.clubs),
-      competitions: allClusters.flatMap(d => d.competitions),
-      participants: allClusters.flatMap(d => d.participants),
-      devices:      allClusters.flatMap(d => d.devices),
-      teams:        allClusters.flatMap(d => d.teams),
-    };
+    const extractedData: ExtractedDataType = mergeExtractedData(allClusters);
 
     console.log('📋 Merged Data Summary:');
     console.log(`  🏢 Clubs: ${extractedData.clubs.length}`);
@@ -317,111 +311,24 @@ router.post('/import-gymnet', authenticateToken, upload.array('files', 10), asyn
     }
 
     // --- 7. Build response ---
-    const insertionResults = importResult?.insertionResults || {
-      clubs: { inserted: 0, updated: 0, errors: 0 },
-      participants: { inserted: 0, updated: 0, errors: 0 },
-      competitions: { inserted: 0, updated: 0, errors: 0 },
-      devices: { inserted: 0, updated: 0, errors: 0 },
-      teams: { inserted: 0, members: 0, errors: 0 }
-    };
-
-    // --- Deduplicate counts for accurate summary ---
-    // Clubs: deduplicate by name (case-insensitive)
-    const uniqueClubNames = new Set(
-      extractedData.clubs
-        .map((c: any) => (c.name || '').trim().toLowerCase())
-        .filter((n: string) => n.length > 0)
-    );
-    // Participants: deduplicate by perID, or fallback to name+birthdate
-    const uniqueParticipantKeys = new Set<string>();
-    for (const p of extractedData.participants) {
-      if (p.id) {
-        uniqueParticipantKeys.add(`id:${p.id}`);
-      } else {
-        const key = `${(p.firstName || '').trim().toLowerCase()}|${(p.lastName || '').trim().toLowerCase()}|${p.birthDate || ''}`;
-        uniqueParticipantKeys.add(key);
-      }
-    }
-    // Devices: deduplicate by code+competitionWaNr (unique discipline per competition)
-    const uniqueDeviceKeys = new Set<string>();
-    for (const d of extractedData.devices) {
-      const key = `${d.code || d.name || ''}|${d.competitionWaNr || ''}`;
-      uniqueDeviceKeys.add(key);
-    }
-
-    const responseData = {
-      success: createdEvent !== null,
-      message: createdEvent
-        ? `Event "${createdEvent.var_name}" created successfully and data imported to database`
-        : eventCreationError
-          ? `XML import failed: ${eventCreationError instanceof Error ? eventCreationError.message : String(eventCreationError)}`
-          : 'XML erfolgreich geparst und analysiert, aber kein Event wurde erstellt',
-      createdEvent: createdEvent ? {
-        id: createdEvent.int_veranstaltungenid,
-        name: createdEvent.var_name,
-        startDate: parsedStartDate,
-        endDate: parsedEndDate,
-        locationId: venueIdToUse,
-        locationName: venueNameToUse,
-        description: description?.trim() || null,
-        scoringMode
-      } : null,
-      eventCreationError: eventCreationError ? {
-        message: eventCreationError instanceof Error ? eventCreationError.message : String(eventCreationError),
-        details: 'Check server logs for detailed error information'
-      } : null,
-      warnings: importResult?.warnings || [],
-      hints: importResult?.hints || [],
-      insertionResults,
-      extractedData: {
-        clubs: extractedData.clubs,
-        competitions: extractedData.competitions,
-        participants: extractedData.participants,
-        devices: extractedData.devices,
-        teams: extractedData.teams,
-        summary: {
-          clubsCount: uniqueClubNames.size,
-          competitionsCount: extractedData.competitions.length,
-          participantsCount: uniqueParticipantKeys.size,
-          devicesCount: uniqueDeviceKeys.size,
-          teamsCount: extractedData.teams.length
-        }
-      },
-      debug: debugData,
-      summary: {
-        filesProcessed: uploadedFiles.length,
-        fileNames: uploadedFiles.map(f => f.originalname),
-        potentialDataFound: Object.keys(foundElements).length,
-        importLog: [
-          `📄 ${uploadedFiles.length} Datei(en): ${uploadedFiles.map(f => f.originalname).join(', ')}`,
-          `📊 Extrahierte Daten:`,
-          `   - ${extractedData.clubs.length} Vereine`,
-          `   - ${extractedData.competitions.length} Wettkämpfe`,
-          `   - ${extractedData.participants.length} Teilnehmer`,
-          `   - ${extractedData.devices.length} Disziplinen`,
-          `   - ${extractedData.teams.length} Mannschaften`,
-          `💾 Datenbank-Import:`,
-          `   - Vereine: ${insertionResults.clubs.inserted} neu, ${insertionResults.clubs.updated} aktualisiert`,
-          `   - Teilnehmer: ${insertionResults.participants.inserted} neu, ${insertionResults.participants.updated} aktualisiert`,
-          `   - Wettkämpfe: ${insertionResults.competitions.inserted} neu`,
-          `   - Disziplinen: ${insertionResults.devices.inserted} neu, ${insertionResults.devices.updated} verknüpft`,
-          `   - Mannschaften: ${insertionResults.teams.inserted} erstellt, ${insertionResults.teams.members} Mitglieder zugewiesen`,
-          createdEvent ? `✅ Event "${createdEvent.var_name}" (ID: ${createdEvent.int_veranstaltungenid}) erfolgreich erstellt` : '❌ Event-Erstellung fehlgeschlagen'
-        ],
-        nextSteps: createdEvent ? [
-          'Event created successfully',
-          'Review the extracted and imported data',
-          'Verify the data accuracy and completeness in the database'
-        ] : [
-          'Event creation failed - check server logs for details',
-          'Review the extracted data below for debugging',
-          'Verify database connection and constraints'
-        ]
-      },
+    const response = buildGymnetImportResponse({
+      uploadedFiles,
+      extractedData,
       perFileSummaries,
-    };
+      debug: debugData,
+      foundElements,
+      createdEvent,
+      eventCreationError,
+      parsedStartDate,
+      parsedEndDate,
+      venueIdToUse,
+      venueNameToUse,
+      description,
+      scoringMode,
+      importResult,
+    });
 
-    res.status(createdEvent ? 200 : 400).json(responseData);
+    res.status(response.statusCode).json(response.body);
 
     if (createdEvent) {
       // Keep the source XML (renamed with the event ID) so a later GymNet results
