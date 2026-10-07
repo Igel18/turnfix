@@ -5,6 +5,24 @@ import type { MatrixData, SessionGroup } from '../TimePlanning.types';
 import { colKey, type AnyColumn, type DisciplineColumn } from '../matrixColumnHelpers';
 import { getSessionSquads, getSessionVisibleColumns } from '../scheduleMatrixUtils';
 
+const PAUSE_COLUMN_KIND = 'pause';
+const pauseColumnDragClasses = {
+  dragging: 'opacity-40 bg-gray-100',
+  dragOver: 'bg-gray-200 border-l-2 border-gray-400',
+  idle: 'cursor-grab hover:bg-gray-100',
+};
+const disciplineColumnDragClasses = {
+  dragging: 'opacity-40 bg-blue-50',
+  dragOver: 'bg-blue-100 border-l-2 border-blue-400',
+  idle: 'cursor-grab hover:bg-gray-100',
+};
+const assignmentCellClasses = {
+  saving: 'opacity-50 cursor-wait bg-gray-100 border-gray-300',
+  conflict: 'bg-red-50 border-red-500 border-2 text-red-800 ring-1 ring-red-400',
+  assigned: 'bg-blue-50 border-blue-300 text-blue-800',
+  empty: 'bg-white border-gray-300 text-gray-500',
+};
+
 interface ScheduleRoundRow {
   round: number;
   roundTime: string;
@@ -64,7 +82,7 @@ export function ScheduleAssignmentTable({
 
   const renderColumn = (column: AnyColumn, hidePause: boolean) => {
     const key = colKey(column);
-    if (column.kind === 'pause') {
+    if (column.kind === PAUSE_COLUMN_KIND) {
       if (hidePause) return null;
       const isDragging = dragColKey === key;
       const isDragOver = dragOverColKey === key;
@@ -77,7 +95,7 @@ export function ScheduleAssignmentTable({
           onDrop={event => onColumnDrop(event, key)}
           onDragEnd={onColumnDragEnd}
           className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[80px] select-none transition-colors ${
-            isDragging ? 'opacity-40 bg-gray-100' : isDragOver ? 'bg-gray-200 border-l-2 border-gray-400' : 'cursor-grab hover:bg-gray-100'
+            isDragging ? pauseColumnDragClasses.dragging : isDragOver ? pauseColumnDragClasses.dragOver : pauseColumnDragClasses.idle
           }`}
         >
           <div className="flex items-center gap-1">
@@ -106,7 +124,7 @@ export function ScheduleAssignmentTable({
         onDrop={event => onColumnDrop(event, key)}
         onDragEnd={onColumnDragEnd}
         className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] select-none transition-colors ${
-          isDragging ? 'opacity-40 bg-blue-50' : isDragOver ? 'bg-blue-100 border-l-2 border-blue-400' : 'cursor-grab hover:bg-gray-100'
+          isDragging ? disciplineColumnDragClasses.dragging : isDragOver ? disciplineColumnDragClasses.dragOver : disciplineColumnDragClasses.idle
         }`}
       >
         <div className="flex items-center gap-1">
@@ -170,10 +188,10 @@ export function ScheduleAssignmentTable({
                   <tr className="bg-gradient-to-r from-blue-600 to-blue-700">
                     <td colSpan={visibleColumns.length + 1} className="px-4 py-3">
                       <div className="text-base font-bold text-white">
-                        {t('timePlanning.round', 'Durchgang')} {row.sessionInfo!.session}
+                        {t('timePlanning.round')} {row.sessionInfo!.session}
                       </div>
                       <div className="text-blue-100 text-xs">
-                        {t('timePlanning.startTime', 'Startzeit')}: {row.sessionInfo!.startTime}
+                        {t('timePlanning.startTime')}: {row.sessionInfo!.startTime}
                       </div>
                     </td>
                   </tr>
@@ -191,7 +209,7 @@ export function ScheduleAssignmentTable({
                     {row.roundTime}
                   </td>
                   {visibleColumns.map(column => {
-                    if (column.kind === 'pause') {
+                    if (column.kind === PAUSE_COLUMN_KIND) {
                       return <td key={colKey(column)} className="px-3 py-2 bg-gray-50 border-x border-gray-100" />;
                     }
                     const cellKey = `${column.id}_${row.round}`;
@@ -204,15 +222,15 @@ export function ScheduleAssignmentTable({
                           value={value}
                           onChange={event => onCellChange(column.id, row.round, event.target.value)}
                           disabled={isSaving}
-                          title={isConflict ? t('timePlanning.matrix.conflictTooltip', 'Diese Riege ist in diesem Zeitslot bereits einem anderen Gerät zugewiesen!') : undefined}
+                          title={isConflict ? t('timePlanning.matrix.conflictTooltip') : undefined}
                           className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                             isSaving
-                              ? 'opacity-50 cursor-wait bg-gray-100 border-gray-300'
+                              ? assignmentCellClasses.saving
                               : isConflict
-                              ? 'bg-red-50 border-red-500 border-2 text-red-800 ring-1 ring-red-400'
+                              ? assignmentCellClasses.conflict
                               : value
-                              ? 'bg-blue-50 border-blue-300 text-blue-800'
-                              : 'bg-white border-gray-300 text-gray-500'
+                              ? assignmentCellClasses.assigned
+                              : assignmentCellClasses.empty
                           }`}
                         >
                           <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>

@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import type { MatrixDiscipline, Squad } from '../TimePlanning.types';
 
+const scheduleColumns = ['plannedStart', 'plannedEnd', 'switchTime', 'actualStart', 'actualEnd'] as const;
+const actualStartField = 'actualStart';
+const actualEndField = 'actualEnd';
+
 export interface SquadCellActualTimes {
   actualStart: string;
   actualEnd: string;
@@ -103,7 +107,7 @@ export function ScheduleRoundPlanTable({
                   {squad.name}
                 </th>
               ))}
-              {['plannedStart', 'plannedEnd', 'switchTime', 'actualStart', 'actualEnd'].map(column => (
+              {scheduleColumns.map(column => (
                 <th key={column} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t(`timePlanning.matrix.squadRoundPlan.${column}`)}
                 </th>
@@ -160,7 +164,7 @@ export function ScheduleRoundPlanTable({
                   <input
                     type="time"
                     value={actualTimesByRound[row.round]?.actualStart || ''}
-                    onChange={event => onActualTimeChange(row.round, 'actualStart', event.target.value)}
+                    onChange={event => onActualTimeChange(row.round, actualStartField, event.target.value)}
                     className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
                   />
                 </td>
@@ -168,7 +172,7 @@ export function ScheduleRoundPlanTable({
                   <input
                     type="time"
                     value={actualTimesByRound[row.round]?.actualEnd || ''}
-                    onChange={event => onActualTimeChange(row.round, 'actualEnd', event.target.value)}
+                    onChange={event => onActualTimeChange(row.round, actualEndField, event.target.value)}
                     className="w-full px-2 py-1.5 text-sm border rounded-md border-gray-300"
                   />
                 </td>
