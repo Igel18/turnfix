@@ -385,15 +385,11 @@ const SquadManagementUnified: React.FC = () => {
         setWizardSquad(null);
         setIsWizardOpen(true);
       }}
+      showWizardButton={true}
+      wizardLabel={t('squadManagement.autoAssign.button')}
+      onWizard={() => setIsAutoAssignOpen(true)}
       customActions={
         <div className="flex gap-2">
-          <button
-            onClick={() => setIsAutoAssignOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
-          >
-            <SparklesIcon className="h-4 w-4" />
-            {t('squadManagement.autoAssign.button')}
-          </button>
           <button
             onClick={handleGenerateSquadDisciplines}
             disabled={isGeneratingSquadDisciplines}

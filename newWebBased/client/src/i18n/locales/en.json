@@ -678,6 +678,7 @@
   },
   "common": {
     "locale": "en",
+    "wizard": "Wizard",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",

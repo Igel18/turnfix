@@ -48,6 +48,9 @@ interface EventManagementTemplateProps {
   showAddButton?: boolean;
   showImportButton?: boolean;
   showRefreshButton?: boolean;
+  onWizard?: () => void;
+  wizardLabel?: string;
+  showWizardButton?: boolean;
   
   // View mode - supports persistence
   viewMode?: 'table' | 'grid';  // DEPRECATED: Use viewStorageKey + defaultView instead
@@ -112,6 +115,9 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
   showAddButton = false,
   showImportButton = false,
   showRefreshButton = false,
+  onWizard,
+  wizardLabel,
+  showWizardButton = false,
   
   // View mode
   viewMode: legacyViewMode,
@@ -201,7 +207,9 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
         importLabel={importLabel}
         showAdd={showAddButton}
         showImport={showImportButton}
-        
+        onWizard={onWizard}
+        wizardLabel={wizardLabel}
+        showWizard={showWizardButton}        
         // View toggle
         viewMode={currentViewMode}
         onViewModeChange={handleViewChange}

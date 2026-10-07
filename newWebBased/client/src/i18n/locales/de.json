@@ -678,6 +678,7 @@
   },
   "common": {
     "locale": "de",
+    "wizard": "Assistent",
     "loading": "Lädt...",
     "save": "Speichern",
     "cancel": "Abbrechen",

@@ -7,7 +7,6 @@ import {
   Cog6ToothIcon,
   DocumentChartBarIcon,
   InformationCircleIcon,
-  SparklesIcon,
 } from '@heroicons/react/24/outline'
 
 import { useEvent } from '@/contexts/EventContext'
@@ -160,6 +159,9 @@ export default function TimePlanningRotationOverviewPage() {
       showEventContext={true}
       showViewToggle={false}
       showAddButton={false}
+      showWizardButton={true}
+      wizardLabel={wizardStartLabel}
+      onWizard={() => setShowWizard(true)}
       loading={loading}
       showFilters={timePlanningFilters.showFilters}
       onToggleFilters={timePlanningFilters.toggleFilters}
@@ -183,14 +185,6 @@ export default function TimePlanningRotationOverviewPage() {
         />
       }
       customActions={[
-        <button
-          key="wizard"
-          onClick={() => setShowWizard(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700"
-        >
-          <SparklesIcon className="h-4 w-4 mr-2" />
-          {wizardStartLabel}
-        </button>,
         <button
           key="settings"
           onClick={() => setShowTimeSettings(true)}

@@ -777,17 +777,8 @@ const DisciplinesUnified: React.FC = () => {
         onClearAllFilters={handleClearAllFilters}
         onAdd={handleCreate}
         addLabel={t('disciplines.addDiscipline')}
-        additionalContent={
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => { setWizardDiscipline(null); setIsWizardOpen(true); }}
-              className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100"
-            >
-              ✨ {t('disciplines.wizard.openButton', 'Neue Disziplin (Assistent)')}
-            </button>
-          </div>
-        }
+        onWizard={() => { setWizardDiscipline(null); setIsWizardOpen(true); }}
+        wizardLabel={t('disciplines.wizard.openButton', 'Neue Disziplin (Assistent)')}
         onEdit={handleEdit}
         onDelete={(discipline) => handleDelete(discipline.id)}
         viewStorageKey="disciplines-view"

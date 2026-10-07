@@ -6,8 +6,6 @@ import {
   FunnelIcon,
   PrinterIcon,
   DocumentArrowDownIcon,
-  PlusIcon,
-  DocumentArrowUpIcon,
   Squares2X2Icon,
   TableCellsIcon,
   MagnifyingGlassIcon,
@@ -16,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useOptionalEvent } from '../contexts/EventContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import { AddButton, WizardButton, ImportButton } from './ui/ActionButtons'
 // @ts-ignore - Import build info
 import buildInfo from '../build-info.json'
 import { apiGet } from '../utils/api'
@@ -73,6 +72,9 @@ interface UnifiedPageHeaderProps {
   importLabel?: string
   showAdd?: boolean
   showImport?: boolean
+  onWizard?: () => void
+  wizardLabel?: string
+  showWizard?: boolean
   
   // View toggle
   viewMode?: 'table' | 'grid'
@@ -122,6 +124,9 @@ export default function UnifiedPageHeader({
   importLabel = "Import",
   showAdd = false,
   showImport = false,
+  onWizard,
+  wizardLabel,
+  showWizard = false,
   viewMode = 'table',
   onViewModeChange,
   showViewToggle = false,
@@ -253,29 +258,17 @@ export default function UnifiedPageHeader({
       </div>
 
       {/* Action Buttons Row */}
-      {(showAdd || showImport || showViewToggle || customBelowActions) && (
+      {(showAdd || showImport || showWizard || showViewToggle || customBelowActions) && (
         <div className="max-w-7xl mx-auto">
           <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            {showAdd && onAdd && (
-              <button
-                onClick={onAdd}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                {addLabel}
-              </button>
+            {showAdd && onAdd && <AddButton onClick={onAdd} label={addLabel} />}
+
+            {showWizard && onWizard && (
+              <WizardButton onClick={onWizard} label={wizardLabel ?? t('common.wizard')} />
             )}
-            
-            {showImport && onImport && (
-              <button
-                onClick={onImport}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
-                {importLabel}
-              </button>
-            )}
+
+            {showImport && onImport && <ImportButton onClick={onImport} label={importLabel} />}
             
             {customBelowActions}
           </div>
