@@ -37,8 +37,9 @@ vi.mock('@/components/LiveUpdateIndicator', () => ({
 }));
 
 vi.mock('@/components/templates/EventManagementTemplate', () => ({
-  EventManagementTemplate: ({ customActions, children }: any) => (
+  EventManagementTemplate: ({ customActions, onExportWizard, children }: any) => (
     <div>
+      <button onClick={onExportWizard}>common.export</button>
       <div data-testid="custom-actions">{customActions}</div>
       {children()}
     </div>
@@ -90,7 +91,7 @@ describe('Results XML export action', () => {
   it('renders XML export button and opens GymNet export wizard', async () => {
     render(<Results />);
 
-    const xmlButton = screen.getByRole('button', { name: 'results.exportWizard.openButton' });
+    const xmlButton = screen.getByRole('button', { name: 'common.export' });
     expect(xmlButton).toBeInTheDocument();
     expect(screen.getByTestId('results-export-wizard')).toHaveTextContent('closed');
 

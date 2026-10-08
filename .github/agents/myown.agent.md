@@ -179,6 +179,27 @@ eg use WizardModal component for wizard modals.
 - required fields markt is a red star and optional fields don't have a mark.
 ---
 
+#### Unified Elements 
+### Export Menu (for CSV, XML, PDF, and other export formats like printing labels)
+- **Export Menu**: Provides options to export data in various formats such as CSV, XML, PDF, and printing labels. It should be consistently used across the application for all export functionalities.
+- Always on the same position across the application for consistency.
+- Should have a consistent visual style (e.g., color, icon) across the application.
+- Should have a clear and descriptive consistent label or icon to indicate its purpose.
+
+### New / Add Button (for creating new entries)
+
+- **New / Add Button**: Provides a way to create new entries or add new items. It should be consistently used across the application for all creation functionalities.
+- Always on the same position across the application for consistency.
+- Should have a consistent visual style (e.g., color, icon) across the application.
+- Should have a clear and descriptive consistent label or icon to indicate its purpose.
+
+### Wizard / Assistend Button (for guided actions) 
+- **Wizard / Assistend Button**: Provides a way to guide users through complex actions or multi-step processes. It should be consistently used across the application for all guided functionalities.
+- Always on the same position across the application for consistency.
+- Should have a consistent visual style (e.g., color, icon) across the application.
+- Should have a clear and descriptive consistent label or icon to indicate its purpose.
+
+
 ## 🔧 Technical Specifications
 
 ### PowerShell Environment

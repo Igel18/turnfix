@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import useViewToggle from '@/hooks/useViewToggle';
 import UnifiedPageHeader from '../UnifiedPageHeader';
+import type { ExportMenuItem } from '../ui/ExportMenu';
 
 interface EventManagementTemplateProps {
   title: string;
@@ -35,9 +36,8 @@ interface EventManagementTemplateProps {
   showPrint?: boolean;
   showExportPDF?: boolean;
   showExportCSV?: boolean;
-  printLabel?: string;
-  exportPDFLabel?: string;
-  exportCSVLabel?: string;
+  exportExtras?: ExportMenuItem[];
+  onExportWizard?: () => void;
   
   // Action buttons (below header - add & import)
   onAdd?: () => void;
@@ -102,9 +102,8 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
   showPrint = false,
   showExportPDF = false,
   showExportCSV = false,
-  printLabel,
-  exportPDFLabel,
-  exportCSVLabel,
+  exportExtras,
+  onExportWizard,
   
   // Add, Import, Refresh actions
   onAdd,
@@ -196,9 +195,8 @@ export const EventManagementTemplate: React.FC<EventManagementTemplateProps> = (
         showPrint={showPrint}
         showExportPDF={showExportPDF}
         showExportCSV={showExportCSV}
-        printLabel={printLabel}
-        exportPDFLabel={exportPDFLabel}
-        exportCSVLabel={exportCSVLabel}
+        exportExtras={exportExtras}
+        onExportWizard={onExportWizard}
         
         // Add & Import (below header)
         onAdd={onAdd}

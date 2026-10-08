@@ -679,6 +679,9 @@
   "common": {
     "locale": "de",
     "wizard": "Assistent",
+    "exportCsv": "CSV",
+    "exportPdf": "PDF",
+    "print": "Drucken",
     "loading": "Lädt...",
     "save": "Speichern",
     "cancel": "Abbrechen",

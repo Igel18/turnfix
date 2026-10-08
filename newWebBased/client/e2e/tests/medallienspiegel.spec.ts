@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { loadEventAState, setEventContext, EventAState } from '../fixtures/test-state';
 import { API_BASE } from '../fixtures/test-data';
+import { openExportItem } from '../fixtures/export-menu';
 
 /**
  * Medallienspiegel (Medal Standings) E2E Tests
@@ -137,8 +138,8 @@ test.describe('Medallienspiegel — PDF Export', () => {
   test('PDF export button is visible when data exists', async ({ page }) => {
     await page.goto(`/medallienspiegel?eventId=${state.eventId}`, { waitUntil: 'networkidle' });
 
-    // The "Export PDF" button is rendered by UnifiedPageHeader → blue button
-    const pdfBtn = page.locator('button:has-text("PDF")');
+    // The PDF entry lives in the unified export dropdown of UnifiedPageHeader
+    const pdfBtn = await openExportItem(page, /PDF/);
     await expect(pdfBtn.first()).toBeVisible({ timeout: 10_000 });
   });
 
@@ -150,9 +151,7 @@ test.describe('Medallienspiegel — PDF Export', () => {
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
 
     // Click the PDF export button and wait for the download event
-    const pdfBtn = page.locator('button:has-text("PDF")');
-    await expect(pdfBtn.first()).toBeVisible({ timeout: 5_000 });
-
+    const pdfBtn = await openExportItem(page, /PDF/);
     // jsPDF save() creates a download via an <a> element with blob URL
     const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
     await pdfBtn.first().click();
@@ -171,7 +170,7 @@ test.describe('Medallienspiegel — PDF Export', () => {
     const content = page.locator('table, [class*="grid"], [class*="card"]');
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
 
-    const pdfBtn = page.locator('button:has-text("PDF")');
+    const pdfBtn = await openExportItem(page, /PDF/);
     await expect(pdfBtn.first()).toBeVisible({ timeout: 5_000 });
 
     const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
@@ -194,7 +193,7 @@ test.describe('Medallienspiegel — PDF Export', () => {
     const content = page.locator('table, [class*="grid"], [class*="card"]');
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
 
-    const pdfBtn = page.locator('button:has-text("PDF")');
+    const pdfBtn = await openExportItem(page, /PDF/);
     await expect(pdfBtn.first()).toBeVisible({ timeout: 5_000 });
 
     const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
@@ -225,7 +224,7 @@ test.describe('Medallienspiegel — PDF Export', () => {
     const content = page.locator('table, [class*="grid"], [class*="card"]');
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
 
-    const pdfBtn = page.locator('button:has-text("PDF")');
+    const pdfBtn = await openExportItem(page, /PDF/);
     if (await pdfBtn.first().isVisible({ timeout: 5_000 }).catch(() => false)) {
       const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
       await pdfBtn.first().click();

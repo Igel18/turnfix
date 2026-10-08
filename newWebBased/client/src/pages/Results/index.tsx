@@ -263,16 +263,10 @@ const Results = () => {
       totalCount={selectedCompetition ? filteredRanking.length : filteredCompetitionGroups.reduce((sum, group) => sum + group.participants.length, 0)}
       showEventContext={true}
       showViewToggle={false}
+      onExportWizard={() => setShowGymNetExportWizard(true)}
       customActions={
         <>
           <LiveUpdateIndicator label={t('common.liveUpdates')} />
-          <button
-            onClick={() => setShowGymNetExportWizard(true)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            title={t('results.exportWizard.openButton')}
-          >
-            {t('results.exportWizard.openButton')}
-          </button>
           <button
             onClick={() => setShowDisciplineScores(!showDisciplineScores)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${disciplineScoreToggleStateClass}`}
