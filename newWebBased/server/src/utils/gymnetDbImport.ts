@@ -16,7 +16,7 @@
  */
 
 import prisma from '../lib/prisma';
-import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition } from './gymnetMapping';
+import { wedDisNrToTurnFixId, wedDisNrToName, getDisciplinesForCompetition, getActiveMappingProfile } from './gymnetMapping';
 import { resolveBereich } from './competitionHelpers';
 import { generateStartNumbersForEvent } from './startNumberUtils';
 import type { ExtractedData } from './gymnetXmlParser';
@@ -383,6 +383,13 @@ async function assignParticipantsToEvent(
 // 4. Discipline Linking
 // ============================================================================
 
+interface DisciplineRow {
+  int_disziplinenid: number;
+  var_name: string | null;
+  bol_m: boolean | null;
+  bol_w: boolean | null;
+}
+
 async function linkDisciplines(
   extractedData: ExtractedData,
   eventId: number,
@@ -423,6 +430,11 @@ async function linkDisciplines(
 
   console.log(`  📊 Found ${eventCompetitions.length} competitions for this event`);
 
+  const allDisciplines = await prisma.$queryRawUnsafe(`
+    SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen ORDER BY int_disziplinenid ASC
+  `) as DisciplineRow[];
+  const disciplineById = new Map(allDisciplines.map((d) => [d.int_disziplinenid, d]));
+
   // Group devices by competition waNr
   const devicesByCompetition = new Map<string, any[]>();
   for (const device of extractedData.devices) {
@@ -450,7 +462,10 @@ async function linkDisciplines(
       // === PRECISE MATCHING: Use wedDisNr from XML devices ===
       const seenDeviceKeys = new Set<string>();
       const uniqueCompDevices = compDevices.filter((device: any) => {
-        const key = `${String(device.code ?? '')}|${String(device.id ?? '')}|${String(device.name ?? '')}`;
+        // Same wedDisID = same discipline, even if the XML names it differently across blocks.
+        const key = device.id
+          ? `id:${String(device.id)}`
+          : `${String(device.code ?? '')}||${String(device.name ?? '')}`;
         if (seenDeviceKeys.has(key)) return false;
         seenDeviceKeys.add(key);
         return true;
@@ -475,110 +490,31 @@ async function linkDisciplines(
         const compIsMale = competition.bol_maennlich === true;
         const compIsFemale = competition.bol_weiblich === true;
 
-        let turnfixId = wedDisNrToTurnFixId(wedDisNr, {
-          wedDisId: device.id,
-          wedDisName: device.name,
-        });
-        if (turnfixId === null) {
-          console.log(`    ⚠️ No TurnFix mapping for wedDisNr=${wedDisNr} ("${device.name}")`);
+        // Mapping is ID-only (gymnet-mapping.<profile>.json, see GYMNET_MAPPING_PROFILE).
+        const mappedId = wedDisNrToTurnFixId(wedDisNr, { wedDisId: device.id, wedDisName: device.name });
+        const mappedName = wedDisNrToName(wedDisNr, { wedDisId: device.id, wedDisName: device.name });
+        const row = mappedId !== null ? disciplineById.get(mappedId) : undefined;
+
+        if (!row) {
+          const reason = mappedId === null
+            ? `kein Eintrag für wedDisNr=${wedDisNr}${device.id ? `/wedDisID=${device.id}` : ''} im Mapping-Profil "${getActiveMappingProfile()}"`
+            : `Disziplin-ID ${mappedId} existiert nicht in der Datenbank`;
+          console.log(`    ⚠️ ${reason} ("${device.name}") — not linked`);
+          warnings.push({
+            type: 'warning',
+            category: 'discipline',
+            message: `Disziplin "${device.name || wedDisNr}" konnte nicht zugeordnet werden: ${reason} — bitte in der Wettkampfverwaltung manuell zuweisen`,
+            details: `Wettkampf="${competition.var_name}"`
+          });
           results.devices.errors++;
           continue;
         }
 
-        let disciplineCheck = await prisma.$queryRawUnsafe(`
-          SELECT int_disziplinenid, var_name, bol_m, bol_w FROM tfx_disziplinen WHERE int_disziplinenid = $1 LIMIT 1
-        `, turnfixId) as any[];
-
-        // Name-based fallback: if preset ID has a different discipline than expected,
-        // look up by the canonical name. This handles production DBs where discipline IDs
-        // were assigned historically in a different order than the gymnet preset scheme.
-        const expectedDisciplineName = wedDisNrToName(wedDisNr, {
-          wedDisId: device.id,
-          wedDisName: device.name,
-        });
-        if (expectedDisciplineName && (disciplineCheck.length === 0 || disciplineCheck[0].var_name !== expectedDisciplineName)) {
-          const byNameCandidates = await prisma.$queryRawUnsafe(`
-            SELECT int_disziplinenid, var_name, bol_m, bol_w
-            FROM tfx_disziplinen
-            WHERE var_name = $1
-            ORDER BY int_disziplinenid ASC
-          `, expectedDisciplineName) as any[];
-
-          if (byNameCandidates.length > 0) {
-            const candidates = byNameCandidates;
-
-            // Prioritize exact gender semantics from wedDisNr, then competition gender.
-            let selected = candidates[0];
-
-            if (expectedGenderByCode === 'male') {
-              selected = candidates.find((d: any) => d.bol_m === true) || selected;
-            } else if (expectedGenderByCode === 'female') {
-              selected = candidates.find((d: any) => d.bol_w === true) || selected;
-            } else if (compIsMale && !compIsFemale) {
-              selected = candidates.find((d: any) => d.bol_m === true) || selected;
-            } else if (compIsFemale && !compIsMale) {
-              selected = candidates.find((d: any) => d.bol_w === true) || selected;
-            }
-
-            if (candidates.length > 1) {
-              warnings.push({
-                type: 'warning',
-                category: 'discipline',
-                message: `Mehrdeutige Disziplin in DB: "${expectedDisciplineName}" existiert ${candidates.length}x — passende Variante wurde nach Geschlecht gewählt`,
-                details: `Wettkampf="${competition.var_name}", wedDisNr=${wedDisNr}, gewählt ID=${selected.int_disziplinenid}`
-              });
-            }
-
-            console.log(`    🔄 Name fallback: using "${expectedDisciplineName}" with ID ${selected.int_disziplinenid} (candidates=${candidates.length})`);
-            disciplineCheck = [selected];
-            turnfixId = selected.int_disziplinenid;
-          }
-        }
-
-        if (disciplineCheck.length === 0) {
-          console.log(`    ⚠️ TurnFix discipline ID ${turnfixId} not found in DB`);
-          results.devices.errors++;
-          continue;
-        }
-
-        const disciplineName = disciplineCheck[0].var_name;
-        let discMale = disciplineCheck[0].bol_m === true;
-        let discFemale = disciplineCheck[0].bol_w === true;
-
-        // If wedDisNr has a strict gender expectation but the mapped DB row has
-        // inconsistent gender flags, try to resolve to a same-name discipline
-        // that supports the expected gender (common in legacy/prod DBs).
-        if ((expectedGenderByCode === 'male' && !discMale) || (expectedGenderByCode === 'female' && !discFemale)) {
-          const canonicalName = expectedDisciplineName || disciplineName;
-          const sameNameCandidates = await prisma.$queryRawUnsafe(`
-            SELECT int_disziplinenid, var_name, bol_m, bol_w
-            FROM tfx_disziplinen
-            WHERE var_name = $1
-            ORDER BY int_disziplinenid ASC
-          `, canonicalName) as any[];
-
-          const compatibleAlternative = expectedGenderByCode === 'male'
-            ? sameNameCandidates.find((d: any) => d.int_disziplinenid !== turnfixId && d.bol_m === true)
-            : sameNameCandidates.find((d: any) => d.int_disziplinenid !== turnfixId && d.bol_w === true);
-
-          if (compatibleAlternative) {
-            turnfixId = compatibleAlternative.int_disziplinenid;
-            disciplineCheck = [compatibleAlternative];
-            discMale = compatibleAlternative.bol_m === true;
-            discFemale = compatibleAlternative.bol_w === true;
-
-            console.log(
-              `    🔄 Gender fallback: using ${canonicalName} with ID ${turnfixId} for wedDisNr=${wedDisNr} (expected ${expectedGenderByCode})`
-            );
-
-            warnings.push({
-              type: 'info',
-              category: 'discipline',
-              message: `Disziplin-Zuordnung korrigiert: wedDisNr=${wedDisNr} erwartet ${expectedGenderByCode === 'male' ? 'männlich' : 'weiblich'} — alternative Disziplin-ID ${turnfixId} verwendet`,
-              details: `Wettkampf="${competition.var_name}", Disziplin="${canonicalName}"`
-            });
-          }
-        }
+        const turnfixId: number = row.int_disziplinenid;
+        console.log(`    🎯 wedDisNr=${wedDisNr} ("${device.name}") → ID ${turnfixId} "${row.var_name}"${mappedName && mappedName !== row.var_name ? ` [Mapping-Name: "${mappedName}"]` : ''}`);
+        const disciplineName = row.var_name;
+        const discMale = row.bol_m === true;
+        const discFemale = row.bol_w === true;
 
         // Gender validation: Check if discipline gender matches competition gender
         let genderMismatch = false;

@@ -241,6 +241,36 @@ describe('handleSelectAllVisible / handleDeselectAllVisible', () => {
   });
 });
 
+// ── disciplineFilterMode ──────────────────────────────────────────────────────
+
+describe('disciplineFilterMode', () => {
+  it('shows only gender-matching disciplines by default and all disciplines in "all" mode', async () => {
+    useSampleDisciplineHandlers();
+    const { result } = makeHookWrapper(makeFormData({ gender: 'männlich' }));
+    await act(async () => {});
+
+    expect(result.current.disciplineFilterMode).toBe('competition');
+    expect(result.current.displayedDisciplines.map(d => d.id)).not.toContain(3);
+
+    act(() => { result.current.setDisciplineFilterMode('all'); });
+
+    expect(result.current.displayedDisciplines).toHaveLength(5);
+  });
+
+  it('makes wrongly assigned disciplines visible so they can be removed', async () => {
+    useSampleDisciplineHandlers();
+    const { result } = makeHookWrapper(
+      makeFormData({ gender: 'männlich', disciplines: [{ disciplineId: 3, maxScore: 10 }] }),
+    );
+    await act(async () => {});
+    act(() => { result.current.setDisciplineFilterMode('all'); });
+
+    act(() => { result.current.handleDisciplineToggle(3); });
+
+    expect(result.current.formData.disciplines).toHaveLength(0);
+  });
+});
+
 // ── handleBulkSelectGroup ─────────────────────────────────────────────────────
 
 describe('handleBulkSelectGroup', () => {

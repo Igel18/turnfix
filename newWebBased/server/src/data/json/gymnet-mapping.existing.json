@@ -1,0 +1,300 @@
+{
+  "_comment": "Profil \"existing\": gewachsene Bestands-Datenbank mit historischen Disziplin-IDs. Bitte gegen die eigene Datenbank pruefen und bei Abweichungen die IDs anpassen (TD-08: spaeter GymNet-ID in der DB speichern). Zuordnung GymNet -> TurnFix-Disziplin ausschliesslich ueber IDs. \"name\" dient nur der Lesbarkeit und wird beim Import NICHT ausgewertet. byWedDisId hat Vorrang vor byWedDisNr. Aktives Profil: Umgebungsvariable GYMNET_MAPPING_PROFILE (preset | existing), Standard: preset.",
+  "profile": "existing",
+  "byWedDisId": {
+    "493": {
+      "id": 346,
+      "name": "Ringe P1-P9"
+    },
+    "1617": {
+      "id": 345,
+      "name": "Pauschenpferd P1-P9"
+    },
+    "1727": {
+      "id": 354,
+      "name": "Boden m. P1-P9"
+    },
+    "1728": {
+      "id": 347,
+      "name": "Sprung m. P1-P9"
+    },
+    "1729": {
+      "id": 713,
+      "name": "Par.-Barren P1-P9"
+    },
+    "1730": {
+      "id": 349,
+      "name": "Reck m. P1-P9"
+    },
+    "1731": {
+      "id": 350,
+      "name": "Sprung w. P1-P9"
+    },
+    "1732": {
+      "id": 351,
+      "name": "Reck/StuBa. P1-P9"
+    },
+    "1733": {
+      "id": 352,
+      "name": "Schwebebalken P1-P9"
+    },
+    "1734": {
+      "id": 355,
+      "name": "Boden w. P1-P9"
+    }
+  },
+  "byWedDisNr": {
+    "100": {
+      "id": 317,
+      "name": "Boden m. Kür"
+    },
+    "101": {
+      "id": 325,
+      "name": "Boden m. LK1"
+    },
+    "102": {
+      "id": 331,
+      "name": "Boden m. LK2"
+    },
+    "103": {
+      "id": 337,
+      "name": "Boden m. LK3"
+    },
+    "110": {
+      "id": 318,
+      "name": "P.-Pferd Kür"
+    },
+    "111": {
+      "id": 326,
+      "name": "P.-Pferd LK1"
+    },
+    "112": {
+      "id": 332,
+      "name": "P.-Pferd LK2"
+    },
+    "113": {
+      "id": 338,
+      "name": "P.-Pferd LK3"
+    },
+    "120": {
+      "id": 319,
+      "name": "Ringe m."
+    },
+    "121": {
+      "id": 327,
+      "name": "Ringe LK1"
+    },
+    "122": {
+      "id": 333,
+      "name": "Ringe LK2"
+    },
+    "123": {
+      "id": 339,
+      "name": "Ringe LK3"
+    },
+    "130": {
+      "id": 320,
+      "name": "Sprung m. Kür"
+    },
+    "131": {
+      "id": 328,
+      "name": "Sprung m. LK1"
+    },
+    "132": {
+      "id": 334,
+      "name": "Sprung m. LK2"
+    },
+    "133": {
+      "id": 340,
+      "name": "Sprung m. LK3"
+    },
+    "140": {
+      "id": 695,
+      "name": "Par.-Barren Kür"
+    },
+    "141": {
+      "id": 696,
+      "name": "Par.-Barren LK1"
+    },
+    "142": {
+      "id": 697,
+      "name": "Par.-Barren LK2"
+    },
+    "143": {
+      "id": 698,
+      "name": "Par.-Barren LK3"
+    },
+    "150": {
+      "id": 322,
+      "name": "Reck m. Kür"
+    },
+    "151": {
+      "id": 330,
+      "name": "Reck m. LK1"
+    },
+    "152": {
+      "id": 336,
+      "name": "Reck m. LK2"
+    },
+    "153": {
+      "id": 342,
+      "name": "Reck m. LK3"
+    },
+    "160": {
+      "id": 324,
+      "name": "Sprung w. Kür"
+    },
+    "161": {
+      "id": 37,
+      "name": "Sprung w. LK1"
+    },
+    "162": {
+      "id": 47,
+      "name": "Sprung w. LK2"
+    },
+    "163": {
+      "id": 57,
+      "name": "Sprung w. LK3"
+    },
+    "170": {
+      "id": 68,
+      "name": "Stufenbarren"
+    },
+    "171": {
+      "id": 38,
+      "name": "Stufenbarren LK1"
+    },
+    "172": {
+      "id": 48,
+      "name": "Stufenbarren LK2"
+    },
+    "173": {
+      "id": 58,
+      "name": "Stufenbarren LK3"
+    },
+    "180": {
+      "id": 301,
+      "name": "Schwebebalken"
+    },
+    "181": {
+      "id": 39,
+      "name": "Schwebebalken LK1"
+    },
+    "182": {
+      "id": 49,
+      "name": "Schwebebalken LK2"
+    },
+    "183": {
+      "id": 59,
+      "name": "Schwebebalken LK3"
+    },
+    "190": {
+      "id": 323,
+      "name": "Boden w. Kür"
+    },
+    "191": {
+      "id": 40,
+      "name": "Boden w. LK1"
+    },
+    "192": {
+      "id": 50,
+      "name": "Boden w. LK2"
+    },
+    "193": {
+      "id": 60,
+      "name": "Boden w. LK3"
+    },
+    "200": {
+      "id": 74,
+      "name": "Boden"
+    },
+    "209": {
+      "id": 354,
+      "name": "Boden m. P1-P9"
+    },
+    "210": {
+      "id": 31,
+      "name": "Pauschenpferd"
+    },
+    "219": {
+      "id": 345,
+      "name": "Pauschenpferd P1-P9"
+    },
+    "220": {
+      "id": 678,
+      "name": "Ringe"
+    },
+    "229": {
+      "id": 346,
+      "name": "Ringe P1-P9"
+    },
+    "230": {
+      "id": 71,
+      "name": "Sprung"
+    },
+    "239": {
+      "id": 347,
+      "name": "Sprung m. P1-P9"
+    },
+    "240": {
+      "id": 72,
+      "name": "Barren"
+    },
+    "249": {
+      "id": 713,
+      "name": "Par.-Barren P1-P9"
+    },
+    "250": {
+      "id": 46,
+      "name": "Reck"
+    },
+    "259": {
+      "id": 349,
+      "name": "Reck m. P1-P9"
+    },
+    "260": {
+      "id": 300,
+      "name": "Sprung w"
+    },
+    "269": {
+      "id": 350,
+      "name": "Sprung w. P1-P9"
+    },
+    "270": {
+      "id": 68,
+      "name": "Stufenbarren"
+    },
+    "279": {
+      "id": 351,
+      "name": "Reck/StuBa. P1-P9"
+    },
+    "280": {
+      "id": 301,
+      "name": "Schwebebalken"
+    },
+    "289": {
+      "id": 352,
+      "name": "Schwebebalken P1-P9"
+    },
+    "290": {
+      "id": 302,
+      "name": "Boden w"
+    },
+    "299": {
+      "id": 355,
+      "name": "Boden w. P1-P9"
+    },
+    "630": {
+      "id": 77,
+      "name": "Minitrampolin"
+    },
+    "915": {
+      "id": 75,
+      "name": "Gerätebahn A"
+    },
+    "916": {
+      "id": 76,
+      "name": "Gerätebahn B"
+    }
+  }
+}

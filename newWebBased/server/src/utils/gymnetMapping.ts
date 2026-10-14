@@ -1,10 +1,11 @@
 /**
  * GymNet Discipline Mapping Utilities
  * 
- * Maps GymNet discipline numbers (wedDisNr) to TurnFix database discipline IDs.
+ * Maps GymNet discipline numbers (wedDisNr) and IDs (wedDisID) to TurnFix database discipline IDs.
  * 
- * Uses FIXED discipline IDs from gymnetDisciplineIds.ts, which are explicitly
- * assigned by the DB Wizard (gymnetPreset.ts) when creating a new database.
+ * The mapping is defined ONLY by IDs in src/data/json/gymnet-mapping.<profile>.json
+ * (profile via env GYMNET_MAPPING_PROFILE: "preset" = DB from the DB wizard,
+ * "existing" = grown DB). No name matching. See TD-08 in Instructions2.md.
  * 
  * The wedDisNr numbering system:
  *   Tens digit = apparatus:
@@ -17,6 +18,8 @@
  *   Base DTB codes: 200, 210, ..., 290 (backward compat with TurnFixImport.exe)
  */
 
+import fs from 'fs';
+import path from 'path';
 import type { PrismaClient as PrismaClientType } from '@prisma/client';
 import { DISCIPLINE_IDS, DISCIPLINE_NAMES } from './gymnetDisciplineIds';
 
@@ -28,116 +31,73 @@ export { DISCIPLINE_IDS, DISCIPLINE_NAMES };
 // Every supported code is listed explicitly — no formula guessing.
 // ============================================================================
 
-const WEDDISNR_TO_DISCIPLINE_ID: Record<number, number> = {
-  // ----- Male Kür (tens 10-15, ones 0) -----
-  100: DISCIPLINE_IDS.BODEN_M_KUER,       // Boden m. Kür
-  110: DISCIPLINE_IDS.P_PFERD_KUER,        // P.-Pferd Kür
-  120: DISCIPLINE_IDS.RINGE_M,             // Ringe m.
-  130: DISCIPLINE_IDS.SPRUNG_M_KUER,       // Sprung m. Kür
-  140: DISCIPLINE_IDS.PAR_BARREN_KUER,     // Par.-Barren Kür
-  150: DISCIPLINE_IDS.RECK_M_KUER,         // Reck m. Kür
+// The tables live in JSON files (src/data/json/gymnet-mapping.<profile>.json) and map to
+// discipline IDs only. Profile "preset" = database created by the DB wizard,
+// profile "existing" = grown database with historical IDs.
 
-  // ----- Female Kür (tens 16-19, ones 0) -----
-  160: DISCIPLINE_IDS.SPRUNG_W_KUER,       // Sprung w. Kür
-  170: DISCIPLINE_IDS.STUFENBARREN,        // Stufenbarren (base = Kür)
-  180: DISCIPLINE_IDS.SCHWEBEBALKEN,       // Schwebebalken (base = Kür)
-  190: DISCIPLINE_IDS.BODEN_W_KUER,        // Boden w. Kür
+interface MappingEntry { id: number; name?: string }
+interface MappingFile {
+  profile: string;
+  byWedDisId: Record<string, MappingEntry>;
+  byWedDisNr: Record<string, MappingEntry>;
+}
 
-  // ----- Male LK1 (tens 10-15, ones 1) -----
-  101: DISCIPLINE_IDS.BODEN_M_LK1,        // Boden m. LK1
-  111: DISCIPLINE_IDS.P_PFERD_LK1,         // P.-Pferd LK1
-  121: DISCIPLINE_IDS.RINGE_LK1,           // Ringe LK1
-  131: DISCIPLINE_IDS.SPRUNG_M_LK1,        // Sprung m. LK1
-  141: DISCIPLINE_IDS.PAR_BARREN_LK1,      // Par.-Barren LK1
-  151: DISCIPLINE_IDS.RECK_M_LK1,          // Reck m. LK1
+export const GYMNET_MAPPING_PROFILES = ['preset', 'existing'] as const;
+export type GymnetMappingProfile = (typeof GYMNET_MAPPING_PROFILES)[number];
 
-  // ----- Female LK1 (tens 16-19, ones 1) -----
-  161: DISCIPLINE_IDS.SPRUNG_W_LK1,        // Sprung w. LK1
-  171: DISCIPLINE_IDS.STUFENBARREN_LK1,    // Stufenbarren LK1
-  181: DISCIPLINE_IDS.SCHWEBEBALKEN_LK1,   // Schwebebalken LK1
-  191: DISCIPLINE_IDS.BODEN_W_LK1,         // Boden w. LK1
+function resolveMappingPath(profile: GymnetMappingProfile): string {
+  const file = `gymnet-mapping.${profile}.json`;
+  const candidates = [
+    path.join(__dirname, '..', 'data', 'json', file),
+    path.join(__dirname, '..', '..', 'src', 'data', 'json', file),
+  ];
+  const found = candidates.find((c) => fs.existsSync(c));
+  if (!found) throw new Error(`Cannot find ${file}. Tried:\n${candidates.map((c) => `  - ${c}`).join('\n')}`);
+  return found;
+}
 
-  // ----- Male LK2 (tens 10-15, ones 2) -----
-  102: DISCIPLINE_IDS.BODEN_M_LK2,        // Boden m. LK2
-  112: DISCIPLINE_IDS.P_PFERD_LK2,         // P.-Pferd LK2
-  122: DISCIPLINE_IDS.RINGE_LK2,           // Ringe LK2
-  132: DISCIPLINE_IDS.SPRUNG_M_LK2,        // Sprung m. LK2
-  142: DISCIPLINE_IDS.PAR_BARREN_LK2,      // Par.-Barren LK2
-  152: DISCIPLINE_IDS.RECK_M_LK2,          // Reck m. LK2
+export function getActiveMappingProfile(): GymnetMappingProfile {
+  const value = (process.env.GYMNET_MAPPING_PROFILE || 'preset').trim().toLowerCase();
+  if (!(GYMNET_MAPPING_PROFILES as readonly string[]).includes(value)) {
+    throw new Error(`GYMNET_MAPPING_PROFILE must be one of ${GYMNET_MAPPING_PROFILES.join(', ')} (got "${value}")`);
+  }
+  return value as GymnetMappingProfile;
+}
 
-  // ----- Female LK2 (tens 16-19, ones 2) -----
-  162: DISCIPLINE_IDS.SPRUNG_W_LK2,        // Sprung w. LK2
-  172: DISCIPLINE_IDS.STUFENBARREN_LK2,    // Stufenbarren LK2
-  182: DISCIPLINE_IDS.SCHWEBEBALKEN_LK2,   // Schwebebalken LK2
-  192: DISCIPLINE_IDS.BODEN_W_LK2,         // Boden w. LK2
+const mappingCache = new Map<GymnetMappingProfile, MappingTables>();
 
-  // ----- Male LK3 (tens 10-15, ones 3) -----
-  103: DISCIPLINE_IDS.BODEN_M_LK3,        // Boden m. LK3
-  113: DISCIPLINE_IDS.P_PFERD_LK3,         // P.-Pferd LK3
-  123: DISCIPLINE_IDS.RINGE_LK3,           // Ringe LK3
-  133: DISCIPLINE_IDS.SPRUNG_M_LK3,        // Sprung m. LK3
-  143: DISCIPLINE_IDS.PAR_BARREN_LK3,      // Par.-Barren LK3
-  153: DISCIPLINE_IDS.RECK_M_LK3,          // Reck m. LK3
+interface MappingTables {
+  byNr: Record<number, number>;
+  byId: Record<number, number>;
+  names: Record<number, string>;
+}
 
-  // ----- Female LK3 (tens 16-19, ones 3) -----
-  163: DISCIPLINE_IDS.SPRUNG_W_LK3,        // Sprung w. LK3
-  173: DISCIPLINE_IDS.STUFENBARREN_LK3,    // Stufenbarren LK3
-  183: DISCIPLINE_IDS.SCHWEBEBALKEN_LK3,   // Schwebebalken LK3
-  193: DISCIPLINE_IDS.BODEN_W_LK3,         // Boden w. LK3
+function toIdTable(entries: Record<string, MappingEntry>, names: Record<number, string>): Record<number, number> {
+  const table: Record<number, number> = {};
+  for (const [key, entry] of Object.entries(entries ?? {})) {
+    table[Number(key)] = entry.id;
+    if (entry.name) names[entry.id] = entry.name;
+  }
+  return table;
+}
 
-  // ----- Male P-Übung (x09, tens 10-15 → 209-259) -----
-  209: DISCIPLINE_IDS.BODEN_M_P,           // Boden m. P1-P9
-  219: DISCIPLINE_IDS.PAUSCHENPFERD_P,     // Pauschenpferd P1-P9
-  229: DISCIPLINE_IDS.RINGE_P,             // Ringe P1-P9
-  239: DISCIPLINE_IDS.SPRUNG_M_P,          // Sprung m. P1-P9
-  249: DISCIPLINE_IDS.PAR_BARREN_P,        // Par.-Barren P1-P9
-  259: DISCIPLINE_IDS.RECK_M_P,            // Reck m. P1-P9
+function getMappingTables(): MappingTables {
+  const profile = getActiveMappingProfile();
+  let tables = mappingCache.get(profile);
+  if (!tables) {
+    const data = JSON.parse(fs.readFileSync(resolveMappingPath(profile), 'utf-8')) as MappingFile;
+    const names: Record<number, string> = {};
+    tables = { byNr: toIdTable(data.byWedDisNr, names), byId: toIdTable(data.byWedDisId, names), names };
+    mappingCache.set(profile, tables);
+    console.log(`[GymNetMapping] Loaded profile "${profile}": ${Object.keys(tables.byNr).length} wedDisNr, ${Object.keys(tables.byId).length} wedDisID entries`);
+  }
+  return tables;
+}
 
-  // ----- Female P-Übung (x09, tens 16-19 → 269-299) -----
-  269: DISCIPLINE_IDS.SPRUNG_W_P,          // Sprung w. P1-P9
-  279: DISCIPLINE_IDS.RECK_STUBA_P,        // Reck/StuBa. P1-P9
-  289: DISCIPLINE_IDS.SCHWEBEBALKEN_P,     // Schwebebalken P1-P9
-  299: DISCIPLINE_IDS.BODEN_W_P,           // Boden w. P1-P9
-
-  // ----- Base DTB codes (200-290) -----
-  // These are the original GymNet codes from TurnFixImport.exe.config.
-  // They map to the generic base apparatus (no level distinction).
-  200: DISCIPLINE_IDS.BODEN,               // Boden (generic)
-  210: DISCIPLINE_IDS.PAUSCHENPFERD,       // Pauschenpferd
-  220: DISCIPLINE_IDS.RINGE,               // Ringe
-  230: DISCIPLINE_IDS.SPRUNG,              // Sprung (generic)
-  240: DISCIPLINE_IDS.BARREN,              // Barren
-  250: DISCIPLINE_IDS.RECK,                // Reck
-  260: DISCIPLINE_IDS.SPRUNG_W,            // Sprung w
-  270: DISCIPLINE_IDS.STUFENBARREN,        // Stufenbarren
-  280: DISCIPLINE_IDS.SCHWEBEBALKEN,       // Schwebebalken
-  290: DISCIPLINE_IDS.BODEN_W,             // Boden w
-
-  // ----- Special codes -----
-  630: DISCIPLINE_IDS.MINITRAMPOLIN,       // Minitrampolin
-  915: DISCIPLINE_IDS.GERAETEBAHN_A,       // Gerätebahn A
-  916: DISCIPLINE_IDS.GERAETEBAHN_B,       // Gerätebahn B
-};
-
-// ============================================================================
-// wedDisID overrides for known GymNet exports with ambiguous wedDisNr values
-// ============================================================================
-
-const WEDDISID_TO_DISCIPLINE_ID: Record<number, number> = {
-  // P-level set observed in GymNet XML exports
-  1727: DISCIPLINE_IDS.BODEN_M_P,          // Boden m. P1-P9
-  1728: DISCIPLINE_IDS.SPRUNG_M_P,         // Sprung m. P1-P9
-  1729: DISCIPLINE_IDS.PAR_BARREN_P,       // Par.-Barren m. P1-P9
-  1730: DISCIPLINE_IDS.RECK_M_P,           // Reck m. P1-P9
-  1731: DISCIPLINE_IDS.SPRUNG_W_P,         // Sprung w. P1-P9
-  1732: DISCIPLINE_IDS.RECK_STUBA_P,       // Stu.-Barren/Reck w. P1-P9
-  1733: DISCIPLINE_IDS.SCHWEBEBALKEN_P,    // Sch.-Balken w. P1-P9
-  1734: DISCIPLINE_IDS.BODEN_W_P,          // Boden w. P1-P9
-
-  // Additional P-level codes seen in exports
-  1617: DISCIPLINE_IDS.PAUSCHENPFERD_P,    // P.-Pferd m.
-  493: DISCIPLINE_IDS.RINGE_P,             // Ringe m.
-};
+/** Forces a reload of the mapping JSON (after editing it at runtime or switching profile in tests). */
+export function clearMappingCache(): void {
+  mappingCache.clear();
+}
 
 // ============================================================================
 // Legacy BASE_DTB_MAPPING (for backward compatibility with existing code)
@@ -192,10 +152,11 @@ export function wedDisNrToTurnFixId(
   wedDisNr: string | number,
   options?: { wedDisId?: string | number | null; wedDisName?: string | null }
 ): number | null {
+  const { byId, byNr } = getMappingTables();
   const wedDisIdRaw = options?.wedDisId;
   const wedDisId = typeof wedDisIdRaw === 'string' ? parseInt(wedDisIdRaw, 10) : wedDisIdRaw;
   if (wedDisId !== undefined && wedDisId !== null && !isNaN(wedDisId)) {
-    const byWedDisId = WEDDISID_TO_DISCIPLINE_ID[wedDisId];
+    const byWedDisId = byId[wedDisId];
     if (byWedDisId !== undefined) {
       return byWedDisId;
     }
@@ -204,11 +165,11 @@ export function wedDisNrToTurnFixId(
   const nr = typeof wedDisNr === 'string' ? parseInt(wedDisNr, 10) : wedDisNr;
   if (isNaN(nr)) return null;
 
-  return WEDDISNR_TO_DISCIPLINE_ID[nr] ?? null;
+  return byNr[nr] ?? null;
 }
 
 /**
- * Returns the discipline name for a wedDisNr code (for logging/debugging).
+ * Returns the discipline name stored next to the ID in the mapping JSON (for logging only).
  */
 export function wedDisNrToName(
   wedDisNr: string | number,
@@ -216,7 +177,7 @@ export function wedDisNrToName(
 ): string | null {
   const id = wedDisNrToTurnFixId(wedDisNr, options);
   if (id === null) return null;
-  return DISCIPLINE_NAMES[id] ?? null;
+  return getMappingTables().names[id] ?? DISCIPLINE_NAMES[id] ?? null;
 }
 
 /**
@@ -226,7 +187,7 @@ export function wedDisNrToName(
  * prefer the base DTB range (200-299), otherwise use the lowest code.
  */
 export function turnFixIdToWedDisNr(turnFixId: number): number | null {
-  const candidates = Object.entries(WEDDISNR_TO_DISCIPLINE_ID)
+  const candidates = Object.entries(getMappingTables().byNr)
     .filter(([, id]) => id === turnFixId)
     .map(([wedDisNr]) => Number(wedDisNr))
     .filter((value) => !Number.isNaN(value));

@@ -2325,6 +2325,10 @@
         "filteredByGroup": "filtered by group",
         "shown": "shown"
       },
+      "filterMode": {
+        "competition": "Filter by competition",
+        "all": "Show all"
+      },
       "searchPlaceholder": "Search disciplines...",
       "showAll": "Show all",
       "showSelected": "Selected ({{count}})",

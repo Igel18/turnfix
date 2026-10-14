@@ -264,7 +264,7 @@ describe('Import Gender Validation', () => {
     expect(minitrampolinLinked).toBeDefined();
   });
 
-  it('should use a male-compatible alternative for wedDisNr 140 when mapped ID has wrong gender flags', async () => {
+  it('should link the mapped ID for wedDisNr 140 and warn when its gender flags are wrong (no name substitution)', async () => {
     const sport = await prisma.tfx_sport.findFirst();
     expect(sport).not.toBeNull();
     const sportId = sport!.int_sportid;
@@ -334,17 +334,15 @@ describe('Import Gender Validation', () => {
       const inconsistencyWarning = result.warnings.find(
         w => w.category === 'discipline' && w.message.includes('Disziplin-Stammdaten inkonsistent')
       );
-      expect(inconsistencyWarning).toBeUndefined();
+      // ID-only mapping: no same-name substitution, the mapped row is linked but flagged.
+      expect(inconsistencyWarning).toBeDefined();
 
       const linkedDiscs = await prisma.tfx_wettkaempfe_x_disziplinen.findMany({
         where: { int_wettkaempfeid: maleComp.int_wettkaempfeid }
       });
 
-      const mappedLinked = linkedDiscs.find(l => l.int_disziplinenid === mappedId);
-      const fallbackLinked = linkedDiscs.find(l => l.int_disziplinenid === fallbackId);
-
-      expect(mappedLinked).toBeUndefined();
-      expect(fallbackLinked).toBeDefined();
+      expect(linkedDiscs.find(l => l.int_disziplinenid === mappedId)).toBeDefined();
+      expect(linkedDiscs.find(l => l.int_disziplinenid === fallbackId)).toBeUndefined();
     } finally {
       if (originalMapped) {
         await prisma.tfx_disziplinen.update({

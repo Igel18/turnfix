@@ -2358,6 +2358,10 @@
         "filteredByGroup": "gefiltert nach Gruppe",
         "shown": "angezeigt"
       },
+      "filterMode": {
+        "competition": "Filter entsprechend Wettkampf",
+        "all": "Alle anzeigen"
+      },
       "searchPlaceholder": "Disziplin suchen...",
       "showAll": "Alle anzeigen",
       "showSelected": "Ausgewählt ({{count}})",

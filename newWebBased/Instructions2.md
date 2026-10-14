@@ -1247,6 +1247,11 @@ TD-06 Offen bleibt noch ein angrenzender Punkt: die Auflösung von int_formelid 
 
 TD-07 GymNet XML Export der Ergebnisse ist nur möglich wenn man auch die GymNet Import XML hat. Das liegt daran, dass die Teilnehmer IDs nicht ins GymNet importiert werden sowie auch nicht die Wettkampf und Geräte IDs. 
 Es wäre wohl einfacher, wenn alle IDs aus dem GymNet einen Platz in der DB von TurnFix hätten. Dann gäbe es keine Duplikate und ein Matching wäre ohne Probleme möglich. 
+
+TD-08 GymNet-Geräte-Mapping liegt in JSON-Dateien statt in der DB (mittel)
+Ist: server/src/data/json/gymnet-mapping.preset.json (neue DB, IDs aus gymnet-preset.json) und gymnet-mapping.existing.json (gewachsene DB mit historischen IDs). Zuordnung nur über IDs (byWedDisID vor byWedDisNr), aktives Profil über Umgebungsvariable GYMNET_MAPPING_PROFILE (preset | existing, Standard preset). Die "existing"-Datei muss pro Bestands-DB geprüft/angepasst werden.
+Soll: Bei der nächsten DB-Änderung die GymNet-IDs (wedDisID, wedDisNr) als Spalten in tfx_disziplinen aufnehmen. Dann entfallen beide JSON-Dateien und das Profil, der Import schlägt direkt per GymNet-ID in der DB nach, und Export und Import nutzen dieselbe Quelle (siehe auch TD-07).
+Risiko bis dahin: Falsches Profil oder abweichende IDs führen zu falschen/fehlenden Geräten; der Import warnt bei unbekannten Codes und verknüpft dann nichts.
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀
