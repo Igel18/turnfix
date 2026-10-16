@@ -42,6 +42,9 @@ export function filterTimePlanningData(
     ? squads.find(squad => squad.name === filters.squadFilter) ?? null
     : null
   const selectedSquadCompetitionIds = new Set(selectedSquad?.competitionIds ?? [])
+  const hasContentFilters = Boolean(
+    normalizedSearchTerm || selectedLane !== null || selectedSquad || selectedCompetitionId !== null,
+  )
 
   const filteredCompetitions = competitions.filter(competition => {
     if (selectedSession !== null && competition.round !== selectedSession) {
@@ -103,7 +106,7 @@ export function filterTimePlanningData(
       if (selectedSession !== null && group.session === selectedSession) {
         return true
       }
-      return group.competitions.length > 0 || group.squads.length > 0
+      return !hasContentFilters || group.competitions.length > 0 || group.squads.length > 0
     })
 
   return {

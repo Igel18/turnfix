@@ -441,10 +441,13 @@ const EditCompetition: React.FC = () => {
                               type="number"
                               min="0"
                               step="0.1"
-                              value={selectedDiscipline?.maxScore || 0}
+                              value={Number.isFinite(selectedDiscipline?.maxScore) ? selectedDiscipline!.maxScore : ''}
                               onChange={(e) => {
                                 e.stopPropagation();
-                                handleMaxScoreChange(discipline.int_disziplinid, parseFloat(e.target.value) || 0);
+                                handleMaxScoreChange(
+                                  discipline.int_disziplinid,
+                                  e.target.value === '' ? Number.NaN : parseFloat(e.target.value),
+                                );
                               }}
                               onClick={(e) => e.stopPropagation()}
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"

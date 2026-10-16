@@ -79,4 +79,28 @@ describe('filterTimePlanningData', () => {
 
     expect(result.filteredCompetitions.map(item => item.id)).toEqual([2])
   })
+
+  it('keeps empty sessions visible until content filters are applied', () => {
+    const groupsWithEmptySession = [
+      ...sessionGroups,
+      { session: 3, competitions: [], startTime: null, startDate: null, squads: [] },
+    ]
+    const unfiltered = filterTimePlanningData(competitions, squads, groupsWithEmptySession as any, {
+      searchTerm: '',
+      sessionFilter: '',
+      laneFilter: '',
+      squadFilter: '',
+      competitionFilter: '',
+    })
+    const searched = filterTimePlanningData(competitions, squads, groupsWithEmptySession as any, {
+      searchTerm: 'lk',
+      sessionFilter: '',
+      laneFilter: '',
+      squadFilter: '',
+      competitionFilter: '',
+    })
+
+    expect(unfiltered.filteredSessionGroups.map(item => item.session)).toEqual([1, 2, 3])
+    expect(searched.filteredSessionGroups.map(item => item.session)).toEqual([2])
+  })
 })

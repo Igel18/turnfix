@@ -57,15 +57,10 @@ export function getParticipantSquadLabel(participant: Participant): string {
 }
 
 /**
- * Sorts participants by: 1. Gender (male first), 2. Squad name, 3. Club name.
+ * Sorts participants by: 1. Squad name, 2. Club name.
  */
 export function sortParticipantsForLabels(participants: Participant[]): Participant[] {
   return [...participants].sort((a, b) => {
-    const genderOrder = { male: 0, female: 1, unknown: 2, both: 3 };
-    const gA = genderOrder[a.gender as keyof typeof genderOrder] ?? 2;
-    const gB = genderOrder[b.gender as keyof typeof genderOrder] ?? 2;
-    if (gA !== gB) return gA - gB;
-
     const squadA = getParticipantSquadLabel(a).toLowerCase();
     const squadB = getParticipantSquadLabel(b).toLowerCase();
     if (squadA !== squadB) return squadA.localeCompare(squadB, 'de');
@@ -114,7 +109,7 @@ export function useLabelPrinting({ participants, competitions, eventId }: UseLab
       }
     }
 
-    // Sort participants by: 1. Gender, 2. Squad, 3. Club
+    // Sort participants by squad, then club.
     const sortedParticipants = sortParticipantsForLabels(participants);
 
     const participantsWithoutSquad = sortedParticipants.filter((p) => getParticipantSquadLabel(p) === '');

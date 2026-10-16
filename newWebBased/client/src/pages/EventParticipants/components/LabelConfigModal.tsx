@@ -10,6 +10,10 @@ import { useTranslation } from 'react-i18next';
 import UnifiedModal from '@/components/UnifiedModal';
 import { apiGet } from '@/utils/api';
 
+const LABEL_NUMERIC_FIELDS = [
+  'rows', 'columns', 'width', 'height', 'marginTop', 'marginLeft', 'marginRight', 'marginBottom', 'startRow', 'startColumn',
+] as const;
+
 export interface LabelConfig {
   rows: number;
   columns: number;
@@ -80,9 +84,27 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
   };
 
   const handlePrint = () => {
+    if (!LABEL_NUMERIC_FIELDS.every(field => Number.isFinite(config[field]))) return;
     onPrint(config);
     onClose();
   };
+
+  const updateNumericField = (fieldIndex: number, value: string, integer = false) => {
+    const field = LABEL_NUMERIC_FIELDS[fieldIndex];
+    setConfig(prev => ({ ...prev, [field]: value === '' ? Number.NaN : integer ? parseInt(value, 10) : parseFloat(value) }));
+  };
+
+  const isConfigValid = LABEL_NUMERIC_FIELDS.every(field => Number.isFinite(config[field]))
+    && config.rows >= 1 && config.rows <= 20
+    && config.columns >= 1 && config.columns <= 10
+    && config.width >= 10 && config.width <= 200
+    && config.height >= 10 && config.height <= 100
+    && config.marginTop >= 0 && config.marginTop <= 50
+    && config.marginLeft >= 0 && config.marginLeft <= 50
+    && config.marginRight >= 0 && config.marginRight <= 50
+    && config.marginBottom >= 0 && config.marginBottom <= 50
+    && config.startRow >= 1 && config.startRow <= config.rows
+    && config.startColumn >= 1 && config.startColumn <= config.columns;
 
   return (
     <UnifiedModal
@@ -102,11 +124,12 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="1"
               max="20"
-              value={config.rows}
-              onChange={(e) => setConfig({ ...config, rows: parseInt(e.target.value) || 1 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.rows) ? config.rows : ''}
+              onChange={(e) => updateNumericField(0, e.target.value, true)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
 
@@ -116,11 +139,12 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="1"
               max="10"
-              value={config.columns}
-              onChange={(e) => setConfig({ ...config, columns: parseInt(e.target.value) || 1 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.columns) ? config.columns : ''}
+              onChange={(e) => updateNumericField(1, e.target.value, true)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
         </div>
@@ -133,12 +157,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="10"
               max="200"
               step="0.1"
-              value={config.width}
-              onChange={(e) => setConfig({ ...config, width: parseFloat(e.target.value) || 48.5 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.width) ? config.width : ''}
+              onChange={(e) => updateNumericField(2, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
 
@@ -148,12 +173,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="10"
               max="100"
               step="0.1"
-              value={config.height}
-              onChange={(e) => setConfig({ ...config, height: parseFloat(e.target.value) || 16.9 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.height) ? config.height : ''}
+              onChange={(e) => updateNumericField(3, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
         </div>
@@ -166,12 +192,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="0"
               max="50"
               step="0.1"
-              value={config.marginTop}
-              onChange={(e) => setConfig({ ...config, marginTop: parseFloat(e.target.value) || 15 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.marginTop) ? config.marginTop : ''}
+              onChange={(e) => updateNumericField(4, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
 
@@ -181,12 +208,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="0"
               max="50"
               step="0.1"
-              value={config.marginLeft}
-              onChange={(e) => setConfig({ ...config, marginLeft: parseFloat(e.target.value) || 10 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.marginLeft) ? config.marginLeft : ''}
+              onChange={(e) => updateNumericField(5, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
         </div>
@@ -198,12 +226,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="0"
               max="50"
               step="0.1"
-              value={config.marginRight}
-              onChange={(e) => setConfig({ ...config, marginRight: parseFloat(e.target.value) || 10 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.marginRight) ? config.marginRight : ''}
+              onChange={(e) => updateNumericField(6, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
 
@@ -213,12 +242,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             </label>
             <input
               type="number"
+              required
               min="0"
               max="50"
               step="0.1"
-              value={config.marginBottom}
-              onChange={(e) => setConfig({ ...config, marginBottom: parseFloat(e.target.value) || 15 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={Number.isFinite(config.marginBottom) ? config.marginBottom : ''}
+              onChange={(e) => updateNumericField(7, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
         </div>
@@ -248,11 +278,12 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
               </label>
               <input
                 type="number"
+                required
                 min="1"
-                max={config.rows}
-                value={config.startRow}
-                onChange={(e) => setConfig({ ...config, startRow: Math.max(1, Math.min(config.rows, parseInt(e.target.value) || 1)) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                max={Number.isFinite(config.rows) ? config.rows : undefined}
+                value={Number.isFinite(config.startRow) ? config.startRow : ''}
+                onChange={(e) => updateNumericField(8, e.target.value, true)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
               />
             </div>
             <div>
@@ -261,11 +292,12 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
               </label>
               <input
                 type="number"
+                required
                 min="1"
-                max={config.columns}
-                value={config.startColumn}
-                onChange={(e) => setConfig({ ...config, startColumn: Math.max(1, Math.min(config.columns, parseInt(e.target.value) || 1)) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                max={Number.isFinite(config.columns) ? config.columns : undefined}
+                value={Number.isFinite(config.startColumn) ? config.startColumn : ''}
+                onChange={(e) => updateNumericField(9, e.target.value, true)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
               />
             </div>
           </div>
@@ -273,8 +305,12 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
 
         {/* Preview Info (48b) */}
         {(() => {
-          const labelsPerPage = config.rows * config.columns;
-          const skippedPositions = (config.startRow - 1) * config.columns + (config.startColumn - 1);
+          const labelsPerPage = Number.isFinite(config.rows) && Number.isFinite(config.columns)
+            ? config.rows * config.columns
+            : 0;
+          const skippedPositions = Number.isFinite(config.startRow) && Number.isFinite(config.columns)
+            ? (config.startRow - 1) * config.columns + (config.startColumn - 1)
+            : 0;
           const availableOnFirstPage = labelsPerPage - skippedPositions;
           const totalLabels = participantCount;
           const pagesNeeded = totalLabels <= 0
@@ -309,7 +345,8 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            disabled={!isConfigValid}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('eventParticipants.labelConfig.generatePDF')}
           </button>

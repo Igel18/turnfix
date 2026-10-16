@@ -280,9 +280,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="1"
                       max="10"
-                      value={formData.round}
-                      onChange={(e) => setFormData(prev => ({ ...prev, round: parseInt(e.target.value) || 1 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={Number.isFinite(formData.round) ? formData.round : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, round: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent invalid:border-red-500 invalid:ring-red-500"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.round.description')}</p>
@@ -295,9 +295,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="1"
                       max="20"
-                      value={formData.track}
-                      onChange={(e) => setFormData(prev => ({ ...prev, track: parseInt(e.target.value) || 1 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={Number.isFinite(formData.track) ? formData.track : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, track: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent invalid:border-red-500 invalid:ring-red-500"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.track.description')}</p>
@@ -341,8 +341,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="0"
                       max="999"
-                      value={formData.qualifiers}
-                      onChange={(e) => setFormData(prev => ({ ...prev, qualifiers: parseInt(e.target.value) || 0 }))}
+                      value={Number.isFinite(formData.qualifiers) ? formData.qualifiers : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, qualifiers: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.qualifiers.description')}</p>
@@ -355,8 +355,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="1"
                       max="10"
-                      value={formData.evaluations || 3}
-                      onChange={(e) => setFormData(prev => ({ ...prev, evaluations: parseInt(e.target.value) || 3 }))}
+                      value={Number.isFinite(formData.evaluations) ? formData.evaluations : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, evaluations: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.evaluations.description')}</p>
@@ -369,8 +369,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="0"
                       max="5"
-                      value={formData.dropCount}
-                      onChange={(e) => setFormData(prev => ({ ...prev, dropCount: parseInt(e.target.value) || 0 }))}
+                      value={Number.isFinite(formData.dropCount) ? formData.dropCount : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, dropCount: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.dropCount.description')}</p>
@@ -677,10 +677,10 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                               type="number"
                               min="0"
                               step="0.1"
-                              value={selectedDiscipline?.maxScore || 0}
+                              value={Number.isFinite(selectedDiscipline?.maxScore) ? selectedDiscipline!.maxScore : ''}
                               onChange={(e) => {
                                 e.stopPropagation();
-                                const maxScore = parseFloat(e.target.value) || 0;
+                                const maxScore = e.target.value === '' ? Number.NaN : parseFloat(e.target.value);
                                 setFormData(prev => ({
                                   ...prev,
                                   disciplines: prev.disciplines.map(d =>

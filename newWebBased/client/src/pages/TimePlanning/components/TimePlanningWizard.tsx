@@ -28,6 +28,8 @@ import {
   type WizardStep,
 } from '../hooks/useTimePlanningWizard';
 
+const TIMING_STEP = 'timing';
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface TimePlanningWizardProps {
@@ -88,6 +90,15 @@ export function TimePlanningWizard({
     onViewMatrix();
   };
 
+  const timeSettingsValid = wizard.timeSettings.exerciseDurationMinutes >= 1
+    && wizard.timeSettings.exerciseDurationMinutes <= 60
+    && wizard.timeSettings.rotationIntervalMinutes >= 5
+    && wizard.timeSettings.rotationIntervalMinutes <= 120
+    && wizard.timeSettings.breakBetweenDevicesMinutes >= 0
+    && wizard.timeSettings.breakBetweenDevicesMinutes <= 60
+    && wizard.timeSettings.warmupDurationMinutes >= 0
+    && wizard.timeSettings.warmupDurationMinutes <= 60;
+
   // ── Nav buttons ─────────────────────────────────────────────────────────
   const navButtons = (
     <div className="flex justify-between mt-6 pt-4 border-t">
@@ -102,7 +113,7 @@ export function TimePlanningWizard({
       {wizard.currentStep !== 'generate' && wizard.currentStep !== 'schedule' && (
         <button
           onClick={wizard.goNext}
-          disabled={wizard.savingRounds || wizard.savingBahnen}
+          disabled={wizard.savingRounds || wizard.savingBahnen || (wizard.currentStep === TIMING_STEP && !timeSettingsValid)}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
           {wizard.savingRounds || wizard.savingBahnen
@@ -129,13 +140,13 @@ export function TimePlanningWizard({
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <div className="flex items-center gap-2">
               <input
-                type="number" min={min} max={max}
-                value={(wizard.timeSettings as any)[key]}
+                type="number" required min={min} max={max}
+                value={Number.isFinite((wizard.timeSettings as any)[key]) ? (wizard.timeSettings as any)[key] : ''}
                 onChange={e => wizard.setTimeSettings({
                   ...wizard.timeSettings,
-                  [key]: parseInt(e.target.value) || min,
+                  [key]: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10),
                 })}
-                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
               />
               <span className="text-sm text-gray-500">{t('timePlanning.minutes')}</span>
             </div>
@@ -335,6 +346,17 @@ export function TimePlanningWizard({
       <div className="flex justify-between mt-6 pt-4 border-t">
         <button onClick={wizard.goBack} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
           {t('common.back')}
+        </button>
+        <button
+          type="button"
+          onClick={wizard.generateRoundRobin}
+          disabled={wizard.generating || wizard.loadingDurchgangData || wizard.durchgangData.length === 0}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <SparklesIcon className="h-4 w-4" />
+          {wizard.generating
+            ? t('timePlanning.wizard.step5.generating')
+            : t('timePlanning.wizard.step5.generate')}
         </button>
       </div>
     </div>

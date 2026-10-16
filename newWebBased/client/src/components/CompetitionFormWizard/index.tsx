@@ -394,10 +394,10 @@ function StepDisciplines({ wizard }: { wizard: ReturnType<typeof useCompetitionW
                       type="number"
                       min="0"
                       step="0.1"
-                      value={selDisc?.maxScore ?? 0}
+                      value={Number.isFinite(selDisc?.maxScore) ? selDisc!.maxScore : ''}
                       onChange={(e) => {
                         e.stopPropagation();
-                        const maxScore = parseFloat(e.target.value) || 0;
+                        const maxScore = e.target.value === '' ? Number.NaN : parseFloat(e.target.value);
                         setFormData((prev) => ({
                           ...prev,
                           disciplines: prev.disciplines.map((d) => d.disciplineId === disc.id ? { ...d, maxScore } : d),
@@ -456,13 +456,13 @@ function StepSettings({ wizard }: { wizard: ReturnType<typeof useCompetitionWiza
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">{t('competitionForm.scheduling.round.label')}</label>
-            <input type="number" min={1} max={10} value={formData.round} onChange={(e) => setFormData((f) => ({ ...f, round: parseInt(e.target.value) || 1 }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" />
+            <input type="number" required min={1} max={10} value={Number.isFinite(formData.round) ? formData.round : ''} onChange={(e) => setFormData((f) => ({ ...f, round: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">{t('competitionForm.scheduling.track.label')}</label>
-            <input type="number" min={1} max={20} value={formData.track} onChange={(e) => setFormData((f) => ({ ...f, track: parseInt(e.target.value) || 1 }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" />
+            <input type="number" required min={1} max={20} value={Number.isFinite(formData.track) ? formData.track : ''} onChange={(e) => setFormData((f) => ({ ...f, track: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">{t('competitionForm.scheduling.startTime.label')}</label>
@@ -483,17 +483,17 @@ function StepSettings({ wizard }: { wizard: ReturnType<typeof useCompetitionWiza
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">{t('competitionForm.qualification.qualifiers.label')}</label>
-            <input type="number" min={0} max={999} value={formData.qualifiers} onChange={(e) => setFormData((f) => ({ ...f, qualifiers: parseInt(e.target.value) || 0 }))}
+            <input type="number" min={0} max={999} value={Number.isFinite(formData.qualifiers) ? formData.qualifiers : ''} onChange={(e) => setFormData((f) => ({ ...f, qualifiers: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">{t('competitionForm.qualification.evaluations.label')}</label>
-            <input type="number" min={1} max={10} value={formData.evaluations ?? 3} onChange={(e) => setFormData((f) => ({ ...f, evaluations: parseInt(e.target.value) || 3 }))}
+            <input type="number" min={1} max={10} value={Number.isFinite(formData.evaluations) ? formData.evaluations : ''} onChange={(e) => setFormData((f) => ({ ...f, evaluations: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">{t('competitionForm.qualification.dropCount.label')}</label>
-            <input type="number" min={0} max={5} value={formData.dropCount} onChange={(e) => setFormData((f) => ({ ...f, dropCount: parseInt(e.target.value) || 0 }))}
+            <input type="number" min={0} max={5} value={Number.isFinite(formData.dropCount) ? formData.dropCount : ''} onChange={(e) => setFormData((f) => ({ ...f, dropCount: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
