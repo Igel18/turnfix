@@ -124,7 +124,6 @@ export function ScheduleMatrixView({
   const { squads: squadNames } = matrixData;
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
-  const hasMultipleSessions = Boolean(sessionGroups && sessionGroups.length > 1);
   const effectiveSelectedSession = selectedSession ? Number(selectedSession) : null;
 
   // Per-session rotation intervals based on max squad size × exercise duration.
@@ -203,7 +202,6 @@ export function ScheduleMatrixView({
         localColumns={localColumns}
         activeColumns={activeColumns}
         roundRows={filteredRoundRows}
-        hasMultipleSessions={hasMultipleSessions}
         selectedSession={effectiveSelectedSession}
         sessionGroups={visibleSessionGroups ?? sessionGroups}
         squadNames={squadNames}

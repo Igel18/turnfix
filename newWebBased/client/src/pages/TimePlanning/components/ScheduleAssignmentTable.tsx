@@ -1,11 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
+import GroupedTableSection from '@/components/ui/GroupedTableSection'
 import type { MatrixData, SessionGroup } from '../TimePlanning.types';
 import { colKey, type AnyColumn, type DisciplineColumn } from '../matrixColumnHelpers';
 import { getSessionSquads, getSessionVisibleColumns } from '../scheduleMatrixUtils';
 
 const PAUSE_COLUMN_KIND = 'pause';
+const UNASSIGNED_SESSION_KEY = 'unassigned';
+const SESSION_GROUP_TEST_ID = 'schedule-session-group';
 const pauseColumnDragClasses = {
   dragging: 'opacity-40 bg-gray-100',
   dragOver: 'bg-gray-200 border-l-2 border-gray-400',
@@ -34,7 +37,6 @@ interface ScheduleAssignmentTableProps {
   localColumns: AnyColumn[];
   activeColumns: AnyColumn[];
   roundRows: ScheduleRoundRow[];
-  hasMultipleSessions: boolean;
   selectedSession: number | null;
   sessionGroups?: SessionGroup[];
   squadNames: string[];
@@ -59,7 +61,6 @@ export function ScheduleAssignmentTable({
   localColumns,
   activeColumns,
   roundRows,
-  hasMultipleSessions,
   selectedSession,
   sessionGroups,
   squadNames,
@@ -79,6 +80,19 @@ export function ScheduleAssignmentTable({
   onCellChange,
 }: ScheduleAssignmentTableProps) {
   const { t } = useTranslation();
+
+  const sessionGroupsForRows = roundRows.reduce<Array<{
+    sessionInfo: ScheduleRoundRow['sessionInfo'];
+    rows: ScheduleRoundRow[];
+  }>>((groups, row) => {
+    const previousGroup = groups[groups.length - 1];
+    if (previousGroup && previousGroup.sessionInfo?.session === row.sessionInfo?.session) {
+      previousGroup.rows.push(row);
+    } else {
+      groups.push({ sessionInfo: row.sessionInfo, rows: [row] });
+    }
+    return groups;
+  }, []);
 
   const renderColumn = (column: AnyColumn, hidePause: boolean) => {
     const key = colKey(column);
@@ -155,102 +169,88 @@ export function ScheduleAssignmentTable({
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full divide-y divide-gray-200">
-        {(!hasMultipleSessions || selectedSession !== null) && (
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                {t('timePlanning.matrix.time')}
-              </th>
-              {activeColumns.map(column => renderColumn(column, false))}
-            </tr>
-          </thead>
-        )}
-        <tbody className="bg-white divide-y divide-gray-200">
-          {roundRows.map((row, index) => {
-            const previousSession = index > 0 ? roundRows[index - 1].sessionInfo : null;
-            const isNewSession = row.sessionInfo !== null
-              && row.sessionInfo.session !== previousSession?.session;
-            const visibleColumns = selectedSession === null
-              ? getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, row.sessionInfo?.session ?? null)
-              : activeColumns;
-            const sessionSquads = getSessionSquads(
-              selectedSession ?? row.sessionInfo?.session ?? null,
-              sessionGroups,
-              squadNames,
-            );
+    <div className="space-y-6 p-6">
+      {sessionGroupsForRows.map((group, groupIndex) => {
+        const visibleColumns = selectedSession === null
+          ? getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, group.sessionInfo?.session ?? null)
+          : activeColumns;
 
-            return (
-              <React.Fragment key={row.round}>
-                {isNewSession && (
-                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700">
-                    <td colSpan={visibleColumns.length + 1} className="px-4 py-3">
-                      <div className="text-base font-bold text-white">
-                        {t('timePlanning.round')} {row.sessionInfo!.session}
-                      </div>
-                      <div className="text-blue-100 text-xs">
-                        {t('timePlanning.startTime')}: {row.sessionInfo!.startTime}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-                {hasMultipleSessions && selectedSession === null && isNewSession && (
-                    <tr className="bg-gray-50">
+        return (
+          <GroupedTableSection
+            key={`${group.sessionInfo?.session ?? UNASSIGNED_SESSION_KEY}-${groupIndex}`}
+            title={group.sessionInfo
+              ? `${t('timePlanning.round')} ${group.sessionInfo.session}`
+              : undefined}
+            description={group.sessionInfo
+              ? `${t('timePlanning.startTime')}: ${group.sessionInfo.startTime}`
+              : undefined}
+            testId={SESSION_GROUP_TEST_ID}
+          >
+              <table className="w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                       {t('timePlanning.matrix.time')}
                     </th>
-                    {visibleColumns.map(column => renderColumn(column, true))}
+                    {visibleColumns.map(column => renderColumn(column, group.sessionInfo !== null))}
                   </tr>
-                )}
-                <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50 text-center">
-                    {row.roundTime}
-                  </td>
-                  {visibleColumns.map(column => {
-                    if (column.kind === PAUSE_COLUMN_KIND) {
-                      return <td key={colKey(column)} className="px-4 py-4 bg-gray-50 border-x border-gray-100" />;
-                    }
-                    const cellKey = `${column.id}_${row.round}`;
-                    const isSaving = savingCell === cellKey;
-                    const value = getCellValue(column.id, row.round);
-                    const isConflict = conflictCells.has(cellKey);
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {group.rows.map(row => {
+                    const sessionSquads = getSessionSquads(
+                      selectedSession ?? row.sessionInfo?.session ?? null,
+                      sessionGroups,
+                      squadNames,
+                    );
                     return (
-                      <td key={colKey(column)} className="px-4 py-4">
-                        <select
-                          value={value}
-                          onChange={event => onCellChange(column.id, row.round, event.target.value)}
-                          disabled={isSaving}
-                          title={isConflict ? t('timePlanning.matrix.conflictTooltip') : undefined}
-                          className={`w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                            isSaving
-                              ? assignmentCellClasses.saving
-                              : isConflict
-                              ? assignmentCellClasses.conflict
-                              : value
-                              ? assignmentCellClasses.assigned
-                              : assignmentCellClasses.empty
-                          }`}
-                        >
-                          <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>
-                          {sessionSquads.map(squad => <option key={squad} value={squad}>{squad}</option>)}
-                        </select>
-                      </td>
+                      <tr key={row.round} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50 text-center">
+                          {row.roundTime}
+                        </td>
+                        {visibleColumns.map(column => {
+                          if (column.kind === PAUSE_COLUMN_KIND) {
+                            return <td key={colKey(column)} className="px-4 py-4 bg-gray-50 border-x border-gray-100" />;
+                          }
+                          const cellKey = `${column.id}_${row.round}`;
+                          const isSaving = savingCell === cellKey;
+                          const value = getCellValue(column.id, row.round);
+                          const isConflict = conflictCells.has(cellKey);
+                          return (
+                            <td key={colKey(column)} className="px-4 py-4">
+                              <select
+                                value={value}
+                                onChange={event => onCellChange(column.id, row.round, event.target.value)}
+                                disabled={isSaving}
+                                title={isConflict ? t('timePlanning.matrix.conflictTooltip') : undefined}
+                                className={`w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                                  isSaving
+                                    ? assignmentCellClasses.saving
+                                    : isConflict
+                                    ? assignmentCellClasses.conflict
+                                    : value
+                                    ? assignmentCellClasses.assigned
+                                    : assignmentCellClasses.empty
+                                }`}
+                              >
+                                <option value="">– {t('timePlanning.matrix.emptyCell')} –</option>
+                                {sessionSquads.map(squad => <option key={squad} value={squad}>{squad}</option>)}
+                              </select>
+                            </td>
+                          );
+                        })}
+                      </tr>
                     );
                   })}
-                </tr>
-              </React.Fragment>
-            );
-          })}
-          {roundRows.length === 0 && (
-            <tr>
-              <td colSpan={Math.max(activeColumns.length + 1, 2)} className="px-4 py-6 text-center text-sm text-gray-500">
-                {t('timePlanning.noData')}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                </tbody>
+              </table>
+          </GroupedTableSection>
+        );
+      })}
+      {roundRows.length === 0 && (
+        <div className="rounded-lg border bg-white px-4 py-6 text-center text-sm text-gray-500">
+          {t('timePlanning.noData')}
+        </div>
+      )}
     </div>
   );
 }
