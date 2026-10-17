@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { 
   CogIcon,
@@ -12,7 +12,8 @@ import {
   CheckCircleIcon,
   GlobeAltIcon,
   ClipboardDocumentListIcon,
-  WifiIcon
+  WifiIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import UnifiedPageHeader from '@/components/UnifiedPageHeader'
 import { apiGet, apiPost } from '../utils/api'
@@ -38,6 +39,11 @@ interface ConfigSetting {
   required?: boolean
   sensitive?: boolean
 }
+
+const DATABASE_NAMES_LIST_ID = 'configuration-database-name-options'
+const DATABASE_NAME_SETTING_KEY = 'db_name'
+const SPINNING_ICON_CLASS = 'animate-spin'
+const STATUS_ROLE = 'status'
 
 const Configuration: React.FC = () => {
     const [showWizard, setShowWizard] = useState(false);
@@ -261,6 +267,50 @@ const Configuration: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [connectedDb, setConnectedDb] = useState<string | null>(null)
+  const [availableDatabases, setAvailableDatabases] = useState<string[]>([])
+  const [loadingDatabases, setLoadingDatabases] = useState(false)
+  const [databaseListError, setDatabaseListError] = useState(false)
+  const databaseListRequestId = useRef(0)
+
+  const databaseSettings = configSections.find(section => section.id === 'database')?.settings ?? []
+  const getDatabaseSetting = (key: string) => databaseSettings.find(setting => setting.key === key)?.value
+  const databaseHost = getDatabaseSetting('db_host')
+  const databasePort = getDatabaseSetting('db_port')
+  const databaseUser = getDatabaseSetting('db_user')
+  const databasePassword = getDatabaseSetting('db_password')
+  const databaseSsl = getDatabaseSetting('db_ssl')
+
+  const loadAvailableDatabases = useCallback(async () => {
+    if (!databaseHost || !databasePort || !databaseUser) return
+    const requestId = ++databaseListRequestId.current
+    setLoadingDatabases(true)
+    setDatabaseListError(false)
+    try {
+      const response = await apiPost('/configuration/list-databases', {
+        db_host: databaseHost,
+        db_port: databasePort,
+        db_user: databaseUser,
+        db_password: databasePassword ?? '',
+        db_ssl: Boolean(databaseSsl),
+      })
+      if (databaseListRequestId.current === requestId) {
+        setAvailableDatabases(Array.isArray(response?.databases) ? response.databases : [])
+      }
+    } catch {
+      if (databaseListRequestId.current === requestId) {
+        setAvailableDatabases([])
+        setDatabaseListError(true)
+      }
+    } finally {
+      if (databaseListRequestId.current === requestId) setLoadingDatabases(false)
+    }
+  }, [databaseHost, databasePort, databaseUser, databasePassword, databaseSsl])
+
+  useEffect(() => {
+    if (activeSection !== 'database' || !databaseHost || !databasePort || !databaseUser) return
+    const debounceTimer = window.setTimeout(() => void loadAvailableDatabases(), 400)
+    return () => window.clearTimeout(debounceTimer)
+  }, [activeSection, databaseHost, databasePort, databaseUser, loadAvailableDatabases])
 
   // Fetch which database the server is actually connected to
   const fetchConnectedDatabase = async () => {
@@ -996,7 +1046,44 @@ const Configuration: React.FC = () => {
                               {setting.required && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             
-                            {setting.type === 'text' && (
+                            {setting.type === 'text' && activeConfigSection.id === 'database' && setting.key === DATABASE_NAME_SETTING_KEY && (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    list={DATABASE_NAMES_LIST_ID}
+                                    value={setting.value}
+                                    onChange={(e) => updateSetting(activeConfigSection.id, setting.key, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required={setting.required}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => void loadAvailableDatabases()}
+                                    disabled={loadingDatabases || !databaseHost || !databaseUser}
+                                    className="inline-flex items-center justify-center p-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title={t('configuration.sections.database.refreshDatabaseList')}
+                                    aria-label={t('configuration.sections.database.refreshDatabaseList')}
+                                  >
+                                    <ArrowPathIcon className={`h-5 w-5 ${loadingDatabases ? SPINNING_ICON_CLASS : ''}`} />
+                                  </button>
+                                </div>
+                                <datalist id={DATABASE_NAMES_LIST_ID}>
+                                  {availableDatabases.map(databaseName => (
+                                    <option key={databaseName} value={databaseName} />
+                                  ))}
+                                </datalist>
+                                <p className="mt-1 text-sm text-gray-500" role={databaseListError ? STATUS_ROLE : undefined}>
+                                  {databaseListError
+                                    ? t('configuration.sections.database.databaseListError')
+                                    : loadingDatabases
+                                      ? t('configuration.sections.database.databaseListLoading')
+                                      : t('configuration.sections.database.databaseListHint', { count: availableDatabases.length })}
+                                </p>
+                              </>
+                            )}
+
+                            {setting.type === 'text' && !(activeConfigSection.id === 'database' && setting.key === DATABASE_NAME_SETTING_KEY) && (
                               <input
                                 type="text"
                                 value={setting.value}

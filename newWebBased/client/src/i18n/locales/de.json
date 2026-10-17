@@ -390,7 +390,11 @@
         },
         "name": {
           "label": "Datenbankname",
-          "description": "Name der Datenbank"
+          "description": "Name der Datenbank",
+          "databaseListHint": "{{count}} Datenbanken auf diesem Host gefunden. Sie können auch einen neuen Namen eingeben.",
+          "databaseListLoading": "Datenbanken werden geladen …",
+          "databaseListError": "Datenbanken konnten nicht geladen werden. Sie können den Namen weiterhin manuell eingeben.",
+          "refreshDatabaseList": "Datenbankliste aktualisieren"
         },
         "user": {
           "label": "Datenbankbenutzer",

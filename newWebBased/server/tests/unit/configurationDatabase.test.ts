@@ -78,6 +78,47 @@ describe('configurationDatabase routes', () => {
     mockDisconnect.mockResolvedValue(undefined);
   });
 
+  describe('POST /api/configuration/list-databases', () => {
+    it('returns non-template database names from the configured host', async () => {
+      mockQueryRaw.mockResolvedValueOnce([
+        { datname: 'postgres' },
+        { datname: 'turnfix' },
+      ]);
+
+      const response = await request(app)
+        .post('/api/configuration/list-databases')
+        .send(dbConfig)
+        .expect(200);
+
+      expect(response.body.databases).toEqual(['postgres', 'turnfix']);
+      expect(mockQueryRaw).toHaveBeenCalled();
+      expect(mockDisconnect).toHaveBeenCalled();
+    });
+
+    it('rejects incomplete connection details without creating a client', async () => {
+      await request(app)
+        .post('/api/configuration/list-databases')
+        .send({ db_host: 'localhost' })
+        .expect(400);
+
+      expect(mockQueryRaw).not.toHaveBeenCalled();
+    });
+
+    it('returns a generic error and disconnects when the host cannot be queried', async () => {
+      mockQueryRaw.mockRejectedValueOnce(new Error('connection refused'));
+
+      const response = await request(app)
+        .post('/api/configuration/list-databases')
+        .send(dbConfig)
+        .expect(502);
+
+      expect(response.body.databases).toBeUndefined();
+      expect(response.body.error).toMatch(/could not list databases/i);
+      expect(response.body.error).not.toContain(dbConfig.db_password);
+      expect(mockDisconnect).toHaveBeenCalled();
+    });
+  });
+
   // ──────────────────────────────────────────────────────────────────
   // POST /api/configuration/test-database
   // ──────────────────────────────────────────────────────────────────

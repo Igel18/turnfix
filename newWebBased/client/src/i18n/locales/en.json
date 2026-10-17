@@ -387,7 +387,11 @@
         },
         "name": {
           "label": "Database Name",
-          "description": "Name of the database"
+          "description": "Name of the database",
+          "databaseListHint": "{{count}} databases found on this host. You can also enter a new name.",
+          "databaseListLoading": "Loading databases…",
+          "databaseListError": "Could not load databases. You can still enter a name manually.",
+          "refreshDatabaseList": "Refresh database list"
         },
         "user": {
           "label": "Database User",
