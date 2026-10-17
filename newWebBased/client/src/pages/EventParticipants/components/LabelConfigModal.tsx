@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import UnifiedModal from '@/components/UnifiedModal';
+import LocalizedNumberInput from '@/components/ui/LocalizedNumberInput';
 import { apiGet } from '@/utils/api';
 
 const LABEL_NUMERIC_FIELDS = [
@@ -89,9 +90,12 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
     onClose();
   };
 
-  const updateNumericField = (fieldIndex: number, value: string, integer = false) => {
+  const updateNumericField = (fieldIndex: number, value: string | number, integer = false) => {
     const field = LABEL_NUMERIC_FIELDS[fieldIndex];
-    setConfig(prev => ({ ...prev, [field]: value === '' ? Number.NaN : integer ? parseInt(value, 10) : parseFloat(value) }));
+    const parsedValue = typeof value === 'number'
+      ? value
+      : value === '' ? Number.NaN : integer ? parseInt(value, 10) : parseFloat(value);
+    setConfig(prev => ({ ...prev, [field]: parsedValue }));
   };
 
   const isConfigValid = LABEL_NUMERIC_FIELDS.every(field => Number.isFinite(config[field]))
@@ -155,14 +159,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('eventParticipants.labelConfig.width')} (mm)
             </label>
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="label-width"
               required
-              min="10"
-              max="200"
-              step="0.1"
-              value={Number.isFinite(config.width) ? config.width : ''}
-              onChange={(e) => updateNumericField(2, e.target.value)}
+              min={10}
+              max={200}
+              value={config.width}
+              onValueChange={(value) => updateNumericField(2, value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
@@ -171,14 +174,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('eventParticipants.labelConfig.height')} (mm)
             </label>
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="label-height"
               required
-              min="10"
-              max="100"
-              step="0.1"
-              value={Number.isFinite(config.height) ? config.height : ''}
-              onChange={(e) => updateNumericField(3, e.target.value)}
+              min={10}
+              max={100}
+              value={config.height}
+              onValueChange={(value) => updateNumericField(3, value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
@@ -190,14 +192,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('eventParticipants.labelConfig.marginTop')} (mm)
             </label>
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="label-margin-top"
               required
-              min="0"
-              max="50"
-              step="0.1"
-              value={Number.isFinite(config.marginTop) ? config.marginTop : ''}
-              onChange={(e) => updateNumericField(4, e.target.value)}
+              min={0}
+              max={50}
+              value={config.marginTop}
+              onValueChange={(value) => updateNumericField(4, value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
@@ -206,14 +207,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('eventParticipants.labelConfig.marginLeft')} (mm)
             </label>
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="label-margin-left"
               required
-              min="0"
-              max="50"
-              step="0.1"
-              value={Number.isFinite(config.marginLeft) ? config.marginLeft : ''}
-              onChange={(e) => updateNumericField(5, e.target.value)}
+              min={0}
+              max={50}
+              value={config.marginLeft}
+              onValueChange={(value) => updateNumericField(5, value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
@@ -224,14 +224,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('eventParticipants.labelConfig.marginRight')} (mm)
             </label>
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="label-margin-right"
               required
-              min="0"
-              max="50"
-              step="0.1"
-              value={Number.isFinite(config.marginRight) ? config.marginRight : ''}
-              onChange={(e) => updateNumericField(6, e.target.value)}
+              min={0}
+              max={50}
+              value={config.marginRight}
+              onValueChange={(value) => updateNumericField(6, value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>
@@ -240,14 +239,13 @@ export function LabelConfigModal({ isOpen, onClose, onPrint, participantCount }:
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('eventParticipants.labelConfig.marginBottom')} (mm)
             </label>
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="label-margin-bottom"
               required
-              min="0"
-              max="50"
-              step="0.1"
-              value={Number.isFinite(config.marginBottom) ? config.marginBottom : ''}
-              onChange={(e) => updateNumericField(7, e.target.value)}
+              min={0}
+              max={50}
+              value={config.marginBottom}
+              onValueChange={(value) => updateNumericField(7, value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
           </div>

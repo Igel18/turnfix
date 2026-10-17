@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import WizardModal, { type WizardStepDef } from '@/components/WizardModal';
 import { YellowInfoBox, BlueInfoBox } from '@/components/InfoBoxes';
+import LocalizedNumberInput from '@/components/ui/LocalizedNumberInput';
 import type { Competition, TimeSettings } from '../TimePlanning.types';
 import {
   useTimePlanningWizard,
@@ -130,21 +131,24 @@ export function TimePlanningWizard({
       <YellowInfoBox>{t('timePlanning.wizard.step2.hint')}</YellowInfoBox>
       <BlueInfoBox>{t('timePlanning.wizard.step2.rotationIntervalInfo')}</BlueInfoBox>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {[
-          { key: 'exerciseDurationMinutes',    label: t('timePlanning.timeSettings.exerciseDuration'),    min: 1, max: 60 },
-          { key: 'rotationIntervalMinutes',    label: t('timePlanning.timeSettings.rotationInterval'),    min: 5, max: 120 },
-          { key: 'breakBetweenDevicesMinutes', label: t('timePlanning.timeSettings.breakBetweenDevices'), min: 0, max: 60 },
-          { key: 'warmupDurationMinutes',      label: t('timePlanning.timeSettings.warmupDuration'),      min: 0, max: 60 },
-        ].map(({ key, label, min, max }) => (
+          {[
+            { key: 'exerciseDurationMinutes',    label: t('timePlanning.timeSettings.exerciseDuration'),    min: 1, max: 60 },
+            { key: 'rotationIntervalMinutes',    label: t('timePlanning.timeSettings.rotationInterval'),    min: 5, max: 120 },
+            { key: 'breakBetweenDevicesMinutes', label: t('timePlanning.timeSettings.breakBetweenDevices'), min: 0, max: 60 },
+            { key: 'warmupDurationMinutes',      label: t('timePlanning.timeSettings.warmupDuration'),      min: 0, max: 60 },
+          ].map(({ key, label, min, max }) => (
           <div key={key}>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <div className="flex items-center gap-2">
-              <input
-                type="number" required min={min} max={max}
-                value={Number.isFinite((wizard.timeSettings as any)[key]) ? (wizard.timeSettings as any)[key] : ''}
-                onChange={e => wizard.setTimeSettings({
+                <LocalizedNumberInput
+                  id={`wizard-${key}`}
+                  required
+                  min={min}
+                  max={max}
+                  value={(wizard.timeSettings as any)[key]}
+                  onValueChange={value => wizard.setTimeSettings({
                   ...wizard.timeSettings,
-                  [key]: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10),
+                    [key]: value,
                 })}
                 className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500"
               />

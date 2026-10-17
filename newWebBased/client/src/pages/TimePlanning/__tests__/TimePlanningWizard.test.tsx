@@ -99,12 +99,13 @@ describe('TimePlanningWizard', () => {
       />,
     )
 
-    const durationInput = screen.getAllByRole('spinbutton')[0]
-    expect(durationInput).toHaveValue(null)
-    expect(durationInput).toBeInvalid()
+    const durationInput = document.getElementById('wizard-exerciseDurationMinutes') as HTMLInputElement
+    expect(durationInput).toHaveValue('')
+    expect(durationInput).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('button', { name: 'timePlanning.wizard.next' })).toBeDisabled()
 
-    fireEvent.change(durationInput, { target: { value: '5' } })
-    expect(setTimeSettings).toHaveBeenCalledWith(expect.objectContaining({ exerciseDurationMinutes: 5 }))
+    fireEvent.change(durationInput, { target: { value: '5,5' } })
+    expect(durationInput).toHaveValue('5,5')
+    expect(setTimeSettings).toHaveBeenCalledWith(expect.objectContaining({ exerciseDurationMinutes: 5.5 }))
   })
 })

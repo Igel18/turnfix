@@ -24,13 +24,17 @@ describe('TimeSettingsModal numeric fields', () => {
     }
     render(<Harness />)
 
-    const durationInput = screen.getAllByRole('spinbutton')[0]
+    const durationInput = document.getElementById('time-settings-exercise-duration') as HTMLInputElement
     fireEvent.change(durationInput, { target: { value: '' } })
 
-    expect(screen.getAllByRole('spinbutton')[0]).toHaveValue(null)
-    expect(screen.getAllByRole('spinbutton')[0]).toBeInvalid()
+    expect(durationInput).toHaveValue('')
+    expect(durationInput).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('button', { name: 'common.save' })).toBeDisabled()
     fireEvent.click(screen.getByRole('button', { name: 'common.save' }))
     expect(saveTimeSettings).not.toHaveBeenCalled()
+
+    fireEvent.change(durationInput, { target: { value: '3,5' } })
+    expect(durationInput).toHaveValue('3,5')
+    expect(screen.getByRole('button', { name: 'common.save' })).toBeEnabled()
   })
 })

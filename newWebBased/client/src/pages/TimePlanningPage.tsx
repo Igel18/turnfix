@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEvent } from '../contexts/EventContext';
 import UnifiedPageHeader from '../components/UnifiedPageHeader';
+import LocalizedNumberInput from '../components/ui/LocalizedNumberInput';
 import { ClockIcon, CalendarIcon, UsersIcon, CogIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 interface SquadDiscipline {
@@ -305,13 +306,14 @@ const TimePlanningPage: React.FC = () => {
             {t('timePlanning.exerciseDuration')}
           </label>
           <div className="flex items-center">
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="legacy-time-exercise-duration"
+              required
+              min={1}
+              max={60}
               value={exerciseDuration}
-              onChange={(e) => setExerciseDuration(parseInt(e.target.value))}
+              onValueChange={setExerciseDuration}
               className="block w-20 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              min="1"
-              max="60"
             />
             <span className="ml-2 text-sm text-gray-600">{t('timePlanning.minutes')}</span>
           </div>
@@ -321,13 +323,14 @@ const TimePlanningPage: React.FC = () => {
             {t('timePlanning.rotationInterval')}
           </label>
           <div className="flex items-center">
-            <input
-              type="number"
+            <LocalizedNumberInput
+              id="legacy-time-rotation-interval"
+              required
+              min={5}
+              max={120}
               value={rotationInterval}
-              onChange={(e) => setRotationInterval(parseInt(e.target.value))}
+              onValueChange={setRotationInterval}
               className="block w-20 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              min="5"
-              max="120"
             />
             <span className="ml-2 text-sm text-gray-600">{t('timePlanning.minutes')}</span>
           </div>

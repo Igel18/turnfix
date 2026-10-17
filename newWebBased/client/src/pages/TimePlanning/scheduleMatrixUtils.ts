@@ -4,7 +4,7 @@ import type { AnyColumn } from './matrixColumnHelpers';
 /** Add minutes to a HH:MM time string. Wraps at 24 h. */
 export function addMinutesToTime(timeStr: string, minutes: number): string {
   const [hours, mins] = timeStr.split(':').map(Number);
-  const totalMinutes = hours * 60 + mins + minutes;
+  const totalMinutes = hours * 60 + mins + Math.round(minutes);
   const newHours = Math.floor(totalMinutes / 60) % 24;
   const newMins = totalMinutes % 60;
   return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
@@ -40,7 +40,7 @@ export function buildRoundTimeMap(
       : 1;
     const interval = Math.max(
       1,
-      maxParticipants > 0 ? maxParticipants * exerciseDurationMinutes : fallbackIntervalMinutes
+      maxParticipants > 0 ? Math.round(maxParticipants * exerciseDurationMinutes) : fallbackIntervalMinutes
     );
     const start = session.startTime!;
 
