@@ -9,6 +9,8 @@ import {
   calculateRoundTime,
   buildConflictCells,
   buildRoundTimeMap,
+  filterRoundRowsBySession,
+  getSessionForTime,
   getSessionSquads,
   getSessionVisibleColumns,
   getAvailableSessions,
@@ -273,6 +275,58 @@ describe('buildRoundTimeMap', () => {
     expect(result.get(3)).toBe('09:18');
   });
 });
+
+describe('session time filtering', () => {
+  const sessionGroups = [
+    { session: 1, startTime: '09:00', squads: [] },
+    { session: 2, startTime: '10:00', squads: [] },
+    { session: 3, startTime: '11:00', squads: [] },
+  ];
+
+  it('assigns rows to half-open session windows using each next start as the end', () => {
+    expect(getSessionForTime('09:45', sessionGroups)?.session).toBe(1);
+    expect(getSessionForTime('10:00', sessionGroups)?.session).toBe(2);
+    expect(getSessionForTime('10:59', sessionGroups)?.session).toBe(2);
+    expect(getSessionForTime('11:00', sessionGroups)?.session).toBe(3);
+    expect(getSessionForTime('08:59', sessionGroups)).toBeNull();
+  });
+
+  it('filters all matrix rows to only the selected session', () => {
+    const rows = [
+      { round: 1, roundTime: '09:00', sessionInfo: { session: 1, startTime: '09:00' } },
+      { round: 2, roundTime: '09:30', sessionInfo: { session: 1, startTime: '09:00' } },
+      { round: 3, roundTime: '10:00', sessionInfo: { session: 2, startTime: '10:00' } },
+      { round: 4, roundTime: '10:30', sessionInfo: { session: 2, startTime: '10:00' } },
+      { round: 5, roundTime: '11:00', sessionInfo: { session: 3, startTime: '11:00' } },
+    ];
+
+    expect(filterRoundRowsBySession(rows, '2').map(row => row.round)).toEqual([3, 4]);
+    expect(filterRoundRowsBySession(rows, '').map(row => row.round)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('stops the first session at the next session start instead of showing its later rows', () => {
+    const groups = [
+      { session: 1, startTime: '09:00', squads: [squad('A', 2)] },
+      { session: 2, startTime: '10:00', squads: [squad('B', 2)] },
+    ];
+    const roundTimeMap = buildRoundTimeMap(5, groups, 15, 20);
+    const rows = Array.from({ length: 5 }, (_, index) => {
+      const round = index + 1;
+      const roundTime = roundTimeMap.get(round)!;
+      return { round, roundTime, sessionInfo: getSessionForTime(roundTime, groups) };
+    });
+
+    expect(rows.map(row => [row.roundTime, row.sessionInfo?.session])).toEqual([
+      ['09:00', 1],
+      ['09:30', 1],
+      ['10:00', 2],
+      ['10:30', 2],
+      ['11:00', 2],
+    ]);
+    expect(filterRoundRowsBySession(rows, '1').map(row => row.round)).toEqual([1, 2]);
+    expect(filterRoundRowsBySession(rows, '2').map(row => row.round)).toEqual([3, 4, 5]);
+  });
+})
 
 describe('getSessionSquads', () => {
   it('returns only the squads of the current session', () => {

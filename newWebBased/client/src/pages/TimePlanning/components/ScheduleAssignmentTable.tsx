@@ -156,11 +156,11 @@ export function ScheduleAssignmentTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="w-full divide-y divide-gray-200">
         {(!hasMultipleSessions || selectedSession !== null) && (
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                 {t('timePlanning.matrix.time')}
               </th>
               {activeColumns.map(column => renderColumn(column, false))}
@@ -170,8 +170,7 @@ export function ScheduleAssignmentTable({
         <tbody className="bg-white divide-y divide-gray-200">
           {roundRows.map((row, index) => {
             const previousSession = index > 0 ? roundRows[index - 1].sessionInfo : null;
-            const isNewSession = selectedSession === null
-              && row.sessionInfo !== null
+            const isNewSession = row.sessionInfo !== null
               && row.sessionInfo.session !== previousSession?.session;
             const visibleColumns = selectedSession === null
               ? getSessionVisibleColumns(localColumns, matrixData.sessionDisciplineIds, row.sessionInfo?.session ?? null)
@@ -197,33 +196,33 @@ export function ScheduleAssignmentTable({
                   </tr>
                 )}
                 {hasMultipleSessions && selectedSession === null && isNewSession && (
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                       {t('timePlanning.matrix.time')}
                     </th>
                     {visibleColumns.map(column => renderColumn(column, true))}
                   </tr>
                 )}
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900 bg-gray-50 text-center">
                     {row.roundTime}
                   </td>
                   {visibleColumns.map(column => {
                     if (column.kind === PAUSE_COLUMN_KIND) {
-                      return <td key={colKey(column)} className="px-3 py-2 bg-gray-50 border-x border-gray-100" />;
+                      return <td key={colKey(column)} className="px-4 py-4 bg-gray-50 border-x border-gray-100" />;
                     }
                     const cellKey = `${column.id}_${row.round}`;
                     const isSaving = savingCell === cellKey;
                     const value = getCellValue(column.id, row.round);
                     const isConflict = conflictCells.has(cellKey);
                     return (
-                      <td key={colKey(column)} className="px-3 py-2">
+                      <td key={colKey(column)} className="px-4 py-4">
                         <select
                           value={value}
                           onChange={event => onCellChange(column.id, row.round, event.target.value)}
                           disabled={isSaving}
                           title={isConflict ? t('timePlanning.matrix.conflictTooltip') : undefined}
-                          className={`w-full px-2 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                          className={`w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                             isSaving
                               ? assignmentCellClasses.saving
                               : isConflict

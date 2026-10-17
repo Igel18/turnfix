@@ -14,6 +14,39 @@ export function calculateRoundTime(baseTime: string, round: number, intervalMinu
   return addMinutesToTime(baseTime, (round - 1) * intervalMinutes);
 }
 
+export interface RoundSessionInfo {
+  session: number;
+  startTime: string;
+}
+
+export interface SessionTimedRound {
+  round: number;
+  roundTime: string;
+  sessionInfo: RoundSessionInfo | null;
+}
+
+export function getSessionForTime(
+  roundTime: string,
+  sessionGroups: Pick<SessionGroup, 'session' | 'startTime'>[],
+): RoundSessionInfo | null {
+  let match: RoundSessionInfo | null = null;
+  for (const group of sessionGroups) {
+    if (group.startTime && group.startTime <= roundTime && (!match || group.startTime > match.startTime)) {
+      match = { session: group.session, startTime: group.startTime };
+    }
+  }
+  return match;
+}
+
+export function filterRoundRowsBySession<T extends SessionTimedRound>(
+  roundRows: T[],
+  selectedSession: string | number | null,
+): T[] {
+  if (selectedSession === null || selectedSession === '') return roundRows;
+  const selectedSessionNumber = Number(selectedSession);
+  return roundRows.filter(row => row.sessionInfo?.session === selectedSessionNumber);
+}
+
 export function buildRoundTimeMap(
   totalRounds: number,
   sessionGroups: Pick<SessionGroup, 'session' | 'startTime' | 'squads'>[],

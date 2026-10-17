@@ -161,7 +161,9 @@ export default function TimePlanningMatrixPage() {
               ? timePlanningFilters.filteredSessionGroups[0].startTime
               : null
           }
-          sessionGroups={timePlanningFilters.filteredSessionGroups}
+          sessionGroups={sessionGroups}
+          visibleSessionGroups={timePlanningFilters.filteredSessionGroups}
+          selectedSession={timePlanningFilters.sessionFilter}
           onRegisterPrint={fn => { matrixPrintFnRef.current = fn }}
         />
       )}

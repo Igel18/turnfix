@@ -148,6 +148,39 @@ describe('TimePlanningMatrixPage', () => {
     expect(scheduleMatrixViewMock.mock.lastCall?.[0].sessionGroups).toEqual(testEvent.sessionGroups)
   })
 
+  it('passes the selected session separately from full groups needed to find its end boundary', () => {
+    const secondSessionOnly = [testEvent.sessionGroups[1]]
+    useTimePlanningPageFiltersMock.mockReturnValue({
+      showFilters: false,
+      toggleFilters: vi.fn(),
+      searchTerm: '',
+      setSearchTerm: vi.fn(),
+      sessionFilter: '2',
+      setSessionFilter: vi.fn(),
+      laneFilter: '',
+      setLaneFilter: vi.fn(),
+      squadFilter: '',
+      setSquadFilter: vi.fn(),
+      competitionFilter: '',
+      setCompetitionFilter: vi.fn(),
+      sessionOptions: [],
+      laneOptions: [],
+      squadOptions: [],
+      competitionOptions: [],
+      resetFilters: vi.fn(),
+      filteredCompetitions: [],
+      filteredSquads: [],
+      filteredSessionGroups: secondSessionOnly,
+    })
+
+    renderPage(`/time-planning/matrix?eventId=${testEvent.id}`)
+
+    const matrixProps = scheduleMatrixViewMock.mock.lastCall?.[0]
+    expect(matrixProps.selectedSession).toBe('2')
+    expect(matrixProps.sessionGroups).toEqual(testEvent.sessionGroups)
+    expect(matrixProps.visibleSessionGroups).toEqual(secondSessionOnly)
+  })
+
   it('shows the localized help button and toggles the help panel', () => {
     renderPage(`/time-planning/matrix?eventId=${testEvent.id}`)
 

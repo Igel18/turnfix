@@ -19,6 +19,8 @@ import {
   buildConflictCells,
   buildRoundTimeMap,
   calculateRoundTime,
+  filterRoundRowsBySession,
+  getSessionForTime,
   getSessionVisibleColumns,
   buildDisciplineLaneMap,
 } from '../scheduleMatrixUtils';
@@ -46,6 +48,9 @@ interface ScheduleMatrixViewProps {
   onRegisterPrint?: (fn: () => Promise<void>) => void;
   /** Session groups for visual Durchgang separators and per-session interval calculation. */
   sessionGroups?: SessionGroup[];
+  /** Filtered groups for squad visibility while retaining all groups for session boundaries. */
+  visibleSessionGroups?: SessionGroup[];
+  selectedSession?: string;
 }
 
 export function ScheduleMatrixView({
@@ -55,6 +60,8 @@ export function ScheduleMatrixView({
   selectedEvent,
   onRegisterPrint,
   sessionGroups,
+  visibleSessionGroups,
+  selectedSession = '',
 }: ScheduleMatrixViewProps) {
   const { t } = useTranslation();
   const {
@@ -118,9 +125,7 @@ export function ScheduleMatrixView({
   const startTime = baseStartTime || '09:00';
   const intervalMinutes = timeSettings.rotationIntervalMinutes;
   const hasMultipleSessions = Boolean(sessionGroups && sessionGroups.length > 1);
-  // Session narrowing is handled entirely by the page-level filter now; the
-  // matrix always renders all (already-filtered) sessions grouped together.
-  const effectiveSelectedSession: number | null = null;
+  const effectiveSelectedSession = selectedSession ? Number(selectedSession) : null;
 
   // Per-session rotation intervals based on max squad size × exercise duration.
   // Falls back to the fixed rotationIntervalMinutes when no sessionGroups are available.
@@ -136,29 +141,14 @@ export function ScheduleMatrixView({
   // Determine which session (Durchgang) a given round time belongs to.
   // Returns the session with the latest startTime that is <= roundTime.
   // Only active when there are 2+ sessions (single-session events need no header).
-  const getSessionForTime = (roundTime: string): { session: number; startTime: string } | null => {
-    if (!sessionGroups || sessionGroups.length < 2) return null;
-    let best: { session: number; startTime: string } | null = null;
-    for (const sg of sessionGroups) {
-      if (sg.startTime && sg.startTime <= roundTime) {
-        if (!best || sg.startTime > best.startTime) {
-          best = { session: sg.session, startTime: sg.startTime };
-        }
-      }
-    }
-    return best;
-  };
-
   const allRoundRows = Array.from({ length: localMaxRound }, (_, idx) => {
     const round = idx + 1;
     const roundTime = getRoundTime(round);
-    const sessionInfo = getSessionForTime(roundTime);
+    const sessionInfo = getSessionForTime(roundTime, sessionGroups ?? []);
     return { round, roundTime, sessionInfo };
   });
 
-  const filteredRoundRows = effectiveSelectedSession === null
-    ? allRoundRows
-    : allRoundRows.filter(row => row.sessionInfo?.session === effectiveSelectedSession);
+  const filteredRoundRows = filterRoundRowsBySession(allRoundRows, selectedSession);
 
   const activeSessionForColumns = effectiveSelectedSession;
   const activeColumns = getSessionVisibleColumns(
@@ -190,7 +180,7 @@ export function ScheduleMatrixView({
   }
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden">
+    <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
       {/* Info strip */}
       <div className="px-4 py-3 bg-blue-50 border-b border-blue-100 text-sm text-blue-700 flex items-center gap-3">
         <span>{t('timePlanning.matrix.info', { interval: intervalMinutes })}</span>
@@ -215,7 +205,7 @@ export function ScheduleMatrixView({
         roundRows={filteredRoundRows}
         hasMultipleSessions={hasMultipleSessions}
         selectedSession={effectiveSelectedSession}
-        sessionGroups={sessionGroups}
+        sessionGroups={visibleSessionGroups ?? sessionGroups}
         squadNames={squadNames}
         dragColKey={dragColKey}
         dragOverColKey={dragOverColKey}
