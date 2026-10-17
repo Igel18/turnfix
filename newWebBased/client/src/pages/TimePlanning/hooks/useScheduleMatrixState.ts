@@ -14,21 +14,13 @@ import {
   type DisciplineColumn,
   type StoredColumn,
 } from '../matrixColumnHelpers';
-import type { SquadCellActualTimes } from '../components/ScheduleRoundPlanTable';
-
 const columnStorageKey = (eventId: string) => `schedule-matrix-cols-${eventId}`;
-const actualTimesStorageKey = (eventId: string) => `time-planning-ist-times-${eventId}-all`;
 
-export function useScheduleMatrixState(
-  eventId: string,
-  sessionGroups?: unknown,
-) {
+export function useScheduleMatrixState(eventId: string) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [localMaxRound, setLocalMaxRound] = useState(1);
-  const [squadCellSaving, setSquadCellSaving] = useState<string | null>(null);
-  const [actualTimesByRound, setActualTimesByRound] = useState<Record<number, SquadCellActualTimes>>({});
   const [storedColumns, setStoredColumns] = useState<StoredColumn[]>([]);
   const [savingCell, setSavingCell] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -65,31 +57,6 @@ export function useScheduleMatrixState(
     if (eventId) void loadMatrix();
   }, [eventId, loadMatrix]);
 
-  useEffect(() => {
-    if (!matrixData) {
-      setActualTimesByRound({});
-      return;
-    }
-
-    const raw = localStorage.getItem(actualTimesStorageKey(eventId));
-    if (!raw) {
-      setActualTimesByRound({});
-      return;
-    }
-
-    try {
-      setActualTimesByRound(JSON.parse(raw) || {});
-    } catch {
-      setActualTimesByRound({});
-    }
-  }, [eventId, matrixData, sessionGroups]);
-
-  useEffect(() => {
-    if (matrixData) {
-      localStorage.setItem(actualTimesStorageKey(eventId), JSON.stringify(actualTimesByRound));
-    }
-  }, [actualTimesByRound, eventId, matrixData, sessionGroups]);
-
   const getCellValue = (disciplineId: number, round: number): string => {
     return matrixData?.assignments.find(assignment =>
       assignment.disciplineId === disciplineId && assignment.round === round,
@@ -123,55 +90,6 @@ export function useScheduleMatrixState(
     } finally {
       setSavingCell(null);
     }
-  };
-
-  const getSquadRoundDiscipline = (squadName: string, round: number): number | null => {
-    return matrixData?.squadRoundAssignments?.find(
-      assignment => assignment.squadName === squadName && assignment.round === round,
-    )?.disciplineId ?? null;
-  };
-
-  const handleSquadRoundCellChange = async (squadName: string, round: number, disciplineId: number | null) => {
-    const key = `${squadName}_${round}`;
-    setSquadCellSaving(key);
-    setSaveError(null);
-    setMatrixData(previous => {
-      if (!previous) return previous;
-      const assignments = (previous.squadRoundAssignments ?? []).filter(
-        assignment => !(assignment.squadName === squadName && assignment.round === round),
-      );
-      return {
-        ...previous,
-        squadRoundAssignments: disciplineId === null
-          ? assignments
-          : [...assignments, { squadName, round, disciplineId }],
-      };
-    });
-
-    try {
-      await apiPut('/time-planning/matrix/squad-cell', {
-        eventId: parseInt(eventId, 10),
-        squadName,
-        round,
-        disciplineId,
-      });
-    } catch (error) {
-      console.error('[ScheduleMatrixView] Failed to save squad-round cell', error);
-      setSaveError(t('timePlanning.matrix.saveError'));
-      void loadMatrix();
-    } finally {
-      setSquadCellSaving(null);
-    }
-  };
-
-  const handleActualTimeChange = (round: number, field: keyof SquadCellActualTimes, value: string) => {
-    setActualTimesByRound(previous => ({
-      ...previous,
-      [round]: {
-        actualStart: field === 'actualStart' ? value : previous[round]?.actualStart || '',
-        actualEnd: field === 'actualEnd' ? value : previous[round]?.actualEnd || '',
-      },
-    }));
   };
 
   const handleColDragStart = (event: React.DragEvent, key: string) => {
@@ -275,8 +193,6 @@ export function useScheduleMatrixState(
     matrixData,
     localMaxRound,
     setLocalMaxRound,
-    actualTimesByRound,
-    squadCellSaving,
     savingCell,
     saveError,
     setSaveError,
@@ -285,9 +201,6 @@ export function useScheduleMatrixState(
     dragOverColKey,
     handleCellChange,
     getCellValue,
-    handleSquadRoundCellChange,
-    getSquadRoundDiscipline,
-    handleActualTimeChange,
     handleColDragStart,
     handleColDragOver,
     handleColDrop,

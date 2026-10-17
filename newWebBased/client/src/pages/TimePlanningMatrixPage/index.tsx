@@ -50,7 +50,6 @@ export default function TimePlanningMatrixPage() {
     competitions,
     sessionGroups,
     squads,
-    disciplineCache,
     refetch,
   } = useTimePlanningData({ eventId })
 
@@ -67,7 +66,7 @@ export default function TimePlanningMatrixPage() {
 
   const timeSettingsTitle = t('timePlanning.timeSettings.title')
   const wizardStartLabel = t('timePlanning.wizard.startButton')
-  const helpLabel = t('timePlanning.help')
+  const helpLabel = t('timePlanning.help.button')
 
   if (!eventId) {
     return (
@@ -156,9 +155,6 @@ export default function TimePlanningMatrixPage() {
         <ScheduleMatrixView
           eventId={eventId}
           timeSettings={timeSettings}
-          competitions={timePlanningFilters.filteredCompetitions}
-          squads={timePlanningFilters.filteredSquads}
-          disciplineCache={disciplineCache.current}
           selectedEvent={selectedEvent}
           baseStartTime={
             timePlanningFilters.filteredSessionGroups.length > 0 && timePlanningFilters.filteredSessionGroups[0].startTime

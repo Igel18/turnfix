@@ -120,7 +120,7 @@ export default function TimePlanningRounds() {
 
   const timeSettingsTitle = t('timePlanning.timeSettings.title')
   const wizardStartLabel = t('timePlanning.wizard.startButton')
-  const helpLabel = t('timePlanning.help')
+  const helpLabel = t('timePlanning.help.button')
   const addRoundLabel = t('timePlanning.addRound')
   const saveLabel = t('common.save')
   const cancelLabel = t('common.cancel')

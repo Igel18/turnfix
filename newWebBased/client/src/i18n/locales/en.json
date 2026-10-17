@@ -2457,6 +2457,9 @@
     "squadDevice": "Squad / Apparatus",
     "minutes": "minutes",
     "settings": "Settings",
+    "help": {
+      "button": "Help"
+    },
     "generateSchedule": "Generate Schedule",
     "export": "Export",
     "exportPDF": "Schedule (PDF)",

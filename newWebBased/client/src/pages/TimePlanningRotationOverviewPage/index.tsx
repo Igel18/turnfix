@@ -93,7 +93,7 @@ export default function TimePlanningRotationOverviewPage() {
 
   const timeSettingsTitle = t('timePlanning.timeSettings.title')
   const wizardStartLabel = t('timePlanning.wizard.startButton')
-  const helpLabel = t('timePlanning.help')
+  const helpLabel = t('timePlanning.help.button')
 
   if (!eventId) {
     return (

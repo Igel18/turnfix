@@ -11,20 +11,16 @@
  * Column order is persisted in localStorage per eventId (no schema change needed).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
-import type { Competition, SessionGroup, Squad, TimeSettings } from '../TimePlanning.types';
-import { ScheduleRoundPlanTable } from './ScheduleRoundPlanTable';
+import type { SessionGroup, TimeSettings } from '../TimePlanning.types';
 import {
-  addMinutesToTime,
   buildConflictCells,
-  buildDisciplineLaneMap,
   buildRoundTimeMap,
-  buildSquadDisciplineOptions,
   calculateRoundTime,
-  getSessionSquads,
   getSessionVisibleColumns,
+  buildDisciplineLaneMap,
 } from '../scheduleMatrixUtils';
 import { printScheduleMatrixPdf } from '../scheduleMatrixPdf';
 import { ScheduleAssignmentTable } from './ScheduleAssignmentTable';
@@ -35,9 +31,6 @@ import { useScheduleMatrixState } from '../hooks/useScheduleMatrixState';
 interface ScheduleMatrixViewProps {
   eventId: string;
   timeSettings: TimeSettings;
-  competitions: Competition[];
-  squads: Squad[];
-  disciplineCache: Record<number, any[]>;
   /** Earliest competition start time (HH:MM) used as round-1 anchor. Falls back to '09:00'. */
   baseStartTime: string | null;
   /** The selected event (used for PDF header/footer). */
@@ -58,9 +51,6 @@ interface ScheduleMatrixViewProps {
 export function ScheduleMatrixView({
   eventId,
   timeSettings,
-  competitions,
-  squads,
-  disciplineCache,
   baseStartTime,
   selectedEvent,
   onRegisterPrint,
@@ -72,8 +62,6 @@ export function ScheduleMatrixView({
     matrixData,
     localMaxRound,
     setLocalMaxRound,
-    squadCellSaving,
-    actualTimesByRound,
     savingCell,
     saveError,
     setSaveError,
@@ -82,9 +70,6 @@ export function ScheduleMatrixView({
     dragOverColKey,
     handleCellChange,
     getCellValue,
-    handleSquadRoundCellChange,
-    getSquadRoundDiscipline,
-    handleActualTimeChange,
     handleColDragStart,
     handleColDragOver,
     handleColDrop,
@@ -96,9 +81,7 @@ export function ScheduleMatrixView({
     removePauseFromStored,
     discColumnsCount,
     availableForPicker,
-  } = useScheduleMatrixState(eventId, sessionGroups);
-  const [averageMinutesPerParticipant, setAverageMinutesPerParticipant] = useState<number>(3);
-  const [scheduleStartTime, setScheduleStartTime] = useState<string>(baseStartTime || '09:00');
+  } = useScheduleMatrixState(eventId);
 
   // ── printMatrix — defined here (before early returns) to satisfy Rules of Hooks ──
   const printMatrix = useCallback(() => printScheduleMatrixPdf({
@@ -177,38 +160,6 @@ export function ScheduleMatrixView({
     ? allRoundRows
     : allRoundRows.filter(row => row.sessionInfo?.session === effectiveSelectedSession);
 
-  const activeSessionSquadNames = getSessionSquads(
-    effectiveSelectedSession,
-    sessionGroups,
-    squadNames,
-  );
-  const activeSquadObjects = squads.filter(squad => activeSessionSquadNames.includes(squad.name));
-  const squadDisciplineOptions = buildSquadDisciplineOptions(
-    activeSquadObjects,
-    competitions,
-    effectiveSelectedSession,
-    disciplineCache,
-    matrixData.disciplines,
-  );
-  const maxParticipants = activeSquadObjects.length > 0
-    ? Math.max(...activeSquadObjects.map(squad => squad.participantCount || 1))
-    : 1;
-  const slotDurationMinutes = Math.max(1, Math.round(averageMinutesPerParticipant * maxParticipants));
-
-  const plannedScheduleRows = filteredRoundRows.map((row, index) => {
-    const plannedStart = addMinutesToTime(scheduleStartTime, index * slotDurationMinutes);
-    const plannedEnd = addMinutesToTime(plannedStart, slotDurationMinutes);
-    return {
-      round: row.round,
-      plannedStart,
-      plannedEnd,
-      switchTime: plannedEnd,
-    };
-  });
-  const plannedCompetitionEnd = plannedScheduleRows.length > 0
-    ? plannedScheduleRows[plannedScheduleRows.length - 1].plannedEnd
-    : scheduleStartTime;
-
   const activeSessionForColumns = effectiveSelectedSession;
   const activeColumns = getSessionVisibleColumns(
     localColumns,
@@ -256,25 +207,6 @@ export function ScheduleMatrixView({
           <button onClick={() => setSaveError(null)} className="ml-3 text-red-400 hover:text-red-600">✕</button>
         </div>
       )}
-
-      <ScheduleRoundPlanTable
-        squads={activeSquadObjects}
-        plannedRows={plannedScheduleRows}
-        disciplineOptions={squadDisciplineOptions}
-        disciplines={matrixData.disciplines}
-        squadCellSaving={squadCellSaving}
-        getSquadRoundDiscipline={getSquadRoundDiscipline}
-        onSquadRoundCellChange={handleSquadRoundCellChange}
-        actualTimesByRound={actualTimesByRound}
-        onActualTimeChange={handleActualTimeChange}
-        averageMinutesPerParticipant={averageMinutesPerParticipant}
-        onAverageMinutesPerParticipantChange={setAverageMinutesPerParticipant}
-        scheduleStartTime={scheduleStartTime}
-        onScheduleStartTimeChange={setScheduleStartTime}
-        maxParticipants={maxParticipants}
-        slotDurationMinutes={slotDurationMinutes}
-        plannedCompetitionEnd={plannedCompetitionEnd}
-      />
 
       <ScheduleAssignmentTable
         matrixData={matrixData}

@@ -2490,6 +2490,9 @@
     "squadDevice": "Riege / Gerät",
     "minutes": "Minuten",
     "settings": "Einstellungen",
+    "help": {
+      "button": "Hilfe"
+    },
     "generateSchedule": "Plan generieren",
     "export": "Exportieren",
     "exportPDF": "Zeitplan (PDF)",
