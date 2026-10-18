@@ -6,7 +6,8 @@ const router = Router();
 
 // Path to the settings file - use __dirname for reliable resolution
 // Works in both dev (src/routes/) and prod (dist/routes/) since both are 2 levels deep from server root
-const SETTINGS_FILE = path.join(__dirname, '..', '..', 'config', 'app-settings.json');
+const SETTINGS_FILE = process.env.TURNFIX_APP_SETTINGS_FILE_PATH
+  || path.join(__dirname, '..', '..', 'config', 'app-settings.json');
 
 /**
  * Read settings from file

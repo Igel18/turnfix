@@ -235,6 +235,7 @@
     }
   },
   "configuration": {
+    "sectionsHeading": "Konfigurationsbereiche",
     "gymnetPresetButton": "DB mit GymNet-Voreinstellungen befüllen",
     "gymnetPresetButtonTooltip": "Geräte und Formeln für GymNet-Import anlegen",
     "gymnetPresetLoading": "Voreinstellungen werden angelegt...",
@@ -380,6 +381,11 @@
         "refresh": "Aktualisieren",
         "infoTitle": "Datenbankkonfiguration",
         "infoText": "Konfigurieren Sie Ihre PostgreSQL-Datenbankverbindung. Verwenden Sie den Button 'Datenbank erstellen', wenn Sie eine neue Datenbank anlegen müssen. Stellen Sie sicher, dass der Datenbankbenutzer die Berechtigung 'CREATE DATABASE' besitzt.",
+        "infoSteps": {
+          "testConnection": "Verbindung testen: Prüfen, ob die Datenbank erreichbar ist",
+          "createDatabase": "Datenbank erstellen: Eine neue Datenbank anlegen, falls sie noch nicht existiert",
+          "createSchema": "Nach dem Erstellen der Datenbank Migrationen ausführen, um das Schema einzurichten"
+        },
         "host": {
           "label": "Datenbank-Host",
           "description": "Hostname oder IP-Adresse des Datenbankservers"

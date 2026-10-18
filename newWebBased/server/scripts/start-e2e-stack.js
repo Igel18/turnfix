@@ -1,4 +1,6 @@
 const { execSync, spawn } = require('child_process');
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const dotenv = require('dotenv');
 
@@ -8,9 +10,17 @@ process.env.TURNFIX_TEST_DATABASE_NAME = testDatabaseName;
 dotenv.config({ path: path.resolve(serverRoot, '.env.test'), override: true });
 const testDatabaseUrl = new URL(process.env.TEST_DATABASE_URL || process.env.DATABASE_URL);
 testDatabaseUrl.pathname = `/${testDatabaseName}`;
+const testConfigDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'turnfix-e2e-config-'));
+fs.copyFileSync(
+  path.resolve(serverRoot, 'config', 'app-settings.json'),
+  path.join(testConfigDirectory, 'app-settings.json'),
+);
 process.env.DATABASE_NAME = testDatabaseName;
 process.env.DATABASE_URL = testDatabaseUrl.toString();
 process.env.TEST_DATABASE_URL = testDatabaseUrl.toString();
+process.env.TURNFIX_CONFIG_FILE_PATH = path.join(testConfigDirectory, 'app-config.json');
+process.env.TURNFIX_APP_SETTINGS_FILE_PATH = path.join(testConfigDirectory, 'app-settings.json');
+process.env.TURNFIX_ENV_FILE_PATH = path.join(testConfigDirectory, '.env');
 
 let serverProcess;
 let cleanupStarted = false;
@@ -28,6 +38,13 @@ async function cleanup(exitCode) {
     });
   } catch (error) {
     console.error('❌ Could not drop the isolated E2E database:', error);
+    exitCode = 1;
+  }
+
+  try {
+    fs.rmSync(testConfigDirectory, { recursive: true, force: true });
+  } catch (error) {
+    console.error('❌ Could not remove isolated E2E configuration files:', error);
     exitCode = 1;
   }
 

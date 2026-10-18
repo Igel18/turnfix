@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 const testDatabaseName = process.env.TURNFIX_TEST_DATABASE_NAME || `turnfix_e2e_${process.pid}_${Date.now()}`;
 process.env.TURNFIX_TEST_DATABASE_NAME = testDatabaseName;
+const backendPort = Number(process.env.TURNFIX_E2E_SERVER_PORT || 3001);
+const juryPort = Number(process.env.TURNFIX_E2E_JURY_PORT || 3002);
+const clientPort = Number(process.env.TURNFIX_E2E_CLIENT_PORT || 5173);
 
 /**
  * Playwright E2E Test Configuration for TurnFix
@@ -42,7 +45,7 @@ export default defineConfig({
   /* Shared settings for all projects */
   use: {
     /* Base URL for navigation — Vite dev server */
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://localhost:${clientPort}`,
     /* Collect trace on first retry */
     trace: 'on-first-retry',
     /* Screenshot on failure */
@@ -79,7 +82,7 @@ export default defineConfig({
     // ── Independent tests: No setup needed ──
     {
       name: 'independent',
-      testMatch: /tests\/(navigation|master-data[\w-]*|event-management|jury-server-access|formula-crossview)\.spec\.ts/,
+      testMatch: /tests\/(navigation|master-data[\w-]*|event-management|configuration|jury-server-access|formula-crossview)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
 
@@ -99,27 +102,30 @@ export default defineConfig({
       command: 'node scripts/start-e2e-stack.js',
       cwd: '../server',
       env: { TURNFIX_TEST_DATABASE_NAME: testDatabaseName },
-      port: 3001,
+      port: backendPort,
       reuseExistingServer: false,
       timeout: 120_000,
+      env: { TURNFIX_RUNTIME_PORT: String(backendPort) },
       stdout: 'pipe',
       stderr: 'pipe',
     },
     {
       command: 'node src/index.js',
       cwd: '../jury-server',
-      port: 3002,
+      env: { JURY_PORT: String(juryPort) },
+      port: juryPort,
       reuseExistingServer: false,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
     },
     {
-      command: 'npx vite',
+      command: `npx vite --port ${clientPort}`,
       cwd: '.',
-      port: 5173,
+      port: clientPort,
       reuseExistingServer: false,
       timeout: 120_000,
+      env: { VITE_API_URL: `http://localhost:${backendPort}` },
       stdout: 'pipe',
       stderr: 'pipe',
     },

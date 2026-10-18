@@ -235,6 +235,7 @@
     }
   },
   "configuration": {
+    "sectionsHeading": "Configuration Sections",
     "gymnetPresetButton": "Initialize DB with GymNet presets",
     "gymnetPresetButtonTooltip": "Insert devices and formulas for GymNet import",
     "gymnetPresetLoading": "Applying presets...",
@@ -377,6 +378,11 @@
         "description": "Database connection settings and credentials",
         "infoTitle": "Database Configuration",
         "infoText": "Configure your PostgreSQL database connection. Use the 'Create Database' button if you need to create a new database. Make sure the database user has CREATE DATABASE privileges.",
+        "infoSteps": {
+          "testConnection": "Test connection: Verify that the database is accessible",
+          "createDatabase": "Create database: Create a new database if it does not exist yet",
+          "createSchema": "After creating the database, run migrations to set up the schema"
+        },
         "host": {
           "label": "Database Host",
           "description": "Database server hostname or IP address"

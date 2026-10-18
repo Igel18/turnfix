@@ -8,12 +8,13 @@
  * - Save settings flow with API verification
  * - Search/filter settings
  * - Database Setup Wizard dialog
- * - Reset to defaults
- * - Export / Import configuration
+ * - Database list and connected database refresh
+ * - Export sanitization and import validation APIs
+ * - Separate score-capture settings persistence
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { navigateTo, waitForLoadingToFinish, robustGoto } from '../helpers';
+import { navigateTo, waitForLoadingToFinish } from '../helpers';
 
 const SECTIONS = [
   { id: 'database', label: /datenbank/i },
@@ -58,7 +59,9 @@ test.describe.serial('Configuration / Settings Page', () => {
 
   test('1.2 API returns configuration data', async ({ page }) => {
     const responsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/configuration') && r.status() === 200
+      response => new URL(response.url()).pathname === '/api/configuration'
+        && response.request().method() === 'GET'
+        && response.status() === 200,
     );
     await navigateTo(page, '/configuration');
     const response = await responsePromise;
@@ -76,7 +79,8 @@ test.describe.serial('Configuration / Settings Page', () => {
 
   test('1.4 search input is visible', async ({ page }) => {
     await gotoConfiguration(page);
-    const search = page.locator('input[type="search"], input[placeholder*="suchen"], input[placeholder*="such"], input[placeholder*="search"], input[placeholder*="Konfiguration"]').first();
+    await page.getByRole('button', { name: /filter/i }).click();
+    const search = page.getByPlaceholder(/konfigurationseinstellungen suchen|search configuration settings/i);
     await expect(search).toBeVisible();
   });
 
@@ -86,8 +90,7 @@ test.describe.serial('Configuration / Settings Page', () => {
 
   test('2.1 sidebar shows all section buttons', async ({ page }) => {
     await gotoConfiguration(page);
-    // Should have at least 8 navigation buttons in the sidebar
-    for (const section of SECTIONS.slice(0, 8)) {
+    for (const section of SECTIONS) {
       const btn = page.getByRole('button', { name: section.label }).first();
       await expect(btn).toBeVisible({ timeout: 3000 });
     }
@@ -98,9 +101,10 @@ test.describe.serial('Configuration / Settings Page', () => {
     await clickSection(page, /datenbank/i);
 
     // Should show host, port, database name fields
-    const hostInput = page.locator('input[name="db_host"], input[id*="db_host"]').first();
-    const portInput = page.locator('input[name="db_port"], input[id*="db_port"]').first();
-    await expect(hostInput.or(page.getByLabel(/host/i).first())).toBeVisible({ timeout: 5000 });
+    const hostInput = page.getByLabel(/datenbank-host|database host/i);
+    const portInput = page.getByLabel(/datenbank-port|database port/i);
+    await expect(hostInput).toBeVisible({ timeout: 5000 });
+    await expect(portInput).toBeVisible();
   });
 
   test('2.3 clicking application section shows app fields', async ({ page }) => {
@@ -108,8 +112,8 @@ test.describe.serial('Configuration / Settings Page', () => {
     await clickSection(page, /anwendung/i);
 
     // Should show app_name or similar fields
-    const content = await page.locator('main, [class*="content"]').first().textContent();
-    expect(content).toMatch(/app.*(name|version)|anwendung|port/i);
+    await expect(page.getByRole('heading', { name: /anwendungseinstellungen|application settings/i })).toBeVisible();
+    await expect(page.getByLabel(/anwendungsname|application name/i)).toBeVisible();
   });
 
   test('2.4 clicking localization section shows language options', async ({ page }) => {
@@ -125,16 +129,32 @@ test.describe.serial('Configuration / Settings Page', () => {
     await gotoConfiguration(page);
     await clickSection(page, /sicherheit/i);
 
-    const content = await page.locator('main, [class*="content"]').first().textContent();
-    expect(content).toMatch(/session|passwort|password|login|https/i);
+    await expect(page.getByRole('heading', { name: /sicherheit|security/i })).toBeVisible();
+    await expect(page.getByLabel(/sitzungstimeout|session timeout/i)).toBeVisible();
   });
 
   test('2.6 clicking logging section shows log settings', async ({ page }) => {
     await gotoConfiguration(page);
     await clickSection(page, /protokoll|log/i);
 
-    const content = await page.locator('main, [class*="content"]').first().textContent();
-    expect(content).toMatch(/log|protokoll|audit/i);
+    await expect(page.getByRole('heading', { name: /protokollierung|logging/i })).toBeVisible();
+    await expect(page.getByLabel(/protokollstufe|log level/i)).toBeVisible();
+  });
+
+  test('2.7 clicking imports section shows all import settings', async ({ page }) => {
+    await gotoConfiguration(page);
+    await clickSection(page, /import/i);
+
+    await expect(page.getByRole('heading', { name: /import- & export-einstellungen|import & export settings/i })).toBeVisible();
+    await expect(page.getByLabel(/max\. dateigröße|max file size/i)).toBeVisible();
+    await expect(page.getByLabel(/erlaubte dateitypen|allowed file types/i)).toBeVisible();
+    await expect(page.getByLabel(/automatische sicherung|automatic backup/i)).toBeVisible();
+    await expect(page.getByLabel(/importe validieren|validate imports/i)).toBeVisible();
+
+    await expect(page.getByLabel(/max\. dateigröße|max file size/i)).toHaveAttribute('type', 'number');
+    await expect(page.getByLabel(/erlaubte dateitypen|allowed file types/i)).toHaveJSProperty('tagName', 'TEXTAREA');
+    await expect(page.getByLabel(/automatische sicherung|automatic backup/i)).toHaveAttribute('type', 'checkbox');
+    await expect(page.getByLabel(/importe validieren|validate imports/i)).toHaveAttribute('type', 'checkbox');
   });
 
   // ──────────────────────────────────────────────────────────────
@@ -253,7 +273,8 @@ test.describe.serial('Configuration / Settings Page', () => {
 
   test('5.1 search filters visible sections', async ({ page }) => {
     await gotoConfiguration(page);
-    const search = page.locator('input[type="search"], input[placeholder*="suchen"], input[placeholder*="such"], input[placeholder*="search"], input[placeholder*="Konfiguration"]').first();
+    await page.getByRole('button', { name: /filter/i }).click();
+    const search = page.getByPlaceholder(/konfigurationseinstellungen suchen|search configuration settings/i);
     await search.fill('datenbank');
     await page.waitForTimeout(500);
 
@@ -264,7 +285,8 @@ test.describe.serial('Configuration / Settings Page', () => {
 
   test('5.2 clearing search shows all sections again', async ({ page }) => {
     await gotoConfiguration(page);
-    const search = page.locator('input[type="search"], input[placeholder*="suchen"], input[placeholder*="such"], input[placeholder*="search"], input[placeholder*="Konfiguration"]').first();
+    await page.getByRole('button', { name: /filter/i }).click();
+    const search = page.getByPlaceholder(/konfigurationseinstellungen suchen|search configuration settings/i);
     await search.fill('datenbank');
     await page.waitForTimeout(500);
     await search.clear();
@@ -355,8 +377,8 @@ test.describe.serial('Configuration / Settings Page', () => {
     await gotoConfiguration(page);
     await clickSection(page, /wertung/i);
 
-    const content = await page.locator('main, [class*="content"]').first().textContent();
-    expect(content).toMatch(/jury|wertung/i);
+    await expect(page.getByRole('heading', { name: /wertungserfassung|score capture/i })).toBeVisible();
+    await expect(page.getByText(/jury|wertung/i).first()).toBeVisible();
 
     // Should have a checkbox for useJuryResults
     const checkbox = page.locator('input[type="checkbox"]');
@@ -409,45 +431,80 @@ test.describe.serial('Configuration / Settings Page', () => {
   // 10. API Validation
   // ──────────────────────────────────────────────────────────────
 
-  test('10.1 save validates required database fields', async ({ page }) => {
+  test('10.1 refreshes the connected database status', async ({ page }) => {
     await gotoConfiguration(page);
     await clickSection(page, /datenbank/i);
 
-    // Clear the host field (required)
-    const hostInput = page.locator('input').first();
-    const originalHost = await hostInput.inputValue();
-    await hostInput.clear();
+    const connectedDatabase = page.getByText(/verbundene datenbank/i).locator('..');
+    await expect(connectedDatabase).toContainText(/turnfix|nicht verbunden/i);
 
-    // Try to save — should fail or show validation error
-    const saveBtn = page.getByRole('button', { name: /speichern|save/i }).first();
-    await saveBtn.click();
-
-    // Wait briefly for error response
-    await page.waitForTimeout(1000);
-
-    // Check for error message or that save didn't succeed
-    const hasError = (await page.getByText(/fehler|error|pflicht|required|ungültig|invalid/i).count()) > 0;
-    // Whether it shows an error depends on frontend/backend validation
-    // Restore the value regardless
-    await hostInput.fill(originalHost || 'localhost');
-    
-    // Save to restore state
-    await saveBtn.click();
-    await page.waitForResponse(
-      (r) => r.url().includes('/api/configuration/save') && r.request().method() === 'POST'
-    );
+    await page.getByRole('button', { name: 'Aktualisieren', exact: true }).click();
+    await expect(connectedDatabase).toContainText(/turnfix|nicht verbunden/i);
   });
 
-  test('10.2 export endpoint returns config without password', async ({ page }) => {
+  test('10.2 refreshes database name options from the configured backend', async ({ page }) => {
+    await gotoConfiguration(page);
+    await clickSection(page, /datenbank/i);
+
+    const listResponse = page.waitForResponse(response =>
+      response.url().includes('/api/configuration/list-databases')
+      && response.request().method() === 'POST'
+      && response.status() === 200,
+    );
+    await page.getByRole('button', { name: /refreshDatabaseList|datenbankliste aktualisieren|refresh database list/i }).click();
+    const response = await listResponse;
+    const data = await response.json();
+    expect(Array.isArray(data.databases)).toBe(true);
+    await expect(page.locator('#configuration-database-name-options')).toBeAttached();
+  });
+
+  test('10.3 export endpoint returns config without password', async ({ page }) => {
     await gotoConfiguration(page);
 
-    const response = await page.request.get('http://localhost:3001/api/configuration/export');
+    const response = await page.request.get('/api/configuration/export');
     expect(response.status()).toBe(200);
+    expect(response.headers()['content-disposition']).toContain('turnfix-config-export.json');
     const data = await response.json();
-    // Password should be stripped in export
-    if (data.database) {
-      expect(data.database.db_password || '').not.toMatch(/[a-zA-Z0-9]{5,}/);
-    }
+    expect(data.database).toBeDefined();
+    expect(data.database).not.toHaveProperty('db_password');
+  });
+
+  test('10.4 import endpoint rejects incomplete configuration without changing settings', async ({ page }) => {
+    await gotoConfiguration(page);
+
+    const response = await page.request.post('/api/configuration/import', {
+      data: { database: {} },
+    });
+    expect(response.status()).toBe(400);
+    await expect(response).not.toBeOK();
+    await expect(page.getByRole('heading', { name: /einstellungen|settings/i })).toBeVisible();
+  });
+
+  test('10.5 score capture setting saves through the app-settings API and can be restored', async ({ page }) => {
+    await gotoConfiguration(page);
+    await clickSection(page, /wertung/i);
+
+    const toggle = page.locator('input[type="checkbox"]').first();
+    const originalValue = await toggle.isChecked();
+    await toggle.click();
+
+    const changedSave = page.waitForResponse(response =>
+      response.url().includes('/api/app-settings/scoreCapture')
+      && response.request().method() === 'PUT'
+      && response.status() === 200,
+    );
+    await page.getByRole('button', { name: /speichern|save/i }).click();
+    await changedSave;
+
+    await toggle.click();
+    expect(await toggle.isChecked()).toBe(originalValue);
+    const restoreSave = page.waitForResponse(response =>
+      response.url().includes('/api/app-settings/scoreCapture')
+      && response.request().method() === 'PUT'
+      && response.status() === 200,
+    );
+    await page.getByRole('button', { name: /speichern|save/i }).click();
+    await restoreSave;
   });
 
   // ──────────────────────────────────────────────────────────────
@@ -459,7 +516,7 @@ test.describe.serial('Configuration / Settings Page', () => {
     await clickSection(page, /firewall/i);
 
     // Firewall section should show some content
-    const content = await page.locator('main, [class*="content"]').first().textContent();
+    const content = await page.locator('body').textContent();
     expect(content).toMatch(/firewall|netzwerk|network|port|regel|rule/i);
   });
 
@@ -467,7 +524,7 @@ test.describe.serial('Configuration / Settings Page', () => {
     await gotoConfiguration(page);
     await clickSection(page, /wlan|wifi/i);
 
-    const content = await page.locator('main, [class*="content"]').first().textContent();
+    const content = await page.locator('body').textContent();
     expect(content).toMatch(/wlan|wifi|netzwerk|network|ssid/i);
   });
 });
