@@ -11,7 +11,7 @@ export interface ConfigSection {
 export interface ConfigSetting {
   key: string
   label: string
-  type: 'text' | 'password' | 'number' | 'boolean' | 'select' | 'textarea'
+  type: 'text' | 'readonly' | 'password' | 'number' | 'boolean' | 'select' | 'textarea'
   value: any
   description?: string
   options?: { value: string; label: string }[]

@@ -84,14 +84,14 @@ export const createDefaultConfigurationSections = (
             {
               key: 'app_name',
               label: t('configuration.sections.application.name.label'),
-              type: 'text',
+              type: 'readonly',
               value: response?.application?.app_name || 'TurnFix',
               description: t('configuration.sections.application.name.description')
             },
             {
               key: 'app_version',
               label: t('configuration.sections.application.version.label'),
-              type: 'text',
+              type: 'readonly',
               value: response?.application?.app_version || '2.0.0',
               description: t('configuration.sections.application.version.description')
             },

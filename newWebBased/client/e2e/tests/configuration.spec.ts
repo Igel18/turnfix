@@ -111,9 +111,11 @@ test.describe.serial('Configuration / Settings Page', () => {
     await gotoConfiguration(page);
     await clickSection(page, /anwendung/i);
 
-    // Should show app_name or similar fields
     await expect(page.getByRole('heading', { name: /anwendungseinstellungen|application settings/i })).toBeVisible();
-    await expect(page.getByLabel(/anwendungsname|application name/i)).toBeVisible();
+    await expect(page.getByText('TurnFix', { exact: true })).toBeVisible();
+    await expect(page.getByText('2.0.0', { exact: true })).toBeVisible();
+    await expect(page.locator('#configuration-application-app_name')).toHaveCount(0);
+    await expect(page.locator('#configuration-application-app_version')).toHaveCount(0);
   });
 
   test('2.4 clicking localization section shows language options', async ({ page }) => {
@@ -197,35 +199,14 @@ test.describe.serial('Configuration / Settings Page', () => {
   // 4. Settings Editing & Save
   // ──────────────────────────────────────────────────────────────
 
-  test('4.1 can modify application name and save', async ({ page }) => {
+  test('4.1 application name and version are displayed but not editable', async ({ page }) => {
     await gotoConfiguration(page);
     await clickSection(page, /anwendung/i);
 
-    // Find the app_name input
-    const nameInput = page.locator('input[type="text"]').first();
-    const originalValue = await nameInput.inputValue();
-
-    // Modify the value
-    const testValue = `TurnFix_E2E_${Date.now()}`;
-    await nameInput.clear();
-    await nameInput.fill(testValue);
-
-    // Click save and wait for API response
-    const saveResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/configuration/save') && r.request().method() === 'POST'
-    );
-    const saveBtn = page.getByRole('button', { name: /speichern|save/i }).first();
-    await saveBtn.click();
-    const saveResponse = await saveResponsePromise;
-    expect(saveResponse.status()).toBe(200);
-
-    // Restore original value
-    await nameInput.clear();
-    await nameInput.fill(originalValue || 'TurnFix');
-    await page.getByRole('button', { name: /speichern|save/i }).first().click();
-    await page.waitForResponse(
-      (r) => r.url().includes('/api/configuration/save') && r.request().method() === 'POST'
-    );
+    await expect(page.getByText('TurnFix', { exact: true })).toBeVisible();
+    await expect(page.getByText('2.0.0', { exact: true })).toBeVisible();
+    await expect(page.locator('#configuration-application-app_name')).toHaveCount(0);
+    await expect(page.locator('#configuration-application-app_version')).toHaveCount(0);
   });
 
   test('4.2 save shows success message', async ({ page }) => {
@@ -389,42 +370,34 @@ test.describe.serial('Configuration / Settings Page', () => {
   // 9. Data Persistence
   // ──────────────────────────────────────────────────────────────
 
-  test('9.1 saved settings persist after reload', async ({ page }) => {
+  test('9.1 editable debug setting persists after reload', async ({ page }) => {
     await gotoConfiguration(page);
     await clickSection(page, /anwendung/i);
 
-    // Read current value
-    const nameInput = page.locator('input[type="text"]').first();
-    const originalValue = await nameInput.inputValue();
+    const debugToggle = page.getByLabel(/debug-modus|debug mode/i);
+    const originalValue = await debugToggle.isChecked();
+    await debugToggle.setChecked(!originalValue);
 
-    // Set to known value
-    const testValue = `PersistTest_${Date.now()}`;
-    await nameInput.clear();
-    await nameInput.fill(testValue);
-
-    // Save
     const saveBtn = page.getByRole('button', { name: /speichern|save/i }).first();
-    await saveBtn.click();
-    await page.waitForResponse(
-      (r) => r.url().includes('/api/configuration/save') && r.request().method() === 'POST'
+    const saveResponse = page.waitForResponse(
+      response => response.url().includes('/api/configuration/save') && response.request().method() === 'POST',
     );
+    await saveBtn.click();
+    await saveResponse;
 
-    // Reload page
     await page.reload({ waitUntil: 'load' });
     await waitForLoadingToFinish(page);
     await clickSection(page, /anwendung/i);
 
-    // Verify value persisted
-    const reloadedValue = await page.locator('input[type="text"]').first().inputValue();
-    expect(reloadedValue).toBe(testValue);
+    const reloadedDebugToggle = page.getByLabel(/debug-modus|debug mode/i);
+    await expect(reloadedDebugToggle).toBeChecked({ checked: !originalValue });
 
-    // Restore original
-    await page.locator('input[type="text"]').first().clear();
-    await page.locator('input[type="text"]').first().fill(originalValue || 'TurnFix');
-    await saveBtn.click();
-    await page.waitForResponse(
-      (r) => r.url().includes('/api/configuration/save') && r.request().method() === 'POST'
+    await reloadedDebugToggle.setChecked(originalValue);
+    const restoreResponse = page.waitForResponse(
+      response => response.url().includes('/api/configuration/save') && response.request().method() === 'POST',
     );
+    await saveBtn.click();
+    await restoreResponse;
   });
 
   // ──────────────────────────────────────────────────────────────

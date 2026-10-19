@@ -137,7 +137,7 @@ describe('Configuration page', () => {
 
     const sections = [
       { name: 'configuration.sections.database.title', control: 'password' },
-      { name: 'configuration.sections.application.title', control: 'textbox' },
+      { name: 'configuration.sections.application.title', control: 'spinbutton' },
       { name: 'Language & Localization', control: 'combobox' },
       { name: 'configuration.sections.security.title', control: 'spinbutton' },
       { name: 'configuration.sections.imports.title', control: 'textarea' },
@@ -164,13 +164,29 @@ describe('Configuration page', () => {
     }
   })
 
+  it('displays application name and version as non-editable values', async () => {
+    const user = userEvent.setup()
+    apiGetMock.mockImplementation(async (path: string) => {
+      if (path === '/configuration/connected-database') return { connectedDatabase: 'turnfix' }
+      return { application: { app_name: 'TurnFix Unit', app_version: '3.1.4' } }
+    })
+    render(<Configuration />)
+
+    await user.click(await screen.findByRole('button', { name: 'configuration.sections.application.title' }))
+
+    expect(await screen.findByText('TurnFix Unit')).toBeInTheDocument()
+    expect(screen.getByText('3.1.4')).toBeInTheDocument()
+    expect(document.querySelector('#configuration-application-app_name')).toBeNull()
+    expect(document.querySelector('#configuration-application-app_version')).toBeNull()
+  })
+
   it('refreshes the database name options from the server', async () => {
     const user = userEvent.setup()
     render(<Configuration />)
 
     await screen.findByDisplayValue('turnfix')
     const previousListCalls = apiPostMock.mock.calls.filter(([path]) => path === '/configuration/list-databases').length
-    await user.click(screen.getByRole('button', { name: 'configuration.sections.database.refreshDatabaseList' }))
+    await user.click(screen.getByRole('button', { name: 'configuration.sections.database.name.refreshDatabaseList' }))
 
     await waitFor(() => {
       const currentListCalls = apiPostMock.mock.calls.filter(([path]) => path === '/configuration/list-databases').length
@@ -273,7 +289,13 @@ describe('Configuration page', () => {
     apiPostMock.mockRejectedValueOnce(new Error('database list unavailable'))
     render(<Configuration />)
 
-    expect(await screen.findByText('configuration.sections.database.databaseListError')).toBeInTheDocument()
+    expect(await screen.findByText('configuration.sections.database.name.databaseListError')).toBeInTheDocument()
     expect(screen.getByDisplayValue('turnfix')).toBeInTheDocument()
+  })
+
+  it('uses the database-name translation namespace for its list hint', async () => {
+    render(<Configuration />)
+
+    expect(await screen.findByText('configuration.sections.database.name.databaseListHint')).toBeInTheDocument()
   })
 })

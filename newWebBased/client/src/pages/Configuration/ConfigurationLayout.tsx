@@ -179,6 +179,20 @@ const ConfigurationLayout = ({
                   <div className="space-y-6">
                     {activeConfigSection.settings.map(setting => (
                       <div key={setting.key}>
+                        {setting.type === 'readonly' ? (
+                          <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                            <span id={`configuration-${activeConfigSection.id}-${setting.key}-label`} className="block text-sm font-medium text-gray-600">
+                              {setting.label}
+                            </span>
+                            <p
+                              aria-labelledby={`configuration-${activeConfigSection.id}-${setting.key}-label`}
+                              className="mt-1 text-sm text-gray-900"
+                            >
+                              {setting.value}
+                            </p>
+                          </div>
+                        ) : (
+                          <>
                         <label
                           htmlFor={`configuration-${activeConfigSection.id}-${setting.key}`}
                           className="block text-sm font-medium text-gray-700 mb-2"
@@ -215,10 +229,10 @@ const ConfigurationLayout = ({
                             </datalist>
                             <p className="mt-1 text-sm text-gray-500" role={databaseListError ? STATUS_ROLE : undefined}>
                               {databaseListError
-                                ? t('configuration.sections.database.databaseListError')
+                                ? t('configuration.sections.database.name.databaseListError')
                                 : loadingDatabases
-                                  ? t('configuration.sections.database.databaseListLoading')
-                                  : t('configuration.sections.database.databaseListHint', { count: availableDatabases.length })}
+                                  ? t('configuration.sections.database.name.databaseListLoading')
+                                  : t('configuration.sections.database.name.databaseListHint', { count: availableDatabases.length })}
                             </p>
                           </>
                         )}
@@ -294,6 +308,8 @@ const ConfigurationLayout = ({
                         )}
 
                         {setting.description && <p className="text-sm text-gray-500 mt-1">{setting.description}</p>}
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
