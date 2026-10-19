@@ -22,6 +22,7 @@ const CONNECTED_LABEL_CLASS = 'text-green-800'
 const DISCONNECTED_LABEL_CLASS = 'text-yellow-800'
 const SECTION_IDS = { database: 'database', firewall: 'firewall', wifi: 'wifi', scoreCapture: 'scoreCapture' } as const
 const SETTING_TYPES = { boolean: 'boolean', select: 'select', textarea: 'textarea' } as const
+const READ_ONLY_SETTING_TYPE = 'readonly'
 
 interface ConfigurationLayoutProps {
   sections: ConfigSection[]
@@ -179,7 +180,7 @@ const ConfigurationLayout = ({
                   <div className="space-y-6">
                     {activeConfigSection.settings.map(setting => (
                       <div key={setting.key}>
-                        {setting.type === 'readonly' ? (
+                        {setting.type === READ_ONLY_SETTING_TYPE ? (
                           <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                             <span id={`configuration-${activeConfigSection.id}-${setting.key}-label`} className="block text-sm font-medium text-gray-600">
                               {setting.label}
