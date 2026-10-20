@@ -27,7 +27,8 @@ Write-Host ""
 
 $ServerDir = Join-Path $InstallDir "server"
 $NodeBinDir = Split-Path $NodePath -Parent
-$PrismaPath = Join-Path $ServerDir "node_modules\.bin\prisma.cmd"
+$PrismaCliPath = Join-Path $ServerDir "node_modules\prisma\build\index.js"
+$SchemaPath = Join-Path $ServerDir "prisma\schema.prisma"
 
 # === Check PostgreSQL availability ===
 Write-Host "  Checking PostgreSQL connection..." -ForegroundColor Cyan
@@ -98,11 +99,23 @@ $env:DATABASE_URL = "postgresql://postgres:${DbPassword}@${DbHost}:${DbPort}/${D
 
 Push-Location $ServerDir
 try {
-    # Use the installed local Prisma CLI instead of npx so the setup works
-    # even when the shell environment does not expose npx on PATH.
+    if (-not (Test-Path $NodePath)) {
+        throw "Node executable not found at $NodePath"
+    }
+
+    if (-not (Test-Path $PrismaCliPath)) {
+        throw "Prisma CLI not found at $PrismaCliPath"
+    }
+
+    if (-not (Test-Path $SchemaPath)) {
+        throw "Prisma schema not found at $SchemaPath"
+    }
+
+    # Execute Prisma via explicit node executable so this also works when
+    # command resolution cannot find `node` in PATH.
     $env:PATH = "$NodeBinDir;$env:PATH"
 
-    & $PrismaPath db push --accept-data-loss 2>&1
+    & $NodePath $PrismaCliPath db push --accept-data-loss --schema="$SchemaPath" 2>&1
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✓ Database schema synchronized" -ForegroundColor Green
@@ -112,6 +125,7 @@ try {
     }
 } catch {
     Write-Host "  ⚠ Prisma push failed: $($_.Exception.Message)" -ForegroundColor Yellow
+    exit 1
 } finally {
     Pop-Location
 }

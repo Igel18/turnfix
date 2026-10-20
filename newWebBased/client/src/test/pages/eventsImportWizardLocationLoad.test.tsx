@@ -43,10 +43,10 @@ vi.mock('@/pages/Events/hooks/useEventsData', () => ({
 }));
 
 vi.mock('@/components/DatabaseManagementTemplate', () => ({
-  DatabaseManagementTemplate: ({ additionalContent }: { additionalContent?: React.ReactNode }) => (
+  DatabaseManagementTemplate: ({ onWizard, wizardLabel }: { onWizard?: () => void; wizardLabel?: string }) => (
     <div>
       <div>mock-template</div>
-      {additionalContent}
+      <button onClick={onWizard}>{wizardLabel}</button>
     </div>
   ),
 }));

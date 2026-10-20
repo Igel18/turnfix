@@ -161,6 +161,7 @@ eg use WizardModal component for wizard modals.
 
 #### Localization (i18n)
 - **ALL UI text must be localized** (no hardcoded strings)
+- UI text is checked against hardcoded strings in unit test noHardcodedUiStrings.test.ts
 - Use `t('key.path')` from `useTranslation` hook
 - Translation files: `client/src/i18n/locales/{de|en}.json`
 - Gender values: Use German backend values ('männlich', 'weiblich', 'gemischt')
@@ -177,6 +178,27 @@ eg use WizardModal component for wizard modals.
 - If a field is necessary in the database (e.g. marked as not nullable) for examle the name of a club, then it should be shown in the UI and the field must be marked as required in the UI. If a field is optional in the database (e.g. nullable) then it should be shown as optional in the UI and it should be possible to leave it empty. This ensures consistency between the database and the UI and prevents confusion for the user.
 - required fields markt is a red star and optional fields don't have a mark.
 ---
+
+#### Unified Elements 
+### Export Menu (for CSV, XML, PDF, and other export formats like printing labels)
+- **Export Menu**: Provides options to export data in various formats such as CSV, XML, PDF, and printing labels. It should be consistently used across the application for all export functionalities.
+- Always on the same position across the application for consistency.
+- Should have a consistent visual style (e.g., color, icon) across the application.
+- Should have a clear and descriptive consistent label or icon to indicate its purpose.
+
+### New / Add Button (for creating new entries)
+
+- **New / Add Button**: Provides a way to create new entries or add new items. It should be consistently used across the application for all creation functionalities.
+- Always on the same position across the application for consistency.
+- Should have a consistent visual style (e.g., color, icon) across the application.
+- Should have a clear and descriptive consistent label or icon to indicate its purpose.
+
+### Wizard / Assistend Button (for guided actions) 
+- **Wizard / Assistend Button**: Provides a way to guide users through complex actions or multi-step processes. It should be consistently used across the application for all guided functionalities.
+- Always on the same position across the application for consistency.
+- Should have a consistent visual style (e.g., color, icon) across the application.
+- Should have a clear and descriptive consistent label or icon to indicate its purpose.
+
 
 ## 🔧 Technical Specifications
 

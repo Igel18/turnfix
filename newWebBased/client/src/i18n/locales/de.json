@@ -13,6 +13,7 @@
     "manageDisciplines": "Disziplinen verwalten",
     "clubs": "Vereine",
     "participants": "Teilnehmer",
+    "countries": "Länder",
     "regions": "Regionen",
     "associations": "Verbände",
     "areas": "Bereiche",
@@ -28,6 +29,10 @@
       "regions": {
         "title": "Gebiete verwalten",
         "description": "Turngebiete und Bezirke verwalten"
+      },
+      "countries": {
+        "title": "Länder verwalten",
+        "description": "Länder für die Verbands-Stammdaten verwalten"
       },
       "associations": {
         "title": "Verbände verwalten",
@@ -93,7 +98,7 @@
     },
     "eventManagement": {
       "title": "Veranstaltungsverwaltung",
-      "subtitle": "3-Schritte-Workflow: Setup → Wettkampf → Ergebnisse",
+      "subtitle": "4-Schritte-Workflow: Aufbau → Zeitplanung → Wettkampftag → Ergebnisse",
       "eventSetup": {
         "title": "Veranstaltungsaufbau",
         "subtitle": "Planung & Konfiguration",
@@ -128,6 +133,30 @@
         "meldematrix": {
           "title": "Meldematrix",
           "description": "Meldematrix: Übersicht Vereine vs. Wettkämpfe"
+        }
+      },
+      "timePlanning": {
+        "title": "Zeitplanung",
+        "subtitle": "Durchgänge, Rotation & Zeitplan-Tabelle",
+        "rounds": {
+          "title": "Durchgänge",
+          "description": "Durchgänge planen und Wettkämpfe zuordnen"
+        },
+        "lanePlanning": {
+          "title": "Bahnplanung",
+          "description": "Wettkämpfe den Bahnen zuweisen"
+        },
+        "rotationOverview": {
+          "title": "Rotationsübersicht",
+          "description": "Round-Robin-Rotation pro Bahn anzeigen"
+        },
+        "rotation": {
+          "title": "Rotation",
+          "description": "Rotationen und Bahnen planen"
+        },
+        "matrix": {
+          "title": "Zeitplan-Tabelle",
+          "description": "Zeitplan-Matrix bearbeiten"
         }
       },
       "competitionDay": {
@@ -188,7 +217,7 @@
       },
       "selectEvent": {
         "title": "Veranstaltung auswählen",
-        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 3-Schritte-Workflow zuzugreifen: Setup → Wettkampf → Ergebnisse",
+        "description": "Wählen Sie oben eine Veranstaltung aus, um auf den 4-Schritte-Workflow zuzugreifen: Aufbau → Zeitplanung → Wettkampftag → Ergebnisse",
         "label": "Veranstaltung auswählen"
       }
     },
@@ -206,6 +235,7 @@
     }
   },
   "configuration": {
+    "sectionsHeading": "Konfigurationsbereiche",
     "gymnetPresetButton": "DB mit GymNet-Voreinstellungen befüllen",
     "gymnetPresetButtonTooltip": "Geräte und Formeln für GymNet-Import anlegen",
     "gymnetPresetLoading": "Voreinstellungen werden angelegt...",
@@ -351,6 +381,11 @@
         "refresh": "Aktualisieren",
         "infoTitle": "Datenbankkonfiguration",
         "infoText": "Konfigurieren Sie Ihre PostgreSQL-Datenbankverbindung. Verwenden Sie den Button 'Datenbank erstellen', wenn Sie eine neue Datenbank anlegen müssen. Stellen Sie sicher, dass der Datenbankbenutzer die Berechtigung 'CREATE DATABASE' besitzt.",
+        "infoSteps": {
+          "testConnection": "Verbindung testen: Prüfen, ob die Datenbank erreichbar ist",
+          "createDatabase": "Datenbank erstellen: Eine neue Datenbank anlegen, falls sie noch nicht existiert",
+          "createSchema": "Nach dem Erstellen der Datenbank Migrationen ausführen, um das Schema einzurichten"
+        },
         "host": {
           "label": "Datenbank-Host",
           "description": "Hostname oder IP-Adresse des Datenbankservers"
@@ -361,7 +396,11 @@
         },
         "name": {
           "label": "Datenbankname",
-          "description": "Name der Datenbank"
+          "description": "Name der Datenbank",
+          "databaseListHint": "{{count}} Datenbanken auf diesem Host gefunden. Sie können auch einen neuen Namen eingeben.",
+          "databaseListLoading": "Datenbanken werden geladen …",
+          "databaseListError": "Datenbanken konnten nicht geladen werden. Sie können den Namen weiterhin manuell eingeben.",
+          "refreshDatabaseList": "Datenbankliste aktualisieren"
         },
         "user": {
           "label": "Datenbankbenutzer",
@@ -649,6 +688,10 @@
   },
   "common": {
     "locale": "de",
+    "wizard": "Assistent",
+    "exportCsv": "CSV",
+    "exportPdf": "PDF",
+    "print": "Drucken",
     "loading": "Lädt...",
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -666,6 +709,7 @@
     "import": "Importieren",
     "close": "Schließen",
     "back": "Zurück",
+    "next": "Weiter",
     "confirm": "Bestätigen",
     "yes": "Ja",
     "no": "Nein",
@@ -816,6 +860,13 @@
       "errors": {
         "databaseSetupHintTitle": "Datenbank-Konfiguration prüfen",
         "databaseSetupHint": "Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus."
+      },
+      "standardExport": {
+        "title": "GymNet Standardexport (optional)",
+        "help": "In GymNet unter \"Meldungen erfassen\" → Reiter \"Meldungen\" → Funktionen → Standardexport.xls. Diese Datei füllt Veranstaltungsname, Start- und Enddatum automatisch aus.",
+        "uploadLabel": "Standardexport.xls hochladen",
+        "parsing": "Datei wird gelesen...",
+        "applied": "Übernommen: {{name}} ({{start}} – {{stop}})"
       },
       "progress": {
         "parsing": "XML-Datei wird geparst...",
@@ -1067,12 +1118,26 @@
       "actions": "Aktionen"
     },
     "form": {
+      "basicInformation": "Grundinformationen",
       "name": "Vereinsname",
       "namePlaceholder": "Vereinsname eingeben",
+      "website": "Website",
+      "websitePlaceholder": "https://beispiel.de",
+      "startPosition": "Startposition",
+      "startPositionPlaceholder": "0",
+      "organization": "Organisation",
+      "region": "Region",
+      "selectRegion": "Region auswählen",
+      "noRegionsAvailable": "Keine Regionen verfügbar. Bitte zuerst Regionen erstellen.",
+      "contactPerson": "Kontaktperson",
+      "noContactPerson": "Keine Kontaktperson",
+      "noContactsAvailable": "Keine Kontaktpersonen verfügbar. Kontakte können separat verwaltet werden.",
       "location": "Ort",
       "locationPlaceholder": "Ort eingeben",
       "association": "Verband",
       "associationPlaceholder": "Verband auswählen",
+      "createClubAction": "Verein erstellen",
+      "updateClubAction": "Verein aktualisieren",
       "save": "Speichern",
       "cancel": "Abbrechen"
     },
@@ -1954,6 +2019,38 @@
       "confirmDelete": "Sind Sie sicher, dass Sie die Region \"{{name}}\" löschen möchten?"
     }
   },
+  "countries": {
+    "title": "Länderverwaltung",
+    "subtitle": "Länder für Verbände und Vereine verwalten",
+    "subtitleCount": "{{count}} Länder geladen",
+    "searchPlaceholder": "Länder suchen...",
+    "addCountry": "Land hinzufügen",
+    "editCountry": "Land bearbeiten",
+    "addNewCountry": "Neues Land hinzufügen",
+    "deleteCountry": "Land löschen",
+    "noCountries": "Keine Länder gefunden",
+    "loadingCountries": "Lade Länder...",
+    "table": {
+      "name": "Ländername",
+      "abbreviation": "Kürzel",
+      "actions": "Aktionen"
+    },
+    "filter": {
+      "abbreviation": "Kürzel"
+    },
+    "form": {
+      "name": "Ländername",
+      "namePlaceholder": "Ländername eingeben",
+      "abbreviation": "Kürzel",
+      "abbreviationPlaceholder": "Kürzel eingeben"
+    },
+    "messages": {
+      "loadError": "Fehler beim Laden der Länder",
+      "saveError": "Fehler beim Speichern des Landes",
+      "deleteError": "Fehler beim Löschen des Landes",
+      "confirmDelete": "Soll das Land \"{{name}}\" wirklich gelöscht werden?"
+    }
+  },
   "associations": {
     "title": "Verbandsverwaltung",
     "subtitle": "Turnverbände und Föderationen verwalten",
@@ -2271,6 +2368,10 @@
         "filteredByGroup": "gefiltert nach Gruppe",
         "shown": "angezeigt"
       },
+      "filterMode": {
+        "competition": "Filter entsprechend Wettkampf",
+        "all": "Alle anzeigen"
+      },
       "searchPlaceholder": "Disziplin suchen...",
       "showAll": "Alle anzeigen",
       "showSelected": "Ausgewählt ({{count}})",
@@ -2363,6 +2464,24 @@
   "timePlanning": {
     "title": "Zeitplanung",
     "subtitle": "Verwalten Sie Wettkampfzeiten, Riegen und Gerätedurchgänge",
+    "pages": {
+      "rounds": {
+        "title": "Durchgangsplanung",
+        "subtitle": "Durchgänge planen und Wettkämpfe den Durchgängen zuordnen"
+      },
+      "lanePlanning": {
+        "title": "Bahnplanung",
+        "subtitle": "Wettkämpfe den Bahnen zuweisen und zwischen Bahnen verschieben"
+      },
+      "rotationOverview": {
+        "title": "Rotationsübersicht",
+        "subtitle": "Round-Robin-Rotation pro Bahn für den gewählten Durchgang"
+      },
+      "matrix": {
+        "title": "Zeitplan-Tabelle",
+        "subtitle": "Zeitplan-Matrix prüfen, anpassen und exportieren"
+      }
+    },
     "noEventSelected": "Keine Veranstaltung ausgewählt",
     "selectEventToManageTime": "Bitte wählen Sie eine Veranstaltung aus, um die Zeitplanung zu verwalten.",
     "session": "Durchgang",
@@ -2381,6 +2500,9 @@
     "squadDevice": "Riege / Gerät",
     "minutes": "Minuten",
     "settings": "Einstellungen",
+    "help": {
+      "button": "Hilfe"
+    },
     "generateSchedule": "Plan generieren",
     "export": "Exportieren",
     "exportPDF": "Zeitplan (PDF)",
@@ -2410,9 +2532,27 @@
       "dragHint": "Spalten per Drag & Drop verschieben",
       "saveError": "Fehler beim Speichern. Bitte erneut versuchen.",
       "print": "Drucken",
-      "printTitle": "Zeitplan-Tabelle"
+      "printTitle": "Zeitplan-Tabelle",
+      "squadRoundPlan": {
+        "averageTimePerParticipant": "Durchschnittszeit pro Teilnehmer (Minuten)",
+        "scheduleStartTime": "Startzeit",
+        "maxParticipants": "Größte Riege: {{count}} Teilnehmer",
+        "slotDuration": "Vorgabezeit pro Runde: {{minutes}} Min.",
+        "competitionEnd": "Voraussichtliches Wettkampfende",
+        "plannedStart": "Soll Start",
+        "plannedEnd": "Soll Ende",
+        "switchTime": "Soll Wechsel",
+        "actualStart": "Ist Start",
+        "actualEnd": "Ist Ende",
+        "emptyOption": "Disziplin auswählen"
+      }
+    },
+    "filters": {
+      "searchPlaceholder": "Nach Wettkampf oder Riege suchen...",
+      "competition": "Wettkampf"
     },
     "addRound": "Durchgang hinzufügen",
+    "addBahn": "Bahn hinzufügen",
     "timeRange": {
       "from": "Von",
       "to": "Bis"
@@ -2453,6 +2593,27 @@
     "startDeviceInfo": "Startgerät auswählen",
     "startDeviceDescription": "Wählen Sie für jede Riege das Gerät aus, an dem sie ihre Rotation beginnen soll. Dies verhindert Konflikte, wenn mehrere Riegen gleichzeitig starten.",
     "noSquadsFound": "Keine Riegen für diesen Wettkampf gefunden",
+    "noSquads": "Keine Riegen in diesem Durchgang",
+    "sessionOverview": "Durchgangsübersicht",
+    "estimatedDurationShort": "Dauer (geschätzt)",
+    "unassignedCompetitions": "Nicht zugewiesene Wettkämpfe",
+    "noUnassignedCompetitions": "Alle Wettkämpfe sind einem Durchgang zugewiesen.",
+    "noSessionSelected": "Bitte einen Durchgang auswählen.",
+    "editSessionTimes": "Durchgangszeiten bearbeiten",
+    "applySessionStartToAllCompetitions": "Startzeit für alle Wettkämpfe in Durchgang {{session}} setzen.",
+    "lanesAssigned": "Bahnen belegt",
+    "lanesTitle": "Bahnen",
+    "laneLabel": "Bahn",
+    "laneDetails": "Bahn-Details",
+    "lanePlanningWidgetTitle": "Bahnplanung",
+    "lanePlanningWidgetSubtitle": "Wettkämpfe den Bahnen zuweisen und per Drag & Drop verschieben.",
+    "rotationOverviewWidgetTitle": "Rotationsübersicht",
+    "rotationOverviewWidgetSubtitle": "Round-Robin-Rotation pro Bahn für den gewählten Durchgang.",
+    "selectLaneFirst": "Bitte zuerst eine Bahn auswählen.",
+    "noCompetitionsOnLane": "Auf dieser Bahn sind noch keine Wettkämpfe zugewiesen.",
+    "competitionSingle": "Wettkampf",
+    "dropCompetitionHere": "Wettkampf hierhin ziehen",
+    "noLanesYet": "Keine Bahnen vorhanden. Klicke auf \"Neue Bahn\".",
     "noStartDeviceSelected": "Kein Startgerät ausgewählt",
     "wizard": {
       "title": "Zeitplanung-Assistent",
@@ -2788,6 +2949,7 @@
     "certificate": {
       "selectedParticipants": "{{count}} Teilnehmer ausgewählt",
       "andMore": "... und {{count}} weitere",
+      "participantEntry": "{{rank}}. {{name}} ({{club}})",
       "selectLayout": "Urkundenlayout auswählen",
       "chooseLayout": "Layout wählen...",
       "paperFormat": "Papierformat",
@@ -2826,7 +2988,97 @@
     },
     "details": "Einzelwertungen",
     "values": "Werte",
-    "finalScore": "Endwert"
+    "finalScore": "Endwert",
+    "exportWizard": {
+      "openButton": "Export",
+      "title": "GymNet XML Export",
+      "exportTypes": {
+        "csv": "CSV",
+        "pdf": "PDF",
+        "certificates": "Urkunden PDF",
+        "xml": "XML"
+      },
+      "exportTypeHelp": {
+        "csv": "Ergebnisse als CSV-Datei exportieren.",
+        "pdf": "Ergebnisse als PDF-Datei exportieren.",
+        "certificates": "Urkunden-PDF über das bestehende Layout-Fenster erzeugen.",
+        "xml": "GymNet-XML mit Vorlagendatei erzeugen."
+      },
+      "titles": {
+        "type": "Exporttyp auswählen",
+        "certificates": "Urkunden PDF - Einstellungen",
+        "template": "GymNet XML Export - Vorlage auswählen",
+        "target": "GymNet XML Export - Zieldatei festlegen",
+        "execute": "GymNet XML Export - Export ausführen",
+        "report": "GymNet XML Export - Matching-Bericht"
+      },
+      "steps": {
+        "type": "Typ",
+        "certificates": "Urkunden",
+        "template": "Vorlage",
+        "target": "Ziel",
+        "execute": "Export",
+        "report": "Bericht"
+      },
+      "help": {
+        "type": "Wählen Sie zuerst das gewünschte Exportformat aus.",
+        "certificates": "Konfigurieren Sie Layout und Optionen für die Urkunden-PDF direkt im Wizard.",
+        "template": "Wählen Sie die originale GymNet-XML-Datei als Vorlage. TurnFix füllt diese Datei mit den verfügbaren Ergebnissen.",
+        "target": "Legen Sie den Dateinamen für die erzeugte GymNet-XML-Ausgabedatei fest.",
+        "execute": "Prüfen Sie Ihre Auswahl und starten Sie den Export. Der Dateidownload startet nach Abschluss automatisch."
+      },
+      "templateInputLabel": "GymNet Vorlage (XML)",
+      "selectedTemplate": "Ausgewählte Vorlage",
+      "suggestedTemplates": "Bereits importierte Datei verwenden",
+      "suggestedTemplatesHint": "Diese Datei wurde beim GymNet-Import dieser Veranstaltung hochgeladen und automatisch zugeordnet.",
+      "loadingSuggestions": "Suche nach passender Import-Datei...",
+      "outputFileNameLabel": "Ausgabe-Dateiname",
+      "outputFileNamePlaceholder": "z.B. gymnet_ergebnisse_veranstaltung.xml",
+      "outputFileNameHint": "Tipp: Sie können jeden Dateinamen verwenden. .xml wird bei Bedarf automatisch ergänzt.",
+      "gymnetEventId": {
+        "title": "GymNet Ergebnisdienst",
+        "matched": "Zugeordnet zu \"{{name}}\" ({{start}} - {{stop}}).",
+        "openLink": "Ergebnisdienst öffnen",
+        "notLinked": "Für diese Veranstaltung ist noch keine GymNet Event-ID hinterlegt.",
+        "help": "Die Event-ID finden Sie in GymNet unter \"Meldungen erfassen\" → Reiter \"Meldungen\" → Funktionen → Standardexport.xls. Laden Sie diese Datei hier hoch, um den Link zum Ergebnisdienst zu erhalten.",
+        "uploadLabel": "Standardexport.xls hochladen"
+      },
+      "summary": {
+        "exportType": "Exporttyp",
+        "event": "Veranstaltung",
+        "competition": "Wettkampf",
+        "certificates": "Urkunden PDF",
+        "certificatesHint": "Der bestehende Urkunden-Dialog wird geöffnet.",
+        "template": "Vorlage",
+        "output": "Ausgabedatei"
+      },
+      "actions": {
+        "startExport": "Export starten",
+        "exporting": "Export läuft...",
+        "executeHint": "Verwenden Sie \"Export starten\", um das XML-Merging auszuführen."
+      },
+      "errors": {
+        "exportTypeRequired": "Bitte wählen Sie zuerst ein Exportformat aus.",
+        "certificateLayoutRequired": "Bitte wählen Sie ein Urkunden-Layout aus.",
+        "templateRequired": "Bitte wählen Sie eine GymNet-XML-Vorlage aus.",
+        "templateSuggestionFailed": "Die vorgeschlagene Datei konnte nicht geladen werden. Bitte manuell auswählen.",
+        "outputFileNameRequired": "Bitte geben Sie einen Ausgabe-Dateinamen an.",
+        "exportFailed": "GymNet XML Export fehlgeschlagen."
+      }
+    },
+    "matchReport": {
+      "competitionsMatched": "Gematchte Wettkämpfe",
+      "participantsMatched": "Gematchte Teilnehmende",
+      "disciplineScoresWritten": "Geschriebene Disziplin-Wertungen",
+      "competitionsUnmatched": "Nicht gematchte Wettkämpfe",
+      "participantsUnmatched": "Nicht gematchte Teilnehmende",
+      "disciplinesUnmatched": "Nicht gematchte Disziplinen",
+      "unmatchedCompetitions": "Nicht gematchte Wettkämpfe",
+      "unmatchedParticipants": "Nicht gematchte Teilnehmende",
+      "unmatchedDisciplines": "Nicht gematchte Disziplinen",
+      "none": "Keine",
+      "noReport": "Vom Server wurde kein Matching-Bericht zurückgegeben."
+    }
   },
   "medallienspiegel": {
     "title": "Medallienspiegel",
@@ -2955,6 +3207,7 @@
     "layer": "Ebene (Z-Index)",
     "layerBackground": "Niedrigere Zahlen = Hintergrund (0, 1, 2)",
     "layerForeground": "Höhere Zahlen = Vordergrund (8, 9, 10)",
+    "maxLayersReached": "Es können maximal 10 Ebenen angelegt werden.",
     "font": "Schriftart",
     "deleteField": "Feld löschen",
     "fieldTypes": {
@@ -3353,7 +3606,12 @@
       "appliedTitle": "Riegeneinteilung erfolgreich!",
       "appliedMessage": "{{participants}} Teilnehmer wurden auf {{squads}} Riegen verteilt.",
       "keepExistingInfo": "{{squads}} bestehende Riegen mit {{assigned}} Teilnehmern werden beibehalten."
-    }
+    },
+    "generateSquadDisciplines": "Squad-Disziplinen generieren",
+    "generating": "Wird generiert...",
+    "generateSuccess": "Erfolgreich {{created}} neue Squad-Disziplin-Kombinationen generiert ({{total}} insgesamt)",
+    "generateFailed": "Fehler beim Generieren von Squad-Disziplinen",
+    "generateError": "Fehler beim Generieren von Squad-Disziplinen"
   },
   "competitions": {
     "title": "Wettkampfverwaltung",

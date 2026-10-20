@@ -281,11 +281,12 @@ export default function GroupScoreCapture() {
                 </label>
                 <input
                   type="number"
+                  required
                   min={1}
                   max={selectedDiscipline?.attempts || 3}
-                  value={selectedAttempt}
-                  onChange={(e) => setSelectedAttempt(parseInt(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  value={Number.isFinite(selectedAttempt) ? selectedAttempt : ''}
+                  onChange={(e) => setSelectedAttempt(e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md invalid:border-red-500 invalid:ring-red-500"
                 />
               </div>
             </div>

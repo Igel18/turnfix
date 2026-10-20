@@ -17,6 +17,8 @@ import { isDatabaseUnavailableImportError } from '../../utils/importErrorHints'
 // StepProps type for all step and navbar components
 type StepProps = { wizard: ReturnType<typeof useEventImportWizard> }
 
+const STANDARD_EXPORT_FILE_ACCEPT = '.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface EventImportWizardProps {
@@ -73,12 +75,56 @@ export default EventImportWizard
 // ── Step 1: Event Details ─────────────────────────────────────────────
 const StepEventDetails: React.FC<StepProps & { venues: Venue[] }> = ({ wizard, venues }) => {
   const { t } = useTranslation()
-  const { importEventData, setImportEventData, errorMessage } = wizard
+  const {
+    importEventData,
+    setImportEventData,
+    errorMessage,
+    standardExportData,
+    isParsingStandardExport,
+    standardExportWarning,
+    standardExportError,
+    handleStandardExportFile,
+  } = wizard
   const databaseSetupHint = errorMessage && isDatabaseUnavailableImportError(errorMessage)
     ? t('events.import.errors.databaseSetupHint', 'Öffnen Sie unter Einstellungen > Datenbankkonfiguration den Setup-Assistenten und führen Sie Datenbankverbindung und Schema-Erstellung aus.')
     : null
   return (
     <div className="space-y-4">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+        <h4 className="text-sm font-medium text-gray-800">{t('events.import.standardExport.title')}</h4>
+        <p className="text-xs text-gray-600">{t('events.import.standardExport.help')}</p>
+        <label className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-100 transition-colors w-full">
+          <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm text-gray-700">{t('events.import.standardExport.uploadLabel')}</span>
+          <input
+            type="file"
+            accept={STANDARD_EXPORT_FILE_ACCEPT}
+            disabled={isParsingStandardExport}
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void handleStandardExportFile(file)
+              e.target.value = ''
+            }}
+            className="sr-only"
+          />
+        </label>
+        {isParsingStandardExport && (
+          <p className="text-xs text-gray-500">{t('events.import.standardExport.parsing')}</p>
+        )}
+        {standardExportData && (
+          <p className="text-xs text-green-700">
+            {t('events.import.standardExport.applied', {
+              name: standardExportData.evName,
+              start: standardExportData.evStart,
+              stop: standardExportData.evStop,
+            })}
+          </p>
+        )}
+        {standardExportWarning && <p className="text-xs text-amber-600">{standardExportWarning}</p>}
+        {standardExportError && <p className="text-xs text-red-600">{standardExportError}</p>}
+      </div>
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
         <h4 className="text-sm font-medium text-blue-800">{t('events.import.eventDetails', 'Veranstaltungsdetails')}</h4>
         <div>

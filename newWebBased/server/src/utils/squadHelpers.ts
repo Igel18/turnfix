@@ -53,12 +53,14 @@ export function isUnassignedSquadValue(value: string | null | undefined): boolea
 export function buildAvailableParticipantsWhereClause(): string {
   return `
     wk.int_veranstaltungenid = $1
+    AND COALESCE(w.bol_startet_nicht, false) = false
     AND NOT EXISTS (
       SELECT 1
       FROM tfx_wertungen w2
       INNER JOIN tfx_wettkaempfe wk2 ON w2.int_wettkaempfeid = wk2.int_wettkaempfeid
       WHERE wk2.int_veranstaltungenid = $1
         AND w2.int_teilnehmerid = t.int_teilnehmerid
+        AND COALESCE(w2.bol_startet_nicht, false) = false
         AND w2.var_riege IS NOT NULL
         AND w2.var_riege != ''
         AND w2.var_riege != 'Unassigned'

@@ -31,6 +31,51 @@ interface Competition {
   number?: string
 }
 
+export const mapCertificateFieldValue = (
+  fieldValue: string | null,
+  participant: Participant,
+  eventName: string,
+  eventLocation: string,
+  competitionName: string
+): string => {
+  if (!fieldValue) return ''
+
+  if (/^\d+$/.test(fieldValue)) {
+    const fieldNum = parseInt(fieldValue)
+    switch (fieldNum) {
+      case 0: return eventName
+      case 1: return new Date().toLocaleDateString('de-DE')
+      case 2: return eventLocation 
+      case 3: return participant.name
+      case 4: return participant.club
+      case 5: return `${participant.rank}.`
+      case 6: return participant.totalScore.toFixed(3)
+      case 7: return competitionName
+      case 8: return `${competitionName} (Einzel)`
+      case 9: return 'Turngau'
+      case 10: return 'Turnerbund'
+      case 11: return 'Deutschland'
+      case 12: return participant.rank <= 3 ? 'Siegerurkunde' : 'Teilnahmeurkunde'
+      case 13: return participant.totalScore.toFixed(3)
+      case 14: return participant.name
+      case 15: return `WK-${participant.competitionId}`
+      default: return `Feld ${fieldNum}`
+    }
+  }
+
+  const mapping: Record<string, string> = {
+    '{participant.name}': participant.name,
+    '{participant.club}': participant.club,
+    '{participant.rank}': participant.rank.toString(),
+    '{participant.age}': participant.age.toString(),
+    '{participant.totalScore}': participant.totalScore.toFixed(2),
+    '{competition.name}': competitionName,
+    '{date}': new Date().toLocaleDateString('de-DE')
+  }
+
+  return mapping[fieldValue] || fieldValue
+}
+
 export const useCertificates = () => {
   const [certificateLayouts, setCertificateLayouts] = useState<CertificateLayout[]>([])
   const [isPrintingCertificates, setIsPrintingCertificates] = useState(false)
@@ -124,55 +169,6 @@ export const useCertificates = () => {
   };
 
   /**
-   * Map database field value to actual participant/competition data
-   * Type 0 fields contain a number (0-15) that maps to specific data fields
-   */
-  const mapFieldValue = (
-    fieldValue: string | null,
-    participant: Participant,
-    competitionName: string
-  ): string => {
-    if (!fieldValue) return ''
-
-    // Check if this is a database field number (Type 0)
-    if (/^\d+$/.test(fieldValue)) {
-      const fieldNum = parseInt(fieldValue)
-      switch (fieldNum) {
-        case 0: return competitionName // Event name (using competition as event)
-        case 1: return new Date().toLocaleDateString('de-DE') // Event date
-        case 2: return 'Sporthalle' // Location (TODO: get from event data)
-        case 3: return participant.name // Participant name
-        case 4: return participant.club // Club name
-        case 5: return `${participant.rank}.` // Place/Rank with dot
-        case 6: return participant.totalScore.toFixed(3) // Score/Points
-        case 7: return competitionName // Competition name
-        case 8: return `${competitionName} (Einzel)` // Competition + designation
-        case 9: return 'Turngau' // Gau (District)
-        case 10: return 'Turnerbund' // Verband (Association)
-        case 11: return 'Deutschland' // Land (State)
-        case 12: return participant.rank <= 3 ? 'Siegerurkunde' : 'Teilnahmeurkunde' // Certificate type
-        case 13: return participant.totalScore.toFixed(3) // Score (alternative)
-        case 14: return participant.name // Team members (single participant)
-        case 15: return `WK-${participant.competitionId}` // Competition number
-        default: return `Feld ${fieldNum}`
-      }
-    }
-
-    // For template placeholders like {participant.name} (future compatibility)
-    const mapping: Record<string, string> = {
-      '{participant.name}': participant.name,
-      '{participant.club}': participant.club,
-      '{participant.rank}': participant.rank.toString(),
-      '{participant.age}': participant.age.toString(),
-      '{participant.totalScore}': participant.totalScore.toFixed(2),
-      '{competition.name}': competitionName,
-      '{date}': new Date().toLocaleDateString('de-DE')
-    }
-
-    return mapping[fieldValue] || fieldValue
-  }
-
-  /**
    * Generate certificates PDF for selected participants
    */
   const generateCertificates = useCallback(async (
@@ -181,7 +177,8 @@ export const useCertificates = () => {
     selectedPaperFormat: PaperFormat,
     competitions: Competition[],
     selectedCompetition: string | null,
-    eventName: string
+    eventName: string,
+    eventLocation: string
   ) => {
     if (!selectedLayout) {
       alert('Please select a certificate layout')
@@ -285,7 +282,7 @@ export const useCertificates = () => {
             case 0: // Text field (dynamic - with mapping)
             case 1: // Text field (static or dynamic)
               if (field.var_value && width > 0 && height > 0) {
-                const mappedValue = mapFieldValue(field.var_value, participant, competitionName)
+                const mappedValue = mapCertificateFieldValue(field.var_value, participant, eventName, eventLocation, competitionName)
                 
                 // Font size calculation from old code
                 const fontParts = field.var_font?.split(',') || ['helvetica', '12']

@@ -126,3 +126,12 @@ export const EMPTY_IMPORT_DATA: ImportEventData = {
   description: '',
   scoringMode: 'formula_based'
 }
+
+/** Parsed GymNet "Standardexport.xls", held until the event is created so its
+ *  evID can be linked to the real TurnFix event ID afterwards. */
+export interface GymnetStandardExportData {
+  gymnetEventId: string
+  evName: string
+  evStart: string
+  evStop: string
+}

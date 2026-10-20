@@ -27,11 +27,19 @@ const path_1 = require("path");
 // This ensures PM2 (which sets cwd to project root) still finds the .env file
 // IMPORTANT: override: true ensures that after a DB switch + PM2 restart,
 // the updated .env values take precedence over any cached PM2 environment variables
+const e2eDatabaseUrl = process.env.TURNFIX_E2E_DATABASE_URL;
 const requestedEnvFile = process.env.TURNFIX_ENV_FILE || '.env';
 const envFilePath = (0, path_1.isAbsolute)(requestedEnvFile)
     ? requestedEnvFile
     : (0, path_1.resolve)(__dirname, '..', requestedEnvFile);
-(0, dotenv_1.config)({ path: envFilePath, override: true });
+(0, dotenv_1.config)({ path: envFilePath, override: !e2eDatabaseUrl });
+if (e2eDatabaseUrl) {
+    const e2eDatabaseName = new URL(e2eDatabaseUrl).pathname.replace(/^\//, '');
+    if (process.env.NODE_ENV !== 'test' || !/^turnfix_e2e_[a-z0-9_]+$/i.test(e2eDatabaseName)) {
+        throw new Error('Refusing to start E2E server without an isolated E2E database');
+    }
+    process.env.DATABASE_URL = e2eDatabaseUrl;
+}
 if (process.env.TURNFIX_RUNTIME_PORT) {
     process.env.PORT = process.env.TURNFIX_RUNTIME_PORT;
 }

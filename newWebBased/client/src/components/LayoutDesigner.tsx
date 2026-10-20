@@ -3,6 +3,7 @@ import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { DATABASE_FIELD_DESCRIPTIONS, getDatabaseFieldDescription } from '@/pages/CertificateLayouts'
 import { resolveImageUrl, isLocalFilePath, isUploadingPath, extractFilename } from '@/utils/imageUrlUtils'
 import { useTranslation } from 'react-i18next'
+import { MAX_LAYOUT_LAYER, clampLayoutLayer, getDefaultLayoutLayer, shouldClearLayoutSelection } from '@/utils/layoutLayerUtils'
 import { 
   TrashIcon, 
   DocumentTextIcon,
@@ -207,6 +208,8 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
 
   // Add new field
   const addField = async (type: number) => {
+    const defaultLayer = getDefaultLayoutLayer(selectedField);
+
     const newField: LayoutField = {
       int_layout_felderid: getNextTempId(),
       int_layoutid: layout.int_layoutid,
@@ -218,7 +221,7 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
       rel_h: type === 2 ? 0.2 : 0.05, // Better aspect ratio for images (1.5:1)
       var_value: type === 1 ? 'Sample Text' : '',
       int_align: 0,
-      int_layer: fields.length
+      int_layer: defaultLayer
     };
 
     // Set aspect ratio lock for new image fields by default
@@ -269,6 +272,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
     }
     if ('rel_h' in validatedUpdates) {
       validatedUpdates.rel_h = Math.max(0.001, Math.min(1, validatedUpdates.rel_h!));
+    }
+    if ('int_layer' in validatedUpdates) {
+      validatedUpdates.int_layer = clampLayoutLayer(validatedUpdates.int_layer!);
     }
     
     const updatedFields = fields.map(field => 
@@ -868,6 +874,11 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                 <div 
                   ref={canvasRef}
                   className="relative bg-white shadow-2xl flex-shrink-0"
+                  onClick={(e) => {
+                    if (shouldClearLayoutSelection(e.target, e.currentTarget)) {
+                      setSelectedField(null);
+                    }
+                  }}
                   style={{ 
                     width: `${canvasSize.width * zoom}px`, 
                     height: `${canvasSize.height * zoom}px`
@@ -1218,9 +1229,9 @@ export function LayoutDesigner({ layout, onClose, onSave, onFieldsChange }: Layo
                     <input
                       type="number"
                       min="0"
-                      max="10"
+                      max={MAX_LAYOUT_LAYER}
                       value={selectedField.int_layer}
-                      onChange={(e) => updateField(selectedField.int_layout_felderid, { int_layer: Number(e.target.value) })}
+                      onChange={(e) => updateField(selectedField.int_layout_felderid, { int_layer: clampLayoutLayer(Number(e.target.value)) })}
                       className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                     />
                     <div className="mt-1 text-xs text-gray-500">

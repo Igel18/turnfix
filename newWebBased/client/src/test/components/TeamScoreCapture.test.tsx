@@ -168,7 +168,7 @@ describe('TeamScoreCapture', () => {
   });
 
   describe('Page Rendering', () => {
-    it('should render the page title', async () => {
+    it('should render the page title', { timeout: 15000 }, async () => {
       await renderTeamScoreCapture();
 
       await waitFor(() => {

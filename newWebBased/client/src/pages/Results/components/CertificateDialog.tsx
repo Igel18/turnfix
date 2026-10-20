@@ -62,7 +62,7 @@ export const CertificateDialog = ({
         <div className="max-h-32 overflow-y-auto bg-gray-50 rounded p-2 text-sm">
           {participants.slice(0, 5).map(p => (
             <div key={p.id} className="truncate">
-              {p.rank}. {p.name} ({p.club})
+              {t('results.certificate.participantEntry', { rank: p.rank, name: p.name, club: p.club })}
             </div>
           ))}
           {participants.length > 5 && (

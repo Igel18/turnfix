@@ -31,9 +31,17 @@ if not exist "%ICO%" (
     set "ICO_FLAG=/win32icon:"%ICO%""
 )
 
+REM Locate tray manifest (required for admin elevation)
+set "MANIFEST=%~dp0TurnFixTray.manifest"
+if not exist "%MANIFEST%" (
+    echo ERROR: TurnFixTray.manifest not found at %MANIFEST%
+    exit /b 1
+)
+
 REM Compile
 "%CSC%" /nologo /target:winexe /optimize /out:"%~dp0TurnFixTray.exe" ^
     %ICO_FLAG% ^
+    /win32manifest:"%MANIFEST%" ^
     /reference:System.dll ^
     /reference:System.Drawing.dll ^
     /reference:System.Windows.Forms.dll ^

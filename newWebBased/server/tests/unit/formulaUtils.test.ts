@@ -291,9 +291,13 @@ describe('formulaUtils', () => {
       expect(result['B'].isSubtraction).toBe(true);
     });
 
-    it('should handle empty jury results', () => {
+    it('should return placeholders for formula symbols when jury results are empty', () => {
+      // No jury results yet, but the formula still expects A and B — the UI
+      // needs these placeholders to show which inputs are required.
       const result = buildFieldSymbolsMap([], 'A + B');
-      expect(Object.keys(result)).toHaveLength(0);
+      expect(Object.keys(result)).toHaveLength(2);
+      expect(result['A'].value).toBeNull();
+      expect(result['B'].value).toBeNull();
     });
   });
 

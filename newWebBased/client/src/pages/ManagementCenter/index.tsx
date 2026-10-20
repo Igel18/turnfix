@@ -22,6 +22,7 @@ export function ManagementCenter() {
   const {
     isDatabaseManagementCollapsed, setIsDatabaseManagementCollapsed,
     isEventSetupCollapsed,         setIsEventSetupCollapsed,
+    isTimePlanningCollapsed,       setIsTimePlanningCollapsed,
     isCompetitionDayCollapsed,     setIsCompetitionDayCollapsed,
     isResultsAwardsCollapsed,      setIsResultsAwardsCollapsed,
   } = useCollapsibleSections()
@@ -50,9 +51,11 @@ export function ManagementCenter() {
         <EventWorkflowSteps
           selectedEvent={selectedEvent}
           isEventSetupCollapsed={isEventSetupCollapsed}
+          isTimePlanningCollapsed={isTimePlanningCollapsed}
           isCompetitionDayCollapsed={isCompetitionDayCollapsed}
           isResultsAwardsCollapsed={isResultsAwardsCollapsed}
           onToggleEventSetup={() => setIsEventSetupCollapsed(v => !v)}
+          onToggleTimePlanning={() => setIsTimePlanningCollapsed(v => !v)}
           onToggleCompetitionDay={() => setIsCompetitionDayCollapsed(v => !v)}
           onToggleResultsAwards={() => setIsResultsAwardsCollapsed(v => !v)}
         />

@@ -10,6 +10,7 @@ import {
   getUnifiedTableStyles,
   drawRankingBadge
 } from '@/utils/pdfUtils'
+import { resolveEventForPDFHeader } from '@/utils/pdfEventResolver'
 import { pdfSpacing, pdfFonts } from '@/utils/pdfStyles'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -46,7 +47,7 @@ export default function Medallienspiegel() {
     }
   }, [selectedEvent, refetch])
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!medalData || !selectedEvent) {
       console.error('Cannot export PDF: Missing medalData or selectedEvent')
       return
@@ -74,15 +75,11 @@ export default function Medallienspiegel() {
       // For landscape A4: width = 297mm, height = 210mm
       const contentArea = getContentArea(297, 210)
       
-      // Build event object for PDF header
-      const eventForPDF = {
+      // Resolve fresh event data to avoid stale header metadata from cached context.
+      const eventForPDF = await resolveEventForPDFHeader(selectedEvent, {
         int_eventid: selectedEvent.int_eventid,
-        var_eventname: selectedEvent.var_eventname || medalData.eventName,
-        dat_eventstartdate: selectedEvent.dat_eventstartdate || '',
-        dat_eventenddate: selectedEvent.dat_eventenddate || '',
-        var_location: selectedEvent.var_location || '',
-        status: selectedEvent.status || 'completed' as const
-      }
+        var_eventname: medalData.eventName
+      })
 
       // Note: Header/footer is added AFTER table generation (see below)
       // so that getNumberOfPages() returns the correct final total

@@ -72,7 +72,7 @@ export function Layout() {
       'Associations': 'navigation.associations',
       'Areas': 'navigation.areas'
     }
-    
+
     return menuTranslationMap[name] ? t(menuTranslationMap[name]) : name
   }
 

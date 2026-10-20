@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useResultsData } from '@/pages/Results/hooks/useResultsData'
+import { useResultsData } from '../../pages/Results/hooks/useResultsData'
 
-vi.mock('@/utils/api', () => ({
+vi.mock('../../utils/api', () => ({
   apiGet: vi.fn(),
 }))
 
@@ -12,7 +12,7 @@ describe('useResultsData', () => {
   })
 
   it('keeps competition-specific jury fields and scores separated for participants in multiple competitions', async () => {
-    const { apiGet } = await import('@/utils/api')
+    const { apiGet } = await import('../../utils/api')
 
     vi.mocked(apiGet).mockImplementation(async (url: string) => {
       if (url.startsWith('/event-participants?')) {
@@ -134,6 +134,26 @@ describe('useResultsData', () => {
 
     expect(annaInGroup1!.totalScore).toBeCloseTo(13, 2)
     expect(annaInGroup2!.totalScore).toBeCloseTo(5, 2)
+  })
+
+  it('keeps the selected event name instead of falling back to the event id when no participants are loaded', async () => {
+    const { apiGet } = await import('../../utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return { participants: [] }
+      }
+
+      return []
+    })
+
+    const { result } = renderHook(() => useResultsData('77', '', 'Fruehjahrs-Cup 2026'))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([])
+    })
+
+    expect(result.current.eventName).toBe('Fruehjahrs-Cup 2026')
   })
 
   it('keeps multi-discipline scores isolated per competition and calculates totals per competition discipline set', async () => {
@@ -770,5 +790,110 @@ describe('useResultsData', () => {
 
     // Numeric sort: 2, 9, 10 — not lexicographic: 10, 2, 9
     expect(competitions.map(c => c.number)).toEqual(['2', '9', '10'])
+  })
+
+  it('Bug #162: loads all score pages when event has more than 1000 score rows', async () => {
+    const { apiGet } = await import('@/utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            {
+              id: 1,
+              firstname: 'Max',
+              lastname: 'ManyScores',
+              club: 'TV Test',
+              startNumber: 1,
+              age: 12,
+              gender: 'männlich',
+              startet_nicht: false,
+              assignedCompetitions: [1],
+            },
+          ],
+        }
+      }
+
+      if (url.startsWith('/scores?')) {
+        const parsed = new URL(`http://localhost${url}`)
+        const limit = Number(parsed.searchParams.get('limit') || '1000')
+        const offset = Number(parsed.searchParams.get('offset') || '0')
+
+        // Simulate 1001 total rows, with one relevant score for participant 1
+        // on page 2 (offset 1000). Without pagination this score is lost.
+        if (offset === 0) {
+          const filler = Array.from({ length: limit }, (_, i) => ({
+            participantId: 9999,
+            competitionId: 1,
+            disciplineName: 'Boden m',
+            score: 5,
+            formula: '1*x',
+            juryResults: [],
+            _row: i,
+          }))
+
+          return {
+            results: filler,
+            pagination: {
+              total: 1001,
+              limit,
+              offset,
+              hasMore: true,
+            },
+          }
+        }
+
+        if (offset === 1000) {
+          return {
+            results: [
+              {
+                participantId: 1,
+                competitionId: 1,
+                disciplineName: 'Boden m',
+                score: 9.5,
+                formula: '1*x',
+                juryResults: [
+                  { fieldName: 'Wertung', fieldShortName: 'x', performance: 9.5, isFinalScore: false, isStartingScore: false },
+                ],
+              },
+            ],
+            pagination: {
+              total: 1001,
+              limit,
+              offset,
+              hasMore: false,
+            },
+          }
+        }
+
+        return { results: [], pagination: { total: 1001, limit, offset, hasMore: false } }
+      }
+
+      if (url === '/disciplines') {
+        return [{ id: 10, name: 'Boden m' }]
+      }
+
+      if (url === '/competitions/1/disciplines') {
+        return {
+          disciplines: [
+            { var_name: 'Boden m', var_formel: '1*x', var_kurz1: 'BOD', var_icon: '' },
+          ],
+        }
+      }
+
+      throw new Error(`Unhandled apiGet URL in test: ${url}`)
+    })
+
+    const { result } = renderHook(() => useResultsData('1', ''))
+
+    await act(async () => {
+      await result.current.fetchEventRanking([{ id: 1, name: 'WK 1', number: '0001' }])
+    })
+
+    expect(result.current.competitionGroups).toHaveLength(1)
+    const group = result.current.competitionGroups[0]
+    expect(group.participants).toHaveLength(1)
+    expect(group.participants[0].scores['Boden m']).toBeCloseTo(9.5, 2)
+    expect(group.participants[0].totalScore).toBeCloseTo(9.5, 2)
   })
 })

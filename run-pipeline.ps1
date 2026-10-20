@@ -154,6 +154,11 @@ Invoke-Step -Name "Client-Tests (Vitest)" -Skip:($SkipTests -or $SkipUnitTests) 
 Invoke-Step -Name "E2E-Tests (Playwright)" -Skip:($SkipTests -or $SkipE2ETests) -Action {
     Set-Location $ClientDir
 
+    # Ensure required Playwright browser binaries exist on this machine.
+    # Without this, tests can fail with "Executable doesn't exist" after package updates.
+    Write-Host "  ℹ️  Prüfe/Installiere Playwright Chromium ..." -ForegroundColor DarkGray
+    npx playwright install chromium
+
     # Ensure required ports are free so Playwright webServer can start cleanly.
     $requiredPorts = @(3001, 3002, 5173)
 

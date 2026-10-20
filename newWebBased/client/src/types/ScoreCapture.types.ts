@@ -15,6 +15,7 @@ export interface Participant {
   isInEvent: boolean;
   registrationDate: string;
   squad_name?: string;
+  startet_nicht?: boolean;
   int_statusid?: number;
   startNumber?: number | null;
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Results from '@/pages/Results';
 
 const exportResultsGymNetXMLMock = vi.fn().mockResolvedValue(undefined);
@@ -37,8 +37,9 @@ vi.mock('@/components/LiveUpdateIndicator', () => ({
 }));
 
 vi.mock('@/components/templates/EventManagementTemplate', () => ({
-  EventManagementTemplate: ({ customActions, children }: any) => (
+  EventManagementTemplate: ({ customActions, onExportWizard, children }: any) => (
     <div>
+      <button onClick={onExportWizard}>common.export</button>
       <div data-testid="custom-actions">{customActions}</div>
       {children()}
     </div>
@@ -80,17 +81,22 @@ vi.mock('@/pages/Results/hooks', () => ({
 vi.mock('@/pages/Results/components', () => ({
   ResultsTable: () => <div data-testid="results-table" />,
   ResultsFilters: () => <div data-testid="results-filters" />,
-  CertificateDialog: () => null
+  CertificateDialog: () => null,
+  ResultsGymNetExportWizard: ({ isOpen }: { isOpen: boolean }) => (
+    <div data-testid="results-export-wizard">{isOpen ? 'open' : 'closed'}</div>
+  )
 }));
 
 describe('Results XML export action', () => {
-  it('renders XML export button and triggers GymNet XML export handler', () => {
+  it('renders XML export button and opens GymNet export wizard', async () => {
     render(<Results />);
 
-    const xmlButton = screen.getByRole('button', { name: 'XML Export' });
+    const xmlButton = screen.getByRole('button', { name: 'common.export' });
     expect(xmlButton).toBeInTheDocument();
+    expect(screen.getByTestId('results-export-wizard')).toHaveTextContent('closed');
 
     fireEvent.click(xmlButton);
-    expect(exportResultsGymNetXMLMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.getByTestId('results-export-wizard')).toHaveTextContent('open'));
+    expect(exportResultsGymNetXMLMock).not.toHaveBeenCalled();
   });
 });

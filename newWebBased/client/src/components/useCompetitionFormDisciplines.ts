@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { Discipline, DisciplineGroup, CompetitionFormData } from './CompetitionFormModal.types';
 
+export type DisciplineFilterMode = 'competition' | 'all';
+
 /** Determines which disciplines are compatible with the given gender. */
 export function filterDisciplinesByGender(
   disciplines: Discipline[],
@@ -58,6 +60,8 @@ export function useCompetitionFormDisciplines({
   const [showIncompatibleMessage, setShowIncompatibleMessage] = useState(false);
   const [disciplineSearch, setDisciplineSearch] = useState('');
   const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+  // 'competition' = only disciplines matching the competition gender, 'all' = no gender filter
+  const [disciplineFilterMode, setDisciplineFilterMode] = useState<DisciplineFilterMode>('competition');
 
   // Refs that guard the gender-change side-effect against race conditions.
   const previousGenderRef = useRef<string>(formData.gender);
@@ -123,6 +127,7 @@ export function useCompetitionFormDisciplines({
 
     const filtered = disciplines.filter(discipline => {
       const genderMatch =
+        disciplineFilterMode === 'all' ||
         formData.gender === 'gemischt' ||
         (formData.gender === 'männlich' && discipline.male_allowed) ||
         (formData.gender === 'weiblich' && discipline.female_allowed);
@@ -132,7 +137,7 @@ export function useCompetitionFormDisciplines({
     });
 
     setFilteredDisciplines(filtered);
-  }, [disciplines, formData.gender, selectedDisciplineGroup, disciplineGroups]);
+  }, [disciplines, formData.gender, selectedDisciplineGroup, disciplineGroups, disciplineFilterMode]);
 
   // Remove incompatible disciplines when gender changes (after load, not before).
   useEffect(() => {
@@ -270,6 +275,8 @@ export function useCompetitionFormDisciplines({
     setDisciplineSearch,
     showSelectedOnly,
     setShowSelectedOnly,
+    disciplineFilterMode,
+    setDisciplineFilterMode,
     // Handlers
     handleDisciplineGroupChange,
     handleDisciplineToggle,

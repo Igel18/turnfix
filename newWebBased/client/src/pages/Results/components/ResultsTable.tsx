@@ -9,6 +9,7 @@
 
 import { useTranslation } from 'react-i18next'
 import { TrophyIcon } from '@heroicons/react/24/outline'
+import GroupedTableSection from '@/components/ui/GroupedTableSection'
 import { JuryResultsDisplay } from './JuryResultsDisplay'
 import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
 import type { Participant, CompetitionGroup } from '../Results.types'
@@ -227,12 +228,11 @@ export const ResultsTable = ({
     <div className="bg-white rounded-lg shadow-sm border mx-6">
       <div className="space-y-8 p-6">
         {filteredCompetitionGroups.map((group) => (
-          <div key={group.competitionId} className="border rounded-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-              <h3 className="text-xl font-bold text-white">{group.competitionName}</h3>
-              <p className="text-blue-100 text-sm">{t('results.participantsCount', { count: group.participants.length })}</p>
-            </div>
-            <div className="overflow-x-auto">
+          <GroupedTableSection
+            key={group.competitionId}
+            title={group.competitionName}
+            description={t('results.participantsCount', { count: group.participants.length })}
+          >
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -371,8 +371,7 @@ export const ResultsTable = ({
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
+          </GroupedTableSection>
         ))}
       </div>
     </div>

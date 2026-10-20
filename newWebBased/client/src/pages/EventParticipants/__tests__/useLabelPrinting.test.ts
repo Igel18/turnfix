@@ -109,14 +109,15 @@ const makeParticipant = (
   }) as unknown as Participant;
 
 describe('sortParticipantsForLabels', () => {
-  it('sorts male before female', () => {
+  it('sorts by squad first and club second regardless of gender', () => {
     const p = [
-      makeParticipant(1, 'female', 'A', 'Club'),
-      makeParticipant(2, 'male', 'A', 'Club'),
+      makeParticipant(1, 'female', 'Riege B', 'TSV A'),
+      makeParticipant(2, 'male', 'Riege A', 'TSV Z'),
+      makeParticipant(3, 'female', 'Riege A', 'TSV B'),
+      makeParticipant(4, 'male', 'Riege A', 'TSV A'),
     ];
     const sorted = sortParticipantsForLabels(p);
-    expect(sorted[0].id).toBe(2);
-    expect(sorted[1].id).toBe(1);
+    expect(sorted.map(participant => participant.id)).toEqual([4, 3, 2, 1]);
   });
 
   it('sorts by squad name within same gender', () => {

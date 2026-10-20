@@ -18,6 +18,49 @@ const router = express.Router();
 // __dirname at runtime = server/dist/routes → up 2 = server/
 const serverRoot = path.resolve(__dirname, '..', '..');
 
+function buildSystemDatabaseUrl(dbConfig: any): string {
+  const host = String(dbConfig.db_host);
+  const formattedHost = host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
+  const username = encodeURIComponent(String(dbConfig.db_user));
+  const password = encodeURIComponent(String(dbConfig.db_password ?? ''));
+  const sslMode = dbConfig.db_ssl ? '?sslmode=require' : '';
+  return `postgresql://${username}:${password}@${formattedHost}:${Number(dbConfig.db_port)}/postgres${sslMode}`;
+}
+
+// POST /api/configuration/list-databases - List databases visible on the configured PostgreSQL host
+router.post('/list-databases', async (req, res) => {
+  const dbConfig = req.body;
+  const port = Number(dbConfig?.db_port);
+  if (!dbConfig?.db_host || !Number.isInteger(port) || port < 1 || port > 65535 || !dbConfig?.db_user) {
+    return res.status(400).json({ error: 'Valid database host, port, and user are required' });
+  }
+
+  const systemPrisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: buildSystemDatabaseUrl({ ...dbConfig, db_port: port }),
+      },
+    },
+  });
+
+  try {
+    const databases = await systemPrisma.$queryRaw<Array<{ datname: string }>>`
+      SELECT datname
+      FROM pg_database
+      WHERE datistemplate = false AND datallowconn = true
+      ORDER BY datname
+    `;
+    return res.json({ databases: databases.map(database => database.datname) });
+  } catch (error) {
+    console.error('Failed to list PostgreSQL databases:', error);
+    return res.status(502).json({
+      error: 'Could not list databases from the configured PostgreSQL host',
+    });
+  } finally {
+    await systemPrisma.$disconnect();
+  }
+});
+
 // POST /api/configuration/test-database - Test database connection
 router.post('/test-database', async (req, res) => {
   try {
@@ -240,13 +283,12 @@ router.post('/create-schema', async (req, res) => {
       }
       
       // Run Prisma db push to create schema directly from schema.prisma.
-      // Use the local Prisma CLI so this works even when npx is unavailable.
+      // Execute Prisma via explicit node executable to avoid PATH issues.
       // Use serverRoot as cwd so Prisma finds prisma/schema.prisma.
       const schemaPath = path.join(serverRoot, 'prisma', 'schema.prisma');
-      const prismaExecutable = process.platform === 'win32'
-        ? path.join(serverRoot, 'node_modules', '.bin', 'prisma.cmd')
-        : path.join(serverRoot, 'node_modules', '.bin', 'prisma');
-      const output = execSync(`"${prismaExecutable}" db push --schema="${schemaPath}"`, {
+      const nodeExecutable = process.execPath;
+      const prismaCliPath = path.join(serverRoot, 'node_modules', 'prisma', 'build', 'index.js');
+      const output = execSync(`"${nodeExecutable}" "${prismaCliPath}" db push --schema="${schemaPath}"`, {
         cwd: serverRoot,
         encoding: 'utf-8',
         env
@@ -296,10 +338,9 @@ router.post('/init-database', async (req, res) => {
     // 1. Create schema
     const schemaResult = await new Promise((resolve, reject) => {
       const schemaPath = path.join(serverRoot, 'prisma', 'schema.prisma');
-      const prismaExecutable = process.platform === 'win32'
-        ? path.join(serverRoot, 'node_modules', '.bin', 'prisma.cmd')
-        : path.join(serverRoot, 'node_modules', '.bin', 'prisma');
-      exec(`"${prismaExecutable}" migrate deploy --schema="${schemaPath}"`, { cwd: serverRoot }, (error, stdout, stderr) => {
+      const nodeExecutable = process.execPath;
+      const prismaCliPath = path.join(serverRoot, 'node_modules', 'prisma', 'build', 'index.js');
+      exec(`"${nodeExecutable}" "${prismaCliPath}" migrate deploy --schema="${schemaPath}"`, { cwd: serverRoot }, (error, stdout, stderr) => {
         if (error) reject({ error: 'Schema creation failed', details: stderr || error.message });
         else resolve({ success: true, step: 'schema', output: stdout });
       });

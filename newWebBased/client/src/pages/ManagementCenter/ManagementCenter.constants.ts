@@ -12,6 +12,7 @@ import {
   ClipboardDocumentCheckIcon,
   ChartBarIcon,
   MapIcon,
+  GlobeEuropeAfricaIcon,
   BuildingLibraryIcon,
   CogIcon,
   DocumentTextIcon,
@@ -42,6 +43,7 @@ export interface Statistics {
   activeEvents: number
   registeredClubs: number
   totalAthletes: number
+  totalCountries: number
   totalAreas: number
   totalRegions: number
   totalAssociations: number
@@ -62,6 +64,7 @@ export const INITIAL_STATISTICS: Statistics = {
   activeEvents: 0,
   registeredClubs: 0,
   totalAthletes: 0,
+  totalCountries: 0,
   totalAreas: 0,
   totalRegions: 0,
   totalAssociations: 0,
@@ -79,6 +82,7 @@ export const INITIAL_STATISTICS: Statistics = {
 }
 
 export const getDatabaseManagementActions = (statistics: Statistics): DbActionItem[] => [
+  { name: 'Manage Countries', description: 'Manage countries used for associations', href: '/countries', icon: GlobeEuropeAfricaIcon, color: 'bg-cyan-600', count: statistics.totalCountries, countLabel: 'Countries' },
   { name: 'Manage Associations', description: 'Manage gymnastics associations and federations', href: '/associations', icon: BuildingLibraryIcon, color: 'bg-teal-500', count: statistics.totalAssociations, countLabel: 'Associations' },
   { name: 'Manage Regions', description: 'Manage gymnastics regions and districts', href: '/regions', icon: MapIcon, color: 'bg-indigo-500', count: statistics.totalRegions, countLabel: 'Regions' },
   { name: 'Manage Clubs', description: 'Add and edit gymnastics clubs', href: '/clubs', icon: BuildingOfficeIcon, color: 'bg-green-500', count: statistics.registeredClubs, countLabel: 'Clubs' },
@@ -105,8 +109,14 @@ export const eventSetupActions: ActionItem[] = [
   { name: 'Manage Squads', description: 'Create squads and organize participants', href: '/squads', icon: UserGroupIcon, color: 'bg-blue-500' },
   { name: 'Manage Groups', description: 'Create and manage groups for team competitions', href: '/groups', icon: UserGroupIcon, color: 'bg-emerald-500', badge: 'Beta' },
   { name: 'Manage Teams', description: 'Create and manage teams for team competitions', href: '/teams', icon: UserGroupIcon, color: 'bg-teal-500', badge: 'Beta' },
-  { name: 'Time Planning', description: 'Plan competition times and apparatus rotations', href: '/time-planning', icon: ClockIcon, color: 'bg-purple-500' },
   { name: 'Meldematrix', description: 'Registration matrix: Clubs vs Competitions overview', href: '/meldematrix', icon: DocumentTextIcon, color: 'bg-emerald-500' },
+]
+
+export const timePlanningActions: ActionItem[] = [
+  { name: 'Rounds', description: 'Plan rounds and assign competitions', href: '/time-planning/rounds', icon: CalendarDaysIcon, color: 'bg-blue-500', badge: 'Beta'  },
+  { name: 'Lane Planning', description: 'Assign competitions to lanes', href: '/time-planning/rotation', icon: ClockIcon, color: 'bg-purple-500', badge: 'Beta'  },
+  { name: 'Rotation Overview', description: 'View round-robin rotations by lane', href: '/time-planning/rotation-overview', icon: ClockIcon, color: 'bg-indigo-500', badge: 'Beta'  },
+  { name: 'Schedule Matrix', description: 'Edit schedule matrix assignments', href: '/time-planning/matrix', icon: DocumentTextIcon, color: 'bg-emerald-500', badge: 'Beta'  },
 ]
 
 export const competitionDayActions: ActionItem[] = [

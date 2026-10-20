@@ -726,6 +726,8 @@ Natürlich mittels TDD fixen.
 109. [Bug] Dringend: Wertung Eingabefenster wird nicht angezeigt
 -> Erledigt ✅ | In der UI http://localhost:5173/score-capture?eventId=1 wird ständig "Lädt" in dem Eingabefenster der Wertung angzeigt. 
 
+110. [Improvement] Layout designer 
+Im Layout designer ist es nicht bei jedem Typ (datenbank, bild, ...) möglich, dies in der UI zu editieren/vergrößern/verkleinern. über das eingabefeld geht es. Ich glaube es ist beim Bild beim Vergrößern aufgefallen. Bitte für alle Typen prüfen und mittels Test sicherstellen, das es funktioniert. 
 
 ---
 
@@ -1111,6 +1113,88 @@ a.) Das setup läuft ohne probleme durch. Wenn jetzt eine veranstaltung versucht
 b.) wird der Setup-Assistent gestartet kommt es im Step 3 Schema erstellen zu dem Fehler "Command failed: npx prisma db push --schema="c:\... Siehe bild. 
 -> Erledigt ✅ | Import zeigt jetzt einen Hinweis auf den Setup-Assistenten an; der Schema-Schritt nutzt die lokale Prisma-CLI statt `npx` und ist getestet.
 
+151. also beim Setup gibt es ein paar probleme: 
+a.) wurde schon mal das setup ausgeführt läuft ggf. bereits die TurnFix Tray exe. Diese muss zuerst beendet oder beendet & deinstalliert werden. Sonst kommt das Setup nicht weiter. Wenn ich mittels Taskmanager die exe beende geht es weiter. 
+b.) wir haben in punkt 150 ein problem mit dem erstellen des Schema versucht zu beheben. Das hat nicht funktioniert. in 150 war die Fehlermeldung der befehl "npx" ist falsch geschrieben oder konnte nicht gefunden werden. jetzt ist es Der Befehl "node" ist entweder falsch geschrieben oder konnte nicht gefunden werden. Das sollte eigentlich über einen Testfall abgedeckt werden... 
+c.) resultierend aus b.) kommt beim import einer XML wieder eine Fehlermeldung "...Relation tfx_veranstaltungen existiert nicht...". Das sollte eigentlich auch mit 150 a.) behoben werden. 
+TDD
+-> Erledigt ✅ | Installer stoppt TurnFixTray.exe vor Datei-Update; DB-Setup nutzt explizit Node+Prisma-CLI (ohne PATH-Abhängigkeit) und bricht bei fehlendem Node mit Fehlercode ab; Smoke-Test deckt den Node-fehlt-Fall explizit ab.
+
+152. [Feature] Es wäre gut, wenn ich den build mittels runpipeline.ps1 starte, und da dann ja auch die E2E tests ausgeführt werden, wenn davor auch die Dienste TurnFix und TurnFix Jury beendet werden. 
+
+153. [Bug] Zeitplanung: 
+a.) Beim Erstellen des Zeitplan über den Assistent gibt es im Schritt "Generieren" keinen Button um weiter zu drücken. TDD 
+b.) Bei den Bahnzuordnungen (Rotation) scheint es so, dass einige Wettkämpfe fehlen 
+c.) Bei den Rotationen Übersicht muss die Anzahl der Rotationen der Anzahl der Geräte entsprechen. Es werden aber immer nur 3 Rotationen angezeigt. 
+d.) In der Zeitplan Tabelle muss je Bahn die Geräte dargestellt werden. 
+
+154. [Bug] Teilnehmer die "Nicht teilnehmen" tauchen trotzdem auf manchen Listen (Riegenliste) auf. Bitte prüf das mittels TDD dass die Teilnehmer dann nur noch in der Liste der "Veranstaltungsteilnehmer" sichtbar sind. In keiner Riegenliste, in keiner Ergebnisliste, kein Medallienspiegel, keine Wertungseingabe und in keinem PDF das daraus exportiert werden kann. 
+-> Erledigt ✅
+
+155. [Feature] Zeitplanung: 
+Bei dem Zeitplan sollte in der Zeitplantabelle keine Riege zum auswählen sein, wenn diese in einem anderen Durchgang ist. Beste Lösung wie ich finde: Für jeden Durchgang eine eigene Überschrift mit den Geräten die in dem Durchgang dran sind. Alle anderen gar nicht darstellen. 
+🚀 In Arbeit 
+
+156. [Bug] Die Live Wertungen tauchen immer 2x auf TDD.
+
+157. [Feature] In den Live Wertungen wäre es gut wenn auch der Riegenstatus angezeigt wird. (An/Abschaltbar) TDD.
+
+158. [Bug] Layout editor: werden Felder mehr als 10 Ebenen hinzugefügt kommt es beim Speichern des Layout zum Fehler. Dies sollte begrenzt werden, damit der Fehler unterbunden wird. 
+Wird das DB Element Veranstaltung hinzugefügt wird als Veranstaltungsname aber der Wettkampfname eingetragen. TDD.
+-> Erledigt ✅
+
+159. [Bug] In den Siegerlisten wird statt dem richtigen Wettkampf in der Kopfzeile & als überschrift Competition mit einer Nummer abgedruckt. Dies passiert nur, wenn man den Filter aktiv hat und nach einem Wettkampf gefiltert wird. Wenn man die komplette Liste druckt passiert das nicht! TDD.
+Ist das richtig, dass in dem Layout nur 11 Felder in den Ebenen 0-10 vorhanden sein können? Ist die Limitierung im Backend oder der DB? 10 Ebenen wäre ok, aber es muss möchlich sein mehr felder anzulegen ggf. in der gleichen ebene. 
+-> Erledigt ✅
+
+160. [bug] Nach dem Abmelden von Teilnehmern "nimmt nicht teil" sind diese immer noch in dem Jury-Portal sichtbar. TDD.
+-> Erledigt ✅
+
+161. [bug] 
+a.) Export des XML mit den Ergebnissen (http://192.168.1.51:3001/results?eventId=1) lässt sich nicht im GymNet importieren. TDD.
+Das liegt wohl daran, dass in der GymNet xml viele Ids drin sind, die nicht ins TurnFix importiert werden. Daher können diese auch nicht exportiert werden. 
+Wie wäre folgender Workflow: man muss zum Export der Ergebnisse die GymNet Xml vom Import öffnen. Dann wird eine Kopie davon erstellt als "Results" an der gleichen Stelle/Pfad. Dann können alle Ergebnisse direkt in diese Datei geschrieben werden, mit matching der Teilnehmer per name, vorname, verein, alter; matching der Disziplinen per name
+Ist das machbar, oder fehlen noch infos zur Ausführung? 
+🚀 In Arbeit
+b.) Jetzt wäre es noch gut, wenn sich bei dem klick auf xml export ein Wizard öffnet mit den verschiedenen Schritten. Ein Einheitlichen Wizard klasse gibt es ja schon. Schritte könnte ich mir folgende vorstellen. Auswahl der GymNet xml, Auswahl des Ablageorts, Export und dann Ergebniss Anzeige ob alles gematcht hat. TDD 
+
+162. [Bug] Kritisch!!! Wenn es einen Wettkampf gibt mit vielen Teilnehmern (300 z.B.) dann werden auf der Ergebnisseite nicht alle Results geladen. Das ist sehr kritisch, da man dann denkt es wären keine Wertungen vorhanden. Wird nur nach dem Einzelnen Wettkampf gefiltert sind die Wertungen vorhanden. 
+-> Erledigt ✅  
+
+163.   2 failed
+	[tests] › e2e\tests\squad-status-realtime.spec.ts:22:3 › Squad Status — Real-time Updates via Socket.IO › PUT /api/squad-disciplines/:squadName/:disciplineId/status emits Socket.IO event 
+	[tests] › e2e\tests\squad-status-realtime.spec.ts:53:3 › Squad Status — Real-time Updates via Socket.IO › Squad Status page reflects changes after status update (with cache-busting) 
+-> Erledigt ✅ | Socket-Emit im PUT-Endpoint robust gemacht (kein dynamisches require mehr, numerische IDs im Payload, room+global emit, emit-guard ohne API-Fehler). Spec erneut ausgeführt: grün.
+
+164. [Feature] wenn man eine Seite öffnet (z.B. Wettkampfergebnisse) gibt es immer die Möglichkeit mit dem Button "Verwaltungszentrale" zurück in die Management UI zu springen. Dies ist aber häufig ein Umweg. Daher wäre es schön, wenn auf ALLEN UI-Seiten an der Linken Seite die Management UI Buttons der aktuellen Rubrik (Datenverwaltung, Veranstaltungsaufbau, Wettkampftag, Ergbenisse) zur Verfügung stehen. 
+
+165. [Feature] Das Jury-Portal benötigt wie auch die Ergebnisansicht dieses "Live-Update"
+
+166. [Feature] Auf der Veranstaltungsübersicht sollte es eine Statistik über die Anzahl der Teilnehmer geben, die Krank gemeldet sind. Zudem wie viele Teilnehmer in welchem Wettkampf waren. 
+
+167. [Feature] in Layout Editor sind Verband, Land und Gau Hard coded. Das lässt sich eigentlich über den Verein ableiten: 
+      useCertificates.ts 
+	  case 9: return 'Turngau'
+      case 10: return 'Turnerbund'
+      case 11: return 'Deutschland'
+
+168. [Refactoring] Die Schedule Matrix view.tsx ist ja recht groß. die könnte refactored werden genauso wie die timeplanning.ts
+
+169. [Feature] Zeitplanung: wenn man bei der Zeitplanung eine Session mit vielen Wettkämpfen hat, ist es mühselig auf jedem wettkampf die Startzeit zu ändern. hier wäre ein Multiselect sehr schön. oder man ändert die Zeit auf der Sesstion für alle Wettkämpfe... 
+
+170. [Feature] Zeitplanung: In der Zuordnung der Bahnen sollte über den Bahnen immer die Summe aller Teilnehmer stehen. 
+
+171. [Bug] Zeitplanung: Werden Wettkämpfe von einer Bahn in eine andere verschoben, wechselt die UI immer in Durchgang 1
+
+172. [Feature/Bug] Zeitplanung: In der Zeitplanung werden im Reiter Rotation Bahnen zugeordnet. Jetzt bedeutet das, dass eigentlich jede Bahn ein eigenes Gerät und ein eigene Kampfgerich hat. Somit muss in der Zeitplan Tabelle zu erst der Durchang auftauchen, das passt schon. Danach stehen die Geräte die in diesem Durchgang geturnt werden, das passt auch, aber Die Geräteauswahl muss für jede Bahn erfolgen können! 
+
+173. [Bug] Zeitplanung: Wenn ich eine Bahn habe die Wettkämpfe mit 3 Geräten hat, dann gibt es unten in der Rotationsübersicht aktuell noch 4 Rotationen. Das stimmt nicht... Die Anzahl der Rotationen ist immer von der max. Anzahl der Geräte abhängig, die in der Bahn drin sind. 
+
+174. [prüfen] Suchfeld: Bei sehr vielen Teilnehmern wird im Suchfeld oft kein Ergebnis angezeigt. Falls es da irgendein mechanismus gibt, der verhindert dass nach allen gesucht wird oder nach einer Zeit abgebrochen wird, sollte das geändert werden. Gerne darf das auch bisschen dauern. 
+
+175. [Feature] Riegeneinteilung: Für die Riegeneinteilung wird i.d.r. die Meldematrix heran gezogen. Nun sind das ja zwei verschiedene Ansichten / UIs. Folgende idee: Bei der Riegeneinteilung einen separaten Reiter machen (vgl. Zeitplanung Durchgänge / Rotationen) der die Meldematrix anzeigt. 
+Wenn man hier jetzt auf eine Zelle klickt (entweder in der Matrix-> Verein/Wettkampf oder auf die Summe) soll sich ein Pop-Up Menü öffnen um diese einer Riege zuzuordnen (vgl. Wizard Riegeneinteilung). Entweder eine neue Riege erstellen, oder eine vorhandene verwenden. Zudem soll es möglich sein alle Teilnehmer dieser Riege zuzuordnen oder nur einzelne bzw. eine Anzahl x. 
+
 🚀 In Arbeit (unvollständig)
 #	Titel
 72	PDF Export – Wettkampfnummer bei Teilnehmer- & Riegenlistenexport (Tests fehlen)
@@ -1160,6 +1244,14 @@ Risiko: hoher Änderungsaufwand, Regressionen.
 Fundstellen: Configuration, EventManagement, DisciplinesUnified, EventImportModal
 
 TD-06 Offen bleibt noch ein angrenzender Punkt: die Auflösung von int_formelid per API-Fetch ist weiterhin an mehreren Stellen separat vorhanden. Die reine Berechnungslogik ist jetzt zentralisiert, die Formel-Resolver-Logik noch nicht vollständig. Wenn du willst, ziehe ich das als nächsten Schritt auch noch in eine gemeinsame Hook/Utility zusammen.
+
+TD-07 GymNet XML Export der Ergebnisse ist nur möglich wenn man auch die GymNet Import XML hat. Das liegt daran, dass die Teilnehmer IDs nicht ins GymNet importiert werden sowie auch nicht die Wettkampf und Geräte IDs. 
+Es wäre wohl einfacher, wenn alle IDs aus dem GymNet einen Platz in der DB von TurnFix hätten. Dann gäbe es keine Duplikate und ein Matching wäre ohne Probleme möglich. 
+
+TD-08 GymNet-Geräte-Mapping liegt in JSON-Dateien statt in der DB (mittel)
+Ist: server/src/data/json/gymnet-mapping.preset.json (neue DB, IDs aus gymnet-preset.json) und gymnet-mapping.existing.json (gewachsene DB mit historischen IDs). Zuordnung nur über IDs (byWedDisID vor byWedDisNr), aktives Profil über Umgebungsvariable GYMNET_MAPPING_PROFILE (preset | existing, Standard preset). Die "existing"-Datei muss pro Bestands-DB geprüft/angepasst werden.
+Soll: Bei der nächsten DB-Änderung die GymNet-IDs (wedDisID, wedDisNr) als Spalten in tfx_disziplinen aufnehmen. Dann entfallen beide JSON-Dateien und das Profil, der Import schlägt direkt per GymNet-ID in der DB nach, und Export und Import nutzen dieselbe Quelle (siehe auch TD-07).
+Risiko bis dahin: Falsches Profil oder abweichende IDs führen zu falschen/fehlenden Geräten; der Import warnt bei unbekannten Codes und verknüpft dann nichts.
 ------------------------------------------------------------
 -> Erledigt ✅
 -> In Arbeit 🚀

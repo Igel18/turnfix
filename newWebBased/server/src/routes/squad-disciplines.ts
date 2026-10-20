@@ -1,6 +1,7 @@
 import express from 'express'
 import { z } from 'zod'
 import prisma from '../lib/prisma'
+import { io } from '../index'
 
 const router = express.Router()
 
@@ -226,6 +227,25 @@ router.put('/:squadName/:disciplineId/status', async (req, res) => {
       return res.status(404).json({ error: 'Squad-discipline combination not found' })
     }
 
+    // Emit Socket.IO event to notify clients of status update.
+    // Emission must never break the API response path.
+    try {
+      const numericEventId = Number(eventId)
+      const numericDisciplineId = Number(disciplineId)
+      const payload = {
+        eventId: numericEventId,
+        squadName,
+        disciplineId: numericDisciplineId,
+        statusId,
+        updatedAt: Date.now()
+      }
+
+      io.emit('squad-status-updated', payload)
+      io.to(`competition-${numericEventId}`).emit('squad-status-updated', payload)
+    } catch (emitError) {
+      console.error('Socket emit failed for squad-status-updated:', emitError)
+    }
+
     res.json({
       success: true,
       message: 'Squad-discipline status updated successfully',
@@ -366,6 +386,10 @@ router.post('/generate', async (req, res) => {
         skipDuplicates: true
       })
     }
+
+    // Emit Socket.IO event to notify clients
+    io.emit('squad-status-updated', { eventId: eventId })
+    console.log(`📢 Socket.IO event emitted: squad-status-updated for eventId=${eventId}`)
 
     res.json({
       success: true,

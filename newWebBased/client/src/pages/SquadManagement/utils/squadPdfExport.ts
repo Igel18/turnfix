@@ -85,6 +85,8 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
   // ── Squad sections ─────────────────────────────────────────────
 
   squads.forEach((squad, squadIndex) => {
+    const visibleParticipants = (squad.participants || []).filter((participant: any) => !participant.startet_nicht);
+
     // Need space for: title (6) + separator (5) + meta (12) + at least one table row (8) = ~31 mm
     ensureSpace(31);
 
@@ -129,8 +131,8 @@ export const exportSquadsPDF = ({ squads, selectedEvent, t }: ExportSquadsPDFPar
     yPosition += PDF_CONFIG.spacing.paragraph; // breathing room before table
 
     // ── Participant table ────────────────────────────────────────
-    if (squad.participants && squad.participants.length > 0) {
-      const tableData = squad.participants.map(p => [
+    if (visibleParticipants.length > 0) {
+      const tableData = visibleParticipants.map(p => [
         `${p.firstname} ${p.lastname}`,
         p.birthYear ? p.birthYear.toString() : t('squadManagement.pdf.notAvailable'),
         p.club || t('squadManagement.pdf.noClub'),

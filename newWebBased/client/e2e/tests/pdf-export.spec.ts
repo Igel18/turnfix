@@ -27,14 +27,20 @@
 
 import { test, expect, Page, Download } from '@playwright/test';
 import * as fs from 'fs';
+import { exportTrigger, openExportItem } from '../fixtures/export-menu';
 import {
   loadEventAState,
   setEventContext,
   EventAState,
 } from '../fixtures/test-state';
 
-// ── Consistent button label across all pages ──────────────────────
-const PDF_BUTTON_LABEL = /Export PDF/i;
+// ── Button labels per page ───────────────────────────────────────
+const PDF_BUTTON_LABEL = /PDF/i;
+const RESULTS_EXPORT_BUTTON_LABEL = /Export/i;
+const EXPORT_TRIGGER_TEXT = 'Exportieren';
+const RESULTS_EXPORT_TYPE_LABEL = /(?:PDF )?(?:Ergebnisse|Results) (?:als|as) PDF(?:-Datei)?/i;
+const RESULTS_NEXT_BUTTON_LABEL = /Next|Weiter/i;
+const RESULTS_START_EXPORT_BUTTON_LABEL = /Start export|Export starten/i;
 
 let stateA: EventAState;
 
@@ -51,7 +57,10 @@ async function navigateWithEvent(page: Page, path: string): Promise<void> {
  * Returns null if not visible (e.g. when page has no data to export).
  */
 async function findPDFButton(page: Page) {
-  const button = page.getByRole('button', { name: PDF_BUTTON_LABEL });
+  const trigger = exportTrigger(page);
+  const hasTrigger = await trigger.waitFor({ state: 'visible', timeout: 10_000 }).then(() => true, () => false);
+  if (!hasTrigger) return null;
+  const button = await openExportItem(page, PDF_BUTTON_LABEL);
   const visible = await button.isVisible({ timeout: 5_000 }).catch(() => false);
   return visible ? button : null;
 }
@@ -61,6 +70,26 @@ async function findPDFButton(page: Page) {
  * Returns the Download object for assertions.
  */
 async function clickPDFAndWaitForDownload(page: Page): Promise<Download | null> {
+  if (page.url().includes('/results')) {
+    const openButton = page.getByRole('button', { name: RESULTS_EXPORT_BUTTON_LABEL });
+    await openButton.click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog, 'Results export wizard should open').toBeVisible({ timeout: 10_000 });
+
+    await dialog.getByRole('button', { name: RESULTS_EXPORT_TYPE_LABEL }).click();
+    await dialog.getByRole('button', { name: RESULTS_NEXT_BUTTON_LABEL }).click();
+
+    const startExportButton = dialog.getByRole('button', { name: RESULTS_START_EXPORT_BUTTON_LABEL });
+    await expect(startExportButton).toBeVisible({ timeout: 10_000 });
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 10_000 }).catch(() => null),
+      startExportButton.click(),
+    ]);
+    return download;
+  }
+
   const button = await findPDFButton(page);
   expect(button, 'Export PDF button should be visible').not.toBeNull();
 
@@ -102,8 +131,10 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
 
   test('Ergebnisse — PDF button visible', async ({ page }) => {
     await navigateWithEvent(page, `/results?eventId=${stateA.eventId}`);
-    const button = await findPDFButton(page);
-    expect(button).not.toBeNull();
+    const button = page.getByRole('button', { name: RESULTS_EXPORT_BUTTON_LABEL });
+    const visible = await button.isVisible({ timeout: 5_000 }).catch(() => false);
+    const resolvedButton = visible ? button : null;
+    expect(resolvedButton).not.toBeNull();
     console.log('✓ Ergebnisse: Export PDF button visible');
   });
 
@@ -138,17 +169,15 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
     await navigateWithEvent(page, `/event-participants?eventId=${stateA.eventId}`);
     // The PDF button only appears when filteredParticipants.length > 0.
     // Wait directly for the button — it's the most reliable indicator that data loaded.
-    const button = page.getByRole('button', { name: PDF_BUTTON_LABEL });
-    await button.waitFor({ state: 'visible', timeout: 15_000 });
-    expect(await button.isVisible()).toBe(true);
+    const button = await findPDFButton(page);
+    expect(button).not.toBeNull();
     console.log('✓ Event Participants: Export PDF button visible');
   });
 
   test('Event Participants — PDF download triggers', async ({ page }) => {
     await navigateWithEvent(page, `/event-participants?eventId=${stateA.eventId}`);
     // Wait for data to load (button appears when participants exist)
-    const button = page.getByRole('button', { name: PDF_BUTTON_LABEL });
-    await button.waitFor({ state: 'visible', timeout: 15_000 });
+    await exportTrigger(page).waitFor({ state: 'visible', timeout: 15_000 });
     const download = await clickPDFAndWaitForDownload(page);
     expect(download).not.toBeNull();
     expect(download!.suggestedFilename()).toMatch(/\.pdf$/i);
@@ -191,7 +220,7 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
 
   // ── Summary: Consistent naming check ───────────────────────────
 
-  test('All pages use the same "Export PDF" button label', async ({ page }) => {
+  test('All pages use the same unified export button', async ({ page }) => {
     const pages = [
       { name: 'Medallienspiegel', path: `/medallienspiegel?eventId=${stateA.eventId}` },
       { name: 'Ergebnisse', path: `/results?eventId=${stateA.eventId}` },
@@ -204,7 +233,7 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
     for (const p of pages) {
       await navigateWithEvent(page, p.path);
 
-      const button = page.getByRole('button', { name: 'Export PDF' });
+      const button = exportTrigger(page);
       // Event Participants needs longer wait (button conditional on data load)
       const timeout = p.name === 'Event Participants' ? 20_000 : 5_000;
       const visible = await button.isVisible({ timeout }).catch(() => false);
@@ -217,13 +246,13 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
       // Get exact text for comparison
       if (isVisible) {
         const text = await button.textContent();
-        expect(text?.trim()).toBe('Export PDF');
+        expect(text?.trim()).toBe(EXPORT_TRIGGER_TEXT);
       } else {
         // If button not visible, that's a test failure (all 6 should have it)
-        expect(isVisible, `Export PDF button should be visible on ${p.name}`).toBe(true);
+        expect(isVisible, `Export button should be visible on ${p.name}`).toBe(true);
       }
     }
-    console.log('✓ All 6 pages use consistent "Export PDF" button label');
+    console.log('✓ All 6 pages expose the expected PDF export button label');
   });
 
   // ── Deep validation: PDF file non-empty (all pages) ────────────
@@ -243,8 +272,7 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
 
       // Event Participants button appears only after data loads
       if (p.name === 'Event Participants') {
-        const btn = page.getByRole('button', { name: PDF_BUTTON_LABEL });
-        await btn.waitFor({ state: 'visible', timeout: 15_000 });
+        await exportTrigger(page).waitFor({ state: 'visible', timeout: 15_000 });
       }
 
       const download = await clickPDFAndWaitForDownload(page);
@@ -273,8 +301,7 @@ test.describe.serial('PDF Export: Event Management Pages', () => {
       await navigateWithEvent(page, p.path());
 
       if (p.name === 'Event Participants') {
-        const btn = page.getByRole('button', { name: PDF_BUTTON_LABEL });
-        await btn.waitFor({ state: 'visible', timeout: 15_000 });
+        await exportTrigger(page).waitFor({ state: 'visible', timeout: 15_000 });
       }
 
       const download = await clickPDFAndWaitForDownload(page);

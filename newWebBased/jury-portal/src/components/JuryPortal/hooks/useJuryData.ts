@@ -13,6 +13,7 @@ import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/n
 import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
 import { computeEffectiveParticipantScore } from '../../../utils/effectiveParticipantScore';
 import { computeEffectiveJuryResults } from '../../../utils/effectiveJuryResults';
+import { excludeNonStartingParticipants } from '../../../utils/participantVisibility';
 import type { Participant, Squad, Device, DisciplineField, Competition, JuryStatus } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
@@ -338,7 +339,7 @@ export function useJuryData(): UseJuryDataReturn {
 
       try {
         setLoading(true);
-        const rawSquadParticipants = selectedSquad.participants || [];
+        const rawSquadParticipants = excludeNonStartingParticipants(selectedSquad.participants || []);
         console.log('Raw squad participants (may contain duplicates):', rawSquadParticipants.length);
 
         // Deduplicate based on participant ID

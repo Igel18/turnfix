@@ -791,8 +791,8 @@ const EventManagement: React.FC = () => {
                       <input
                         type="number"
                         min="0"
-                        value={editForm.int_kampfrichter || 0}
-                        onChange={(e) => setEditForm({ ...editForm, int_kampfrichter: parseInt(e.target.value) || 0 })}
+                        value={Number.isFinite(editForm.int_kampfrichter) ? editForm.int_kampfrichter : ''}
+                        onChange={(e) => setEditForm({ ...editForm, int_kampfrichter: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) })}
                         placeholder="0"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -809,8 +809,8 @@ const EventManagement: React.FC = () => {
                       <input
                         type="number"
                         min="0"
-                        value={editForm.int_helfer || 0}
-                        onChange={(e) => setEditForm({ ...editForm, int_helfer: parseInt(e.target.value) || 0 })}
+                        value={Number.isFinite(editForm.int_helfer) ? editForm.int_helfer : ''}
+                        onChange={(e) => setEditForm({ ...editForm, int_helfer: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) })}
                         placeholder="0"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -827,8 +827,8 @@ const EventManagement: React.FC = () => {
                       <input
                         type="number"
                         min="0"
-                        value={editForm.int_edv || 0}
-                        onChange={(e) => setEditForm({ ...editForm, int_edv: parseInt(e.target.value) || 0 })}
+                        value={Number.isFinite(editForm.int_edv) ? editForm.int_edv : ''}
+                        onChange={(e) => setEditForm({ ...editForm, int_edv: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) })}
                         placeholder="0"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />

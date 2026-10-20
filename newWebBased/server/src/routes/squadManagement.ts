@@ -29,7 +29,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       SELECT DISTINCT w.var_riege, COUNT(*) as count
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege IS NOT NULL AND w.var_riege != ''
+      WHERE wk.int_veranstaltungenid = $1 AND COALESCE(w.bol_startet_nicht, false) = false AND w.var_riege IS NOT NULL AND w.var_riege != ''
       GROUP BY w.var_riege
     `;
     
@@ -54,7 +54,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
-      WHERE wk.int_veranstaltungenid = $1
+      WHERE wk.int_veranstaltungenid = $1 AND COALESCE(w.bol_startet_nicht, false) = false
       LIMIT 5
     `;
     
@@ -70,7 +70,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       LEFT JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
-      WHERE wk.int_veranstaltungenid = $1 AND w.var_riege IS NOT NULL AND w.var_riege != ''
+      WHERE wk.int_veranstaltungenid = $1 AND COALESCE(w.bol_startet_nicht, false) = false AND w.var_riege IS NOT NULL AND w.var_riege != ''
       GROUP BY w.var_riege
       ORDER BY w.var_riege
     `;
@@ -107,7 +107,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
           INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
           LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-          WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
+          WHERE wk.int_veranstaltungenid = $1 AND COALESCE(w.bol_startet_nicht, false) = false AND w.var_riege = $2
           GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
                    t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, 
                    w.int_startnummer, v.var_name, w.var_riege
@@ -243,9 +243,17 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
           END as birth_year
         FROM tfx_teilnehmer t
         LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM tfx_wertungen w
+          INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
+          WHERE wk.int_veranstaltungenid = $1
+            AND w.int_teilnehmerid = t.int_teilnehmerid
+            AND COALESCE(w.bol_startet_nicht, false) = true
+        )
         ORDER BY t.var_nachname ASC, t.var_vorname ASC
       `;
-      queryParams = [];
+      queryParams = [parseInt(eventId)];
     } else {
       // Get participants registered for the event but not assigned to any squad
       // FIX: Use NOT EXISTS subquery to exclude participants who have ANY squad

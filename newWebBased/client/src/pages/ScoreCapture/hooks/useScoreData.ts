@@ -76,7 +76,8 @@ export function useScoreData({
       const participantsResponse = await apiGet(`/event-participants?eventId=${eventId}&includeAvailable=true`);
       await delay(100);
       
-      const participantsData = participantsResponse?.participants || [];
+      const participantsData = (participantsResponse?.participants || [])
+        .filter((participant: Participant) => !participant.startet_nicht);
       console.log('🔍 Loaded participants:', participantsData.length);
       if (participantsData.length > 0) {
         console.log('🔍 First participant sample:', participantsData[0]);

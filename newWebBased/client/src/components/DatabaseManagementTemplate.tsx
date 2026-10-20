@@ -50,6 +50,8 @@ interface DatabaseManagementTemplateProps {
   // Actions
   onAdd?: () => void;
   addLabel?: string;
+  onWizard?: () => void;
+  wizardLabel?: string;
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   onView?: (item: any) => void;
@@ -92,6 +94,8 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
   defaultView = 'table',
   onAdd,
   addLabel = "Add New",
+  onWizard,
+  wizardLabel,
   onEdit,
   onDelete,
   onView,
@@ -310,6 +314,9 @@ export const DatabaseManagementTemplate: React.FC<DatabaseManagementTemplateProp
         showAdd={!!onAdd}
         addLabel={addLabel}
         onAdd={onAdd}
+        showWizard={!!onWizard}
+        onWizard={onWizard}
+        wizardLabel={wizardLabel}
         showExportCSV={!!onExportCSV}
         onExportCSV={onExportCSV}
         showExportPDF={!!onExportPDF}

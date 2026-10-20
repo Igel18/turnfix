@@ -1,5 +1,6 @@
 import React from 'react';
 import UnifiedModal from './UnifiedModal';
+import { useTranslation } from 'react-i18next';
 
 interface Club {
   int_vereineid: number;
@@ -58,11 +59,13 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
   regions,
   contacts
 }) => {
+  const { t } = useTranslation();
+
   return (
     <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
-      title={editingClub ? 'Edit Club' : 'Create New Club'}
+      title={editingClub ? t('clubs.editClub') : t('clubs.addClub')}
       size="2xl"
       showFooter={false}
     >
@@ -70,11 +73,11 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
             
             {/* Basic Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('clubs.form.basicInformation')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Club Name *
+                    {t('clubs.form.name')} *
                   </label>
                   <input
                     type="text"
@@ -82,24 +85,24 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
                     value={formData.var_name}
                     onChange={(e) => setFormData({...formData, var_name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter club name"
+                    placeholder={t('clubs.form.namePlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Website
+                    {t('clubs.form.website')}
                   </label>
                   <input
                     type="url"
                     value={formData.var_website}
                     onChange={(e) => setFormData({...formData, var_website: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://example.com"
+                    placeholder={t('clubs.form.websitePlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Starting Position
+                    {t('clubs.form.startPosition')}
                   </label>
                   <input
                     type="number"
@@ -107,7 +110,7 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
                     value={formData.int_start_ort}
                     onChange={(e) => setFormData({...formData, int_start_ort: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="0"
+                    placeholder={t('clubs.form.startPositionPlaceholder')}
                   />
                 </div>
               </div>
@@ -115,11 +118,11 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
 
             {/* Organization */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Organization</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('clubs.form.organization')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Region *
+                    {t('clubs.form.region')} *
                   </label>
                   <select
                     required
@@ -127,7 +130,7 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
                     onChange={(e) => setFormData({...formData, int_gaueid: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Select Region</option>
+                    <option value="">{t('clubs.form.selectRegion')}</option>
                     {Array.isArray(regions) && regions.map(region => (
                       <option key={region.id} value={region.id}>
                         {region.name}
@@ -136,20 +139,20 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
                   </select>
                   {regions.length === 0 && (
                     <p className="text-xs text-orange-600 mt-1">
-                      ⚠️ No regions available. Please create regions first.
+                      {t('clubs.form.noRegionsAvailable')}
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Person
+                    {t('clubs.form.contactPerson')}
                   </label>
                   <select
                     value={formData.int_personenid}
                     onChange={(e) => setFormData({...formData, int_personenid: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">No contact person</option>
+                    <option value="">{t('clubs.form.noContactPerson')}</option>
                     {Array.isArray(contacts) && contacts.map(contact => (
                       <option key={contact.int_personenid} value={contact.int_personenid}>
                         {contact.var_vorname} {contact.var_nachname}
@@ -159,7 +162,7 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
                   </select>
                   {contacts.length === 0 && (
                     <p className="text-xs text-gray-500 mt-1">
-                      💡 No contacts available. You can manage contacts separately.
+                      {t('clubs.form.noContactsAvailable')}
                     </p>
                   )}
                 </div>
@@ -173,13 +176,13 @@ const ClubFormModal: React.FC<ClubFormModalProps> = ({
               onClick={onClose}
               className="px-6 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Cancel
+              {t('clubs.form.cancel')}
             </button>
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              {editingClub ? 'Update' : 'Create'} Club
+              {editingClub ? t('clubs.form.updateClubAction') : t('clubs.form.createClubAction')}
             </button>
           </div>
         </form>

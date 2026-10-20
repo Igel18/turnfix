@@ -46,6 +46,11 @@ describe('useTimeCalculation', () => {
       expect(result.current.addMinutesToTime('08:00', 120)).toBe('10:00');
     });
 
+    it('rounds fractional minutes to a valid clock minute', () => {
+      const { result } = renderHook(() => useTimeCalculation());
+      expect(result.current.addMinutesToTime('08:00', 3.5)).toBe('08:04');
+    });
+
     it('pads hours and minutes with leading zeros', () => {
       const { result } = renderHook(() => useTimeCalculation());
       expect(result.current.addMinutesToTime('08:05', 5)).toBe('08:10');

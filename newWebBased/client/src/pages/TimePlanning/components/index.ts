@@ -8,3 +8,4 @@ export { SessionsView } from './SessionsView';
 export { TimeSettingsModal } from './TimeSettingsModal';
 export { EditCompetitionModal } from './EditCompetitionModal';
 export { TimePlanningWizard } from './TimePlanningWizard';
+export { TimePlanningFilters } from './TimePlanningFilters';

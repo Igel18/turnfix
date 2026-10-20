@@ -11,6 +11,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
 import { TagIcon } from '@heroicons/react/24/outline';
+import type { ExportMenuItem } from '@/components/ui/ExportMenu';
 
 // Context & Hooks
 import { useEvent } from '@/contexts/EventContext';
@@ -300,6 +301,11 @@ export default function EventParticipants() {
   };
 
   // Render
+  const labelExportItems: ExportMenuItem[] =
+    filteredParticipants.length > 0
+      ? [{ key: 'labels', label: t('eventParticipants.actions.printLabels'), icon: TagIcon, onClick: () => setShowLabelModal(true) }]
+      : [];
+
   return (
     <EventManagementTemplate
       title={t('eventParticipants.pageTitle')}
@@ -328,23 +334,11 @@ export default function EventParticipants() {
       onExportPDF={exportParticipantsListPDF}
       showExportCSV={filteredParticipants.length > 0}
       onExportCSV={exportParticipantsCSV}
+      exportExtras={labelExportItems}
       showAddButton={true}
       addButtonText={t('eventParticipants.addParticipant')}
       onAdd={() => setShowAddModal(true)}
-      customActions={
-        filteredParticipants.length > 0
-          ? [
-              <button
-                key="print-labels"
-                onClick={() => setShowLabelModal(true)}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <TagIcon className="h-4 w-4 mr-2" />
-                {t('eventParticipants.actions.printLabels')}
-              </button>,
-            ]
-          : []
-      }
+      customActions={undefined}
       viewStorageKey="eventParticipants-view"
       showViewToggle={true}
     >

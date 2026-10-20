@@ -24,6 +24,8 @@ export interface Participant {
   statusId?: number | null;
   statusName?: string | null;
   statusColor?: string | null;
+  /** Event participant flag: true means participant does not start in competition */
+  startet_nicht?: boolean;
 }
 
 import type { StatusOption } from '@turnfix/shared';

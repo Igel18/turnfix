@@ -8,6 +8,8 @@ export interface GymNetExportDiscipline {
   position: number;
 }
 
+export type GymNetCapturedValue = 0 | 1 | 2 | 3;
+
 export interface GymNetExportParticipant {
   participantId: number;
   firstName: string;
@@ -18,6 +20,11 @@ export interface GymNetExportParticipant {
   clubName: string;
   startNumber: number | null;
   disciplines: GymNetExportDiscipline[];
+  totalScore?: number | null;
+  rank?: number | null;
+  captured?: GymNetCapturedValue | null;
+  isOutOfCompetition?: boolean | null;
+  isAbsent?: boolean | null;
 }
 
 export interface GymNetExportCompetition {
@@ -49,6 +56,83 @@ function formatScore(score: number | null): string {
   }
 
   return Number(score).toFixed(3);
+}
+
+function sumDisciplineScores(participant: GymNetExportParticipant): number | null {
+  const values = participant.disciplines
+    .map((discipline) => discipline.score)
+    .filter((score): score is number => score !== null && score !== undefined && !Number.isNaN(score));
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  return values.reduce((sum, value) => sum + value, 0);
+}
+
+function buildRankMap(participants: GymNetExportParticipant[]): Map<number, number> {
+  const scored = participants.reduce<Array<{
+    participantId: number;
+    total: number;
+    captured: GymNetCapturedValue | null | undefined;
+    isOutOfCompetition: boolean | null | undefined;
+    isAbsent: boolean | null | undefined;
+  }>>((entries, participant) => {
+    const total = participant.totalScore ?? sumDisciplineScores(participant);
+    if (total === null) {
+      return entries;
+    }
+
+    entries.push({
+      participantId: participant.participantId,
+      total,
+      captured: participant.captured,
+      isOutOfCompetition: participant.isOutOfCompetition,
+      isAbsent: participant.isAbsent,
+    });
+    return entries;
+  }, [])
+    .filter((entry) => entry.isOutOfCompetition !== true && entry.isAbsent !== true && entry.captured !== 2 && entry.captured !== 3)
+    .sort((a, b) => b.total - a.total);
+
+  const rankMap = new Map<number, number>();
+  let currentRank = 0;
+  let lastTotal: number | null = null;
+
+  scored.forEach((entry, index) => {
+    if (lastTotal === null || entry.total < lastTotal) {
+      currentRank = index + 1;
+      lastTotal = entry.total;
+    }
+    rankMap.set(entry.participantId, currentRank);
+  });
+
+  return rankMap;
+}
+
+function resolveCapturedValue(participant: GymNetExportParticipant, hasAnyScore: boolean): GymNetCapturedValue {
+  if (participant.isAbsent === true) {
+    return 3;
+  }
+
+  if (participant.isOutOfCompetition === true) {
+    return 2;
+  }
+
+  if (participant.captured === 0 || participant.captured === 1 || participant.captured === 2 || participant.captured === 3) {
+    return participant.captured;
+  }
+
+  // Exported result rows should be marked as captured for GymNet import.
+  return hasAnyScore ? 1 : 1;
+}
+
+function resolvePlacement(participant: GymNetExportParticipant, rankMap: Map<number, number>, captured: GymNetCapturedValue): number {
+  if (captured === 2 || captured === 3) {
+    return 0;
+  }
+
+  return participant.rank ?? rankMap.get(participant.participantId) ?? 0;
 }
 
 function getCompetitionGenderValue(genderMale: boolean, genderFemale: boolean): string {
@@ -90,41 +174,56 @@ function getWedDisNrByDisciplineName(name: string): number | null {
 export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): string {
   const xmlObject = {
     Wettkämpfe: {
-      Wettkampf: competitions.map((competition) => ({
-        waID: String(competition.competitionId),
-        waNr: competition.competitionNumber || '',
-        waBezeichnung: competition.competitionName || '',
-        waGeschlecht: getCompetitionGenderValue(competition.genderMale, competition.genderFemale),
-        waAlterMin: String(competition.ageFrom || 0),
-        waAlterMax: competition.ageTo !== null && competition.ageTo !== undefined ? String(competition.ageTo) : '',
-        Teilnehmer: {
-          TN: competition.participants.map((participant) => ({
-            perID: String(participant.participantId),
-            perName: participant.lastName || '',
-            perVorname: participant.firstName || '',
-            perGeburt: formatBirthDate(participant.birthDate),
-            perGeschlecht: getParticipantGenderValue(participant.gender),
-            verID: participant.clubId !== null && participant.clubId !== undefined ? String(participant.clubId) : '',
-            verKurzname: participant.clubName || '',
-            espStartnummer: participant.startNumber !== null && participant.startNumber !== undefined ? String(participant.startNumber) : '',
-            Disziplinen: {
-              Disziplin: participant.disciplines.map((discipline) => {
-                const wedDisNrById = turnFixIdToWedDisNr(discipline.disciplineId);
-                const wedDisNrByName = getWedDisNrByDisciplineName(discipline.name || '');
-                const wedDisNr = wedDisNrByName ?? wedDisNrById;
+      Wettkampf: competitions.map((competition) => {
+        const rankMap = buildRankMap(competition.participants);
 
-                return {
-                  wedDisID: String(discipline.disciplineId),
-                  wedDisNr: wedDisNr !== null ? String(wedDisNr) : '',
-                  wedDisName: discipline.name || '',
-                  wtdPosition: String(discipline.position),
-                  wtdPunkte: formatScore(discipline.score)
-                };
-              })
-            }
-          }))
-        }
-      }))
+        return {
+          waID: String(competition.competitionId),
+          waNr: competition.competitionNumber || '',
+          waBezeichnung: competition.competitionName || '',
+          waGeschlecht: getCompetitionGenderValue(competition.genderMale, competition.genderFemale),
+          waAlterMin: String(competition.ageFrom || 0),
+          waAlterMax: competition.ageTo !== null && competition.ageTo !== undefined ? String(competition.ageTo) : '',
+          Teilnehmer: {
+            TN: competition.participants.map((participant) => {
+              const resolvedTotal = participant.totalScore ?? sumDisciplineScores(participant);
+              const hasAnyScore = resolvedTotal !== null;
+              const captured = resolveCapturedValue(participant, hasAnyScore);
+
+              return {
+                perID: String(participant.participantId),
+                perName: participant.lastName || '',
+                perVorname: participant.firstName || '',
+                perGeburt: formatBirthDate(participant.birthDate),
+                perGeschlecht: getParticipantGenderValue(participant.gender),
+                verID: participant.clubId !== null && participant.clubId !== undefined ? String(participant.clubId) : '',
+                verKurzname: participant.clubName || '',
+                espStartnummer: participant.startNumber !== null && participant.startNumber !== undefined ? String(participant.startNumber) : '',
+                etPunkte: captured === 3 ? '' : formatScore(resolvedTotal),
+                etPlatzierung: String(resolvePlacement(participant, rankMap, captured)),
+                etErfasst: String(captured),
+                Disziplinen: {
+                  Disziplin: participant.disciplines.map((discipline) => {
+                    const wedDisNrById = turnFixIdToWedDisNr(discipline.disciplineId);
+                    const wedDisNrByName = getWedDisNrByDisciplineName(discipline.name || '');
+                    const wedDisNr = wedDisNrByName ?? wedDisNrById;
+                    const formattedScore = formatScore(discipline.score);
+
+                    return {
+                      wedDisID: String(discipline.disciplineId),
+                      wedDisNr: wedDisNr !== null ? String(wedDisNr) : '',
+                      wedDisName: discipline.name || '',
+                      wtdPosition: String(discipline.position),
+                      wtdWertung: formattedScore,
+                      wtdPunkte: formattedScore
+                    };
+                  })
+                }
+              };
+            })
+          }
+        };
+      })
     }
   };
 

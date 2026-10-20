@@ -1,0 +1,206 @@
+import { useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import {
+  ClockIcon,
+  CalendarDaysIcon,
+  Cog6ToothIcon,
+  DocumentChartBarIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline'
+
+import { useEvent } from '@/contexts/EventContext'
+import { EventManagementTemplate } from '@/components/templates/EventManagementTemplate'
+import UnifiedModal from '@/components/UnifiedModal'
+import {
+  HelpPanels,
+  TimePlanningFilters,
+  TimeSettingsModal,
+  TimePlanningWizard,
+} from '@/pages/TimePlanning/components'
+import { ScheduleMatrixView } from '@/pages/TimePlanning/components/ScheduleMatrixView'
+import { useTimePlanningData, useTimePlanningPageFilters } from '@/pages/TimePlanning/hooks'
+import type { TimeSettings } from '@/pages/TimePlanning/TimePlanning.types'
+import { DEFAULT_TIME_SETTINGS } from '@/pages/TimePlanning/TimePlanning.types'
+import {
+  loadTimeSettingsFromStorage,
+  saveTimeSettingsToStorage,
+} from '@/pages/TimePlanning/timePlanningSettingsStorage'
+
+const HELP_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white border-blue-600'
+const HELP_BUTTON_DEFAULT_CLASS = 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+const MODAL_SIZE_2XL = '2xl'
+
+export default function TimePlanningMatrixPage() {
+  const { t } = useTranslation()
+  const { selectedEvent } = useEvent()
+  const [searchParams] = useSearchParams()
+  const eventId = searchParams.get('eventId') || selectedEvent?.int_eventid?.toString()
+
+  const [timeSettings, setTimeSettings] = useState<TimeSettings>(() =>
+    eventId ? loadTimeSettingsFromStorage(eventId) : DEFAULT_TIME_SETTINGS
+  )
+  const [showTimeSettings, setShowTimeSettings] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  const matrixPrintFnRef = useRef<(() => Promise<void>) | null>(null)
+
+  const {
+    loading,
+    competitions,
+    sessionGroups,
+    squads,
+    refetch,
+  } = useTimePlanningData({ eventId })
+
+  const timePlanningFilters = useTimePlanningPageFilters({
+    competitions,
+    squads,
+    sessionGroups,
+  })
+
+  const saveTimeSettings = () => {
+    if (eventId) saveTimeSettingsToStorage(eventId, timeSettings)
+    setShowTimeSettings(false)
+  }
+
+  const timeSettingsTitle = t('timePlanning.timeSettings.title')
+  const wizardStartLabel = t('timePlanning.wizard.startButton')
+  const helpLabel = t('timePlanning.help.button')
+
+  if (!eventId) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="text-center py-8">
+          <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('timePlanning.noEventSelected')}</h3>
+          <p className="mt-1 text-sm text-gray-500">{t('timePlanning.selectEventToManageTime')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <EventManagementTemplate
+      title={t('timePlanning.pages.matrix.title')}
+      subtitle={t('timePlanning.pages.matrix.subtitle')}
+      icon={ClockIcon}
+      showEventContext={true}
+      showViewToggle={false}
+      showAddButton={false}
+      showWizardButton={true}
+      wizardLabel={wizardStartLabel}
+      onWizard={() => setShowWizard(true)}
+      loading={loading}
+      showFilters={timePlanningFilters.showFilters}
+      onToggleFilters={timePlanningFilters.toggleFilters}
+      filterSection={
+        <TimePlanningFilters
+          searchTerm={timePlanningFilters.searchTerm}
+          onSearchTermChange={timePlanningFilters.setSearchTerm}
+          sessionFilter={timePlanningFilters.sessionFilter}
+          onSessionFilterChange={timePlanningFilters.setSessionFilter}
+          laneFilter={timePlanningFilters.laneFilter}
+          onLaneFilterChange={timePlanningFilters.setLaneFilter}
+          squadFilter={timePlanningFilters.squadFilter}
+          onSquadFilterChange={timePlanningFilters.setSquadFilter}
+          competitionFilter={timePlanningFilters.competitionFilter}
+          onCompetitionFilterChange={timePlanningFilters.setCompetitionFilter}
+          sessionOptions={timePlanningFilters.sessionOptions}
+          laneOptions={timePlanningFilters.laneOptions}
+          squadOptions={timePlanningFilters.squadOptions}
+          competitionOptions={timePlanningFilters.competitionOptions}
+          onResetFilters={timePlanningFilters.resetFilters}
+        />
+      }
+      customActions={[
+        <button
+          key="settings"
+          onClick={() => setShowTimeSettings(true)}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+        >
+          <Cog6ToothIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.settings')}
+        </button>,
+        <button
+          key="help"
+          onClick={() => setShowHelp(!showHelp)}
+          className={`inline-flex items-center px-4 py-2 border shadow-sm text-sm font-medium rounded-lg ${
+            showHelp
+              ? HELP_BUTTON_ACTIVE_CLASS
+              : HELP_BUTTON_DEFAULT_CLASS
+          }`}
+        >
+          <InformationCircleIcon className="h-4 w-4 mr-2" />
+          {helpLabel}
+        </button>,
+        <button
+          key="export"
+          onClick={() => matrixPrintFnRef.current?.()}
+          className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700"
+        >
+          <DocumentChartBarIcon className="h-4 w-4 mr-2" />
+          {t('timePlanning.exportPDF')}
+        </button>,
+      ]}
+    >
+      {showHelp && <HelpPanels />}
+
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+          <p className="mt-2 text-sm text-gray-600">{t('timePlanning.loading')}</p>
+        </div>
+      ) : (
+        <ScheduleMatrixView
+          eventId={eventId}
+          timeSettings={timeSettings}
+          selectedEvent={selectedEvent}
+          baseStartTime={
+            timePlanningFilters.filteredSessionGroups.length > 0 && timePlanningFilters.filteredSessionGroups[0].startTime
+              ? timePlanningFilters.filteredSessionGroups[0].startTime
+              : null
+          }
+          sessionGroups={sessionGroups}
+          visibleSessionGroups={timePlanningFilters.filteredSessionGroups}
+          selectedSession={timePlanningFilters.sessionFilter}
+          onRegisterPrint={fn => { matrixPrintFnRef.current = fn }}
+        />
+      )}
+
+      <UnifiedModal
+        isOpen={showTimeSettings}
+        onClose={() => setShowTimeSettings(false)}
+        title={timeSettingsTitle}
+        size={MODAL_SIZE_2XL}
+        showFooter={false}
+      >
+        <TimeSettingsModal
+          timeSettings={timeSettings}
+          setTimeSettings={setTimeSettings}
+          setShowTimeSettings={setShowTimeSettings}
+          saveTimeSettings={saveTimeSettings}
+        />
+      </UnifiedModal>
+
+      {showWizard && eventId && (
+        <TimePlanningWizard
+          isOpen={showWizard}
+          onClose={() => { setShowWizard(false); refetch() }}
+          eventId={eventId}
+          competitions={competitions}
+          timeSettings={timeSettings}
+          setTimeSettings={(s) => {
+            setTimeSettings(s)
+            saveTimeSettingsToStorage(eventId, s)
+          }}
+          onRefetch={refetch}
+          onViewMatrix={() => {
+            setShowWizard(false)
+            refetch()
+          }}
+        />
+      )}
+    </EventManagementTemplate>
+  )
+}

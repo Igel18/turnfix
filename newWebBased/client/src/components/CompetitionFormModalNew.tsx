@@ -8,7 +8,11 @@ import type { CompetitionFormModalProps } from './CompetitionFormModal.types';
 import {
   useCompetitionFormDisciplines,
   getDisciplineGenderLabel,
+  type DisciplineFilterMode,
 } from './useCompetitionFormDisciplines';
+
+const FILTER_MODES: readonly DisciplineFilterMode[] = ['competition', 'all'];
+const DEFAULT_FILTER_MODE: DisciplineFilterMode = 'competition';
 
 const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
   isOpen,
@@ -36,6 +40,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
     setDisciplineSearch,
     showSelectedOnly,
     setShowSelectedOnly,
+    disciplineFilterMode,
+    setDisciplineFilterMode,
     handleDisciplineGroupChange,
     handleDisciplineToggle,
     handleSelectAllVisible,
@@ -274,9 +280,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="1"
                       max="10"
-                      value={formData.round}
-                      onChange={(e) => setFormData(prev => ({ ...prev, round: parseInt(e.target.value) || 1 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={Number.isFinite(formData.round) ? formData.round : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, round: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent invalid:border-red-500 invalid:ring-red-500"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.round.description')}</p>
@@ -289,9 +295,9 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="1"
                       max="20"
-                      value={formData.track}
-                      onChange={(e) => setFormData(prev => ({ ...prev, track: parseInt(e.target.value) || 1 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={Number.isFinite(formData.track) ? formData.track : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, track: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent invalid:border-red-500 invalid:ring-red-500"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.scheduling.track.description')}</p>
@@ -335,8 +341,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="0"
                       max="999"
-                      value={formData.qualifiers}
-                      onChange={(e) => setFormData(prev => ({ ...prev, qualifiers: parseInt(e.target.value) || 0 }))}
+                      value={Number.isFinite(formData.qualifiers) ? formData.qualifiers : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, qualifiers: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.qualifiers.description')}</p>
@@ -349,8 +355,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="1"
                       max="10"
-                      value={formData.evaluations || 3}
-                      onChange={(e) => setFormData(prev => ({ ...prev, evaluations: parseInt(e.target.value) || 3 }))}
+                      value={Number.isFinite(formData.evaluations) ? formData.evaluations : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, evaluations: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.evaluations.description')}</p>
@@ -363,8 +369,8 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                       type="number"
                       min="0"
                       max="5"
-                      value={formData.dropCount}
-                      onChange={(e) => setFormData(prev => ({ ...prev, dropCount: parseInt(e.target.value) || 0 }))}
+                      value={Number.isFinite(formData.dropCount) ? formData.dropCount : ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, dropCount: e.target.value === '' ? Number.NaN : parseInt(e.target.value, 10) }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">{t('competitionForm.qualification.dropCount.description')}</p>
@@ -545,7 +551,25 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
               )}
 
               {/* Search and controls bar */}
-              <div className="flex items-center gap-2 mt-4 mb-2">
+              <div className="flex items-center gap-2 mt-4" role="group" aria-label={t('competitionForm.disciplines.filterByGroup')}>
+                {FILTER_MODES.map(mode => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setDisciplineFilterMode(mode)}
+                    aria-pressed={disciplineFilterMode === mode}
+                    data-testid={`discipline-filter-mode-${mode}`}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
+                      disciplineFilterMode === mode
+                        ? 'bg-blue-100 border-blue-300 text-blue-800'
+                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {t(`competitionForm.disciplines.filterMode.${mode}`)}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-2 mb-2">
                 <div className="relative flex-1">
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
@@ -601,7 +625,7 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   </button>
                   <span className="ml-auto text-gray-400">
                     {displayedDisciplines.length} {t('competitionForm.disciplines.filterStatus.shown', 'angezeigt')}
-                    {formData.gender !== 'gemischt' && ` · ${t('competitionForm.disciplines.filterStatus.filteredByGender')}`}
+                    {formData.gender !== 'gemischt' && disciplineFilterMode === DEFAULT_FILTER_MODE && ` · ${t('competitionForm.disciplines.filterStatus.filteredByGender')}`}
                     {selectedDisciplineGroup && ` · ${t('competitionForm.disciplines.filterStatus.filteredByGroup')}`}
                   </span>
                 </div>
@@ -653,10 +677,10 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                               type="number"
                               min="0"
                               step="0.1"
-                              value={selectedDiscipline?.maxScore || 0}
+                              value={Number.isFinite(selectedDiscipline?.maxScore) ? selectedDiscipline!.maxScore : ''}
                               onChange={(e) => {
                                 e.stopPropagation();
-                                const maxScore = parseFloat(e.target.value) || 0;
+                                const maxScore = e.target.value === '' ? Number.NaN : parseFloat(e.target.value);
                                 setFormData(prev => ({
                                   ...prev,
                                   disciplines: prev.disciplines.map(d =>

@@ -168,9 +168,9 @@ export function useEventsData() {
     fetchVenues()
   }
 
-  const openImportModal = () => {
+  const openImportModal = async () => {
+    await fetchVenues()
     setIsImportModalOpen(true)
-    fetchVenues()
   }
 
   const closeModal = () => {

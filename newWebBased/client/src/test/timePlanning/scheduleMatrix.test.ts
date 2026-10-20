@@ -9,7 +9,14 @@ import {
   calculateRoundTime,
   buildConflictCells,
   buildRoundTimeMap,
-} from '../../pages/TimePlanning/components/ScheduleMatrixView';
+  filterRoundRowsBySession,
+  getSessionForTime,
+  getSessionSquads,
+  getSessionVisibleColumns,
+  getAvailableSessions,
+  buildDisciplineLaneMap,
+  buildSquadDisciplineOptions,
+} from '../../pages/TimePlanning/scheduleMatrixUtils';
 
 // ── addMinutesToTime ──────────────────────────────────────────────────────────
 
@@ -266,5 +273,183 @@ describe('buildRoundTimeMap', () => {
     const result = buildRoundTimeMap(3, sg, 3, 20);
     expect(result.size).toBe(3);
     expect(result.get(3)).toBe('09:18');
+  });
+});
+
+describe('session time filtering', () => {
+  const sessionGroups = [
+    { session: 1, startTime: '09:00', squads: [] },
+    { session: 2, startTime: '10:00', squads: [] },
+    { session: 3, startTime: '11:00', squads: [] },
+  ];
+
+  it('assigns rows to half-open session windows using each next start as the end', () => {
+    expect(getSessionForTime('09:45', sessionGroups)?.session).toBe(1);
+    expect(getSessionForTime('10:00', sessionGroups)?.session).toBe(2);
+    expect(getSessionForTime('10:59', sessionGroups)?.session).toBe(2);
+    expect(getSessionForTime('11:00', sessionGroups)?.session).toBe(3);
+    expect(getSessionForTime('08:59', sessionGroups)).toBeNull();
+  });
+
+  it('filters all matrix rows to only the selected session', () => {
+    const rows = [
+      { round: 1, roundTime: '09:00', sessionInfo: { session: 1, startTime: '09:00' } },
+      { round: 2, roundTime: '09:30', sessionInfo: { session: 1, startTime: '09:00' } },
+      { round: 3, roundTime: '10:00', sessionInfo: { session: 2, startTime: '10:00' } },
+      { round: 4, roundTime: '10:30', sessionInfo: { session: 2, startTime: '10:00' } },
+      { round: 5, roundTime: '11:00', sessionInfo: { session: 3, startTime: '11:00' } },
+    ];
+
+    expect(filterRoundRowsBySession(rows, '2').map(row => row.round)).toEqual([3, 4]);
+    expect(filterRoundRowsBySession(rows, '').map(row => row.round)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('stops the first session at the next session start instead of showing its later rows', () => {
+    const groups = [
+      { session: 1, startTime: '09:00', squads: [squad('A', 2)] },
+      { session: 2, startTime: '10:00', squads: [squad('B', 2)] },
+    ];
+    const roundTimeMap = buildRoundTimeMap(5, groups, 15, 20);
+    const rows = Array.from({ length: 5 }, (_, index) => {
+      const round = index + 1;
+      const roundTime = roundTimeMap.get(round)!;
+      return { round, roundTime, sessionInfo: getSessionForTime(roundTime, groups) };
+    });
+
+    expect(rows.map(row => [row.roundTime, row.sessionInfo?.session])).toEqual([
+      ['09:00', 1],
+      ['09:30', 1],
+      ['10:00', 2],
+      ['10:30', 2],
+      ['11:00', 2],
+    ]);
+    expect(filterRoundRowsBySession(rows, '1').map(row => row.round)).toEqual([1, 2]);
+    expect(filterRoundRowsBySession(rows, '2').map(row => row.round)).toEqual([3, 4, 5]);
+  });
+})
+
+describe('getSessionSquads', () => {
+  it('returns only the squads of the current session', () => {
+    const result = getSessionSquads(2, [
+      { session: 1, squads: [{ name: 'wBlu' } as any] },
+      { session: 2, squads: [{ name: 'mRot' } as any, { name: 'mGruen' } as any] },
+    ], ['wBlu', 'mRot', 'mGruen']);
+
+    expect(result).toEqual(['mRot', 'mGruen']);
+  });
+
+  it('falls back to the global squads when no session match exists', () => {
+    expect(getSessionSquads(3, [{ session: 1, squads: [{ name: 'wBlu' } as any] }], ['wBlu', 'mRot'])).toEqual(['wBlu', 'mRot']);
+  });
+});
+
+describe('getSessionVisibleColumns', () => {
+  const columns = [
+    { kind: 'discipline', id: 1, name: 'Boden' },
+    { kind: 'discipline', id: 2, name: 'Sprung' },
+    { kind: 'discipline', id: 3, name: 'Reck' },
+  ];
+
+  it('filters visible columns to the current session disciplines', () => {
+    const result = getSessionVisibleColumns(columns, { '2': [2, 3] }, 2);
+
+    expect(result).toEqual([
+      { kind: 'discipline', id: 2, name: 'Sprung' },
+      { kind: 'discipline', id: 3, name: 'Reck' },
+    ]);
+  });
+
+  it('falls back to all columns when no session mapping exists', () => {
+    expect(getSessionVisibleColumns(columns, undefined, 2)).toEqual(columns);
+  });
+});
+
+describe('getAvailableSessions', () => {
+  it('merges sessions from groups and matrix mapping', () => {
+    const result = getAvailableSessions(
+      [{ session: 3 } as any, { session: 1 } as any],
+      { '2': [10], '3': [20] },
+    );
+
+    expect(result).toEqual([1, 2, 3]);
+  });
+
+  it('returns empty array without input', () => {
+    expect(getAvailableSessions(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe('buildDisciplineLaneMap', () => {
+  const laneMapping = {
+    '1': {
+      '1': [10, 20],
+      '2': [30],
+    },
+    '2': {
+      '2': [20],
+      '3': [40],
+    },
+  };
+
+  it('builds lane map for a selected session', () => {
+    const result = buildDisciplineLaneMap(laneMapping, 1);
+
+    expect(result.get(10)).toEqual([1]);
+    expect(result.get(20)).toEqual([1]);
+    expect(result.get(30)).toEqual([2]);
+    expect(result.get(40)).toBeUndefined();
+  });
+
+  it('merges lanes across sessions when no session is selected', () => {
+    const result = buildDisciplineLaneMap(laneMapping, null);
+
+    expect(result.get(20)).toEqual([1, 2]);
+    expect(result.get(40)).toEqual([3]);
+  });
+});
+
+describe('buildSquadDisciplineOptions', () => {
+  const squads = [
+    { name: 'R1', competitionIds: [10, 20] },
+    { name: 'R2', competitionIds: [30] },
+  ];
+
+  const competitions = [
+    { id: 10, round: 1 },
+    { id: 20, round: 2 },
+    { id: 30, round: 1 },
+  ];
+
+  const disciplineCache = {
+    10: [{ int_disziplinenid: 100, var_name: 'Boden', var_kurz1: 'BO' }],
+    20: [{ int_disziplinenid: 200, var_name: 'Sprung', var_kurz1: 'SP' }],
+    30: [{ int_disziplinenid: 300, var_name: 'Reck', var_kurz1: 'RE' }],
+  };
+
+  const fallback = [{ id: 999, name: 'Fallback', shortName: 'FB' }];
+
+  it('filters options by selected session', () => {
+    const result = buildSquadDisciplineOptions(
+      squads as any,
+      competitions as any,
+      1,
+      disciplineCache,
+      fallback,
+    );
+
+    expect(result.R1.map(d => d.id)).toEqual([100]);
+    expect(result.R2.map(d => d.id)).toEqual([300]);
+  });
+
+  it('includes all sessions when session is not selected', () => {
+    const result = buildSquadDisciplineOptions(
+      squads as any,
+      competitions as any,
+      null,
+      disciplineCache,
+      fallback,
+    );
+
+    expect(result.R1.map(d => d.id)).toEqual([100, 200]);
   });
 });

@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const allowServerReuse = process.env.TURNFIX_E2E_ALLOW_REUSE === '1';
+const testDatabaseName = process.env.TURNFIX_TEST_DATABASE_NAME || `turnfix_e2e_${process.pid}_${Date.now()}`;
+process.env.TURNFIX_TEST_DATABASE_NAME = testDatabaseName;
+const backendPort = Number(process.env.TURNFIX_E2E_SERVER_PORT || 3001);
+const juryPort = Number(process.env.TURNFIX_E2E_JURY_PORT || 3002);
+const clientPort = Number(process.env.TURNFIX_E2E_CLIENT_PORT || 5173);
 
 /**
  * Playwright E2E Test Configuration for TurnFix
@@ -41,7 +45,7 @@ export default defineConfig({
   /* Shared settings for all projects */
   use: {
     /* Base URL for navigation — Vite dev server */
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://localhost:${clientPort}`,
     /* Collect trace on first retry */
     trace: 'on-first-retry',
     /* Screenshot on failure */
@@ -56,6 +60,7 @@ export default defineConfig({
 
   /* Test timeout */
   timeout: 30_000,
+  globalTeardown: './e2e/global-teardown-db.cjs',
 
   /* Project dependency chain: setup → tests → teardown */
   projects: [
@@ -77,7 +82,7 @@ export default defineConfig({
     // ── Independent tests: No setup needed ──
     {
       name: 'independent',
-      testMatch: /tests\/(navigation|master-data[\w-]*|event-management|jury-server-access|formula-crossview)\.spec\.ts/,
+      testMatch: /tests\/(navigation|master-data[\w-]*|event-management|configuration|jury-server-access|formula-crossview)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
 
@@ -85,7 +90,7 @@ export default defineConfig({
     {
       name: 'tests',
       dependencies: ['setup'],
-      testMatch: /tests\/(score-entry|score-capture-v2|results|competition|import-verification|placement|statistical|jury-portal|status|pdf-export|load-test|team-competition|time-planning|group-scoring|team-scoring|squad-auto-assign|squad-status|live-scores|medallienspiegel|delete-critical-flows)\.spec\.ts/,
+      testMatch: /tests\/(score-entry|score-capture-v2|results|competition|import-verification|placement|statistical|jury-portal|status|pdf-export|load-test|team-competition|time-planning|group-scoring|team-scoring|squad-auto-assign|squad-status|squad-status-realtime|live-scores|medallienspiegel|delete-critical-flows)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       timeout: 60_000, // Load tests need more time
     },
@@ -96,27 +101,31 @@ export default defineConfig({
     {
       command: 'node scripts/start-e2e-stack.js',
       cwd: '../server',
-      port: 3001,
-      reuseExistingServer: allowServerReuse,
+      env: { TURNFIX_TEST_DATABASE_NAME: testDatabaseName },
+      port: backendPort,
+      reuseExistingServer: false,
       timeout: 120_000,
+      env: { TURNFIX_RUNTIME_PORT: String(backendPort) },
       stdout: 'pipe',
       stderr: 'pipe',
     },
     {
       command: 'node src/index.js',
       cwd: '../jury-server',
-      port: 3002,
-      reuseExistingServer: allowServerReuse,
+      env: { JURY_PORT: String(juryPort) },
+      port: juryPort,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: 'pipe',
       stderr: 'pipe',
     },
     {
-      command: 'npx vite',
+      command: `npx vite --port ${clientPort}`,
       cwd: '.',
-      port: 5173,
-      reuseExistingServer: allowServerReuse,
+      port: clientPort,
+      reuseExistingServer: false,
       timeout: 120_000,
+      env: { VITE_API_URL: `http://localhost:${backendPort}` },
       stdout: 'pipe',
       stderr: 'pipe',
     },

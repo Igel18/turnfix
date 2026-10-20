@@ -30,7 +30,7 @@ export function useTimeCalculation(): UseTimeCalculationReturn {
    */
   const addMinutesToTime = (timeStr: string, minutes: number): string => {
     const [hours, mins] = timeStr.split(':').map(Number);
-    const totalMinutes = hours * 60 + mins + minutes;
+    const totalMinutes = hours * 60 + mins + Math.round(minutes);
     const newHours = Math.floor(totalMinutes / 60);
     const newMins = totalMinutes % 60;
     return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;

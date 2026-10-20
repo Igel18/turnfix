@@ -58,6 +58,11 @@ export const testClubs = [
   { id: 3, name: 'SC Hamburg', shortName: 'SCH', regionId: 1, regionName: 'Hamburg' },
 ];
 
+export const testCountries = [
+  { id: 1, name: 'Deutschland', shortName: 'DE' },
+  { id: 2, name: 'Österreich', shortName: 'AT' },
+];
+
 export const testRegions = [
   { id: 1, name: 'Berlin', associationId: 1, associationName: 'DTB' },
   { id: 2, name: 'Bayern', associationId: 1, associationName: 'DTB' },
@@ -121,6 +126,22 @@ export const handlers = [
       data: testClubs,
       pagination: { total: testClubs.length, limit: 50, offset: 0, hasMore: false },
     });
+  }),
+
+  // Countries (matches actual API format: { countries, pagination })
+  http.get('/api/countries', () => {
+    return HttpResponse.json({
+      countries: testCountries.map(country => ({
+        int_laenderid: country.id,
+        var_name: country.name,
+        var_kuerzel: country.shortName,
+      })),
+      pagination: { total: testCountries.length, limit: 50, offset: 0, pages: 1 },
+    });
+  }),
+
+  http.get('/api/countries/count', () => {
+    return HttpResponse.json({ count: testCountries.length });
   }),
 
   // Regions (matches actual API format: { regions, pagination })

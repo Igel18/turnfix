@@ -14,6 +14,7 @@ import ClubsUnified from '@/pages/ClubsUnified'
 import Groups from '@/pages/Groups'
 import Teams from '@/pages/Teams'
 import Regions from '@/pages/Regions'
+import Countries from '@/pages/Countries'
 import Associations from '@/pages/Associations'
 import ParticipantsUnified from '@/pages/ParticipantsUnified'
 import Results from '@/pages/Results'
@@ -38,7 +39,10 @@ import DisciplineGroupsUnified from '@/pages/DisciplineGroupsUnified'
 import Meldematrix from '@/pages/Meldematrix'
 import Medallienspiegel from '@/pages/Medallienspiegel'
 import Configuration from '@/pages/Configuration'
-import TimePlanning from '@/pages/TimePlanning'
+import TimePlanningRounds from '@/pages/TimePlanningRounds'
+import TimePlanningRotationPage from '@/pages/TimePlanningRotationPage'
+import TimePlanningRotationOverviewPage from '@/pages/TimePlanningRotationOverviewPage'
+import TimePlanningMatrixPage from '@/pages/TimePlanningMatrixPage'
 import LiveScoresPage from '@/pages/LiveScoresPage'
 import GroupScoreCapture from '@/pages/GroupTeamScoring/GroupScoreCapture'
 import TeamScoreCapture from '@/pages/GroupTeamScoring/TeamScoreCapture'
@@ -64,6 +68,7 @@ function App() {
             <Route path="/groups" element={<Groups />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/regions" element={<Regions />} />
+            <Route path="/countries" element={<Countries />} />
             <Route path="/associations" element={<Associations />} />
             <Route path="/participants" element={<ParticipantsUnified />} />
             <Route path="/results" element={<Results />} />
@@ -73,7 +78,11 @@ function App() {
             <Route path="/team-scoring" element={<TeamScoreCapture />} />
             <Route path="/competitions" element={<Competitions />} />
             <Route path="/squads" element={<SquadManagement />} />
-            <Route path="/time-planning" element={<TimePlanning />} />
+            <Route path="/time-planning" element={<TimePlanningRounds />} />
+            <Route path="/time-planning/rounds" element={<TimePlanningRounds />} />
+            <Route path="/time-planning/rotation" element={<TimePlanningRotationPage />} />
+            <Route path="/time-planning/rotation-overview" element={<TimePlanningRotationOverviewPage />} />
+            <Route path="/time-planning/matrix" element={<TimePlanningMatrixPage />} />
             <Route path="/squad-status" element={<SquadStatusManagement />} />
             <Route path="/participant-status" element={<ParticipantStatusManagement />} />
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />

@@ -4,10 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { 
   HomeIcon,
   FunnelIcon,
-  PrinterIcon,
-  DocumentArrowDownIcon,
-  PlusIcon,
-  DocumentArrowUpIcon,
   Squares2X2Icon,
   TableCellsIcon,
   MagnifyingGlassIcon,
@@ -16,6 +12,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { useOptionalEvent } from '../contexts/EventContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import { AddButton, WizardButton, ImportButton } from './ui/ActionButtons'
+import { ExportMenu, type ExportMenuItem } from './ui/ExportMenu'
 // @ts-ignore - Import build info
 import buildInfo from '../build-info.json'
 import { apiGet } from '../utils/api'
@@ -62,9 +60,8 @@ interface UnifiedPageHeaderProps {
   showPrint?: boolean
   showExportPDF?: boolean
   showExportCSV?: boolean
-  printLabel?: string
-  exportPDFLabel?: string
-  exportCSVLabel?: string
+  exportExtras?: ExportMenuItem[]
+  onExportWizard?: () => void
   
   // Action buttons (below main header)
   onAdd?: () => void
@@ -73,6 +70,9 @@ interface UnifiedPageHeaderProps {
   importLabel?: string
   showAdd?: boolean
   showImport?: boolean
+  onWizard?: () => void
+  wizardLabel?: string
+  showWizard?: boolean
   
   // View toggle
   viewMode?: 'table' | 'grid'
@@ -113,15 +113,17 @@ export default function UnifiedPageHeader({
   showPrint = false,
   showExportPDF = false,
   showExportCSV = false,
-  printLabel = "Print",
-  exportPDFLabel = "Export PDF",
-  exportCSVLabel = "Export CSV",
+  exportExtras,
+  onExportWizard,
   onAdd,
   onImport,
   addLabel = "Add New",
   importLabel = "Import",
   showAdd = false,
   showImport = false,
+  onWizard,
+  wizardLabel,
+  showWizard = false,
   viewMode = 'table',
   onViewModeChange,
   showViewToggle = false,
@@ -202,35 +204,13 @@ export default function UnifiedPageHeader({
             </button>
           )}
           
-          {showPrint && onPrint && (
-            <button
-              onClick={onPrint}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <PrinterIcon className="h-4 w-4 mr-2" />
-              {printLabel}
-            </button>
-          )}
-          
-          {showExportCSV && onExportCSV && (
-            <button
-              onClick={onExportCSV}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-              {exportCSVLabel}
-            </button>
-          )}
-          
-          {showExportPDF && onExportPDF && (
-            <button
-              onClick={onExportPDF}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-              {exportPDFLabel}
-            </button>
-          )}
+          <ExportMenu
+            onPrint={showPrint ? onPrint : undefined}
+            onExportCSV={showExportCSV ? onExportCSV : undefined}
+            onExportPDF={showExportPDF ? onExportPDF : undefined}
+            extraItems={exportExtras}
+            onOpenWizard={onExportWizard}
+          />
           
           {customActions}
           
@@ -253,29 +233,17 @@ export default function UnifiedPageHeader({
       </div>
 
       {/* Action Buttons Row */}
-      {(showAdd || showImport || showViewToggle || customBelowActions) && (
+      {(showAdd || showImport || showWizard || showViewToggle || customBelowActions) && (
         <div className="max-w-7xl mx-auto">
           <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            {showAdd && onAdd && (
-              <button
-                onClick={onAdd}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                {addLabel}
-              </button>
+            {showAdd && onAdd && <AddButton onClick={onAdd} label={addLabel} />}
+
+            {showWizard && onWizard && (
+              <WizardButton onClick={onWizard} label={wizardLabel ?? t('common.wizard')} />
             )}
-            
-            {showImport && onImport && (
-              <button
-                onClick={onImport}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
-                {importLabel}
-              </button>
-            )}
+
+            {showImport && onImport && <ImportButton onClick={onImport} label={importLabel} />}
             
             {customBelowActions}
           </div>

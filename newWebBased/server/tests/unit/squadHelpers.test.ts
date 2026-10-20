@@ -13,7 +13,11 @@
  * - A participant with ANY squad assignment should NOT appear as available
  */
 
-import { isParticipantAvailable, isUnassignedSquadValue } from '../../src/utils/squadHelpers';
+import {
+  buildAvailableParticipantsWhereClause,
+  isParticipantAvailable,
+  isUnassignedSquadValue
+} from '../../src/utils/squadHelpers';
 
 describe('Squad Helpers — Available Participant Filtering', () => {
 
@@ -122,6 +126,15 @@ describe('Squad Helpers — Available Participant Filtering', () => {
       it('Participant in 3 competitions, all unassigned → IS available', () => {
         expect(isParticipantAvailable([null, null, ''])).toBe(true);
       });
+    });
+  });
+
+  describe('buildAvailableParticipantsWhereClause', () => {
+    it('excludes non-starters from available participant query', () => {
+      const whereClause = buildAvailableParticipantsWhereClause();
+
+      expect(whereClause).toContain('COALESCE(w.bol_startet_nicht, false) = false');
+      expect(whereClause).toContain('COALESCE(w2.bol_startet_nicht, false) = false');
     });
   });
 });

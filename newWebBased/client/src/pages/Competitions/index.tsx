@@ -76,15 +76,9 @@ const Competitions: React.FC = () => {
         title={t('competitions.title')}
         description={t('competitions.description')}
         onAdd={openCreateModal}
-        customActions={
-          <button
-            type="button"
-            onClick={() => { setWizardCompetition(null); setIsWizardOpen(true); }}
-            className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 whitespace-nowrap"
-          >
-            ✨ {t('competitionForm.wizard.openButton', 'Neuer Wettkampf (Assistent)')}
-          </button>
-        }
+        showWizardButton={true}
+        onWizard={() => { setWizardCompetition(null); setIsWizardOpen(true); }}
+        wizardLabel={t('competitionForm.wizard.openButton', 'Neuer Wettkampf (Assistent)')}
         onRefresh={loadCompetitions}
         onExportCSV={handleExportCSV}
         addButtonText={t('competitions.createButton')}

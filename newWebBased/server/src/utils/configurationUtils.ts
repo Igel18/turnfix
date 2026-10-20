@@ -16,11 +16,13 @@ import { reconnectPrisma, getCurrentDatabaseName } from '../lib/prisma';
 // because PM2 sets cwd to the project root (turnfix/), not the server/ folder.
 // dotenv in index.ts also uses __dirname-based path: resolve(__dirname, '../.env')
 const SERVER_ROOT = path.resolve(__dirname, '../..');
-export const CONFIG_FILE = path.join(SERVER_ROOT, 'config', 'app-config.json');
+export const CONFIG_FILE = process.env.TURNFIX_CONFIG_FILE_PATH
+  || path.join(SERVER_ROOT, 'config', 'app-config.json');
 export const CONFIG_DIR = path.dirname(CONFIG_FILE);
 
 // .env file path — must match what dotenv reads in index.ts
-export const ENV_FILE = path.join(SERVER_ROOT, '.env');
+export const ENV_FILE = process.env.TURNFIX_ENV_FILE_PATH
+  || path.join(SERVER_ROOT, '.env');
 
 // Encryption key for sensitive data (in production, use environment variable)
 export const ENCRYPTION_KEY = process.env.CONFIG_ENCRYPTION_KEY || 'turnfix-config-key-2024-secret-key';

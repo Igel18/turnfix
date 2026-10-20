@@ -1,6 +1,8 @@
 import request from 'supertest';
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
+import * as XLSX from 'xlsx';
 import { PrismaClient } from '@prisma/client';
 import eventsRouter from '../../src/routes/events';
 import { TestUtils } from '../utils/testUtils';
@@ -92,6 +94,19 @@ describe('GymNet Team Import', () => {
       }).catch(() => {});
     }
 
+    // 7. Delete the event-tagged XML file gymnetImport.ts keeps on disk after a successful import
+    if (createdEventId) {
+      const xmlDir = path.resolve(__dirname, '../../uploads/xml');
+      const prefix = `gymnet-event${createdEventId}-`;
+      if (fs.existsSync(xmlDir)) {
+        for (const filename of fs.readdirSync(xmlDir)) {
+          if (filename.startsWith(prefix)) {
+            fs.unlinkSync(path.join(xmlDir, filename));
+          }
+        }
+      }
+    }
+
     // Reset tracking
     createdEventId = null;
     createdClubIds = [];
@@ -170,6 +185,80 @@ describe('GymNet Team Import', () => {
 
     return response;
   }
+
+  describe('Imported XML is tagged with the event ID (kept for GymNet results export)', () => {
+    it('renames the uploaded XML to include the created event ID instead of deleting it', async () => {
+      const response = await importXmlAndTrack(teamFixturePath);
+      expect(response.body.createdEvent?.id).toBeDefined();
+
+      const xmlDir = path.resolve(__dirname, '../../uploads/xml');
+      const prefix = `gymnet-event${response.body.createdEvent.id}-`;
+      const taggedFile = fs.readdirSync(xmlDir).find(f => f.startsWith(prefix));
+
+      expect(taggedFile).toBeDefined();
+      expect(taggedFile).toContain('team-import-test.xml');
+    });
+  });
+
+  describe('POST /api/events/gymnet-standard-export/parse', () => {
+    function buildStandardExportBuffer(rows: string[][]): Buffer {
+      const worksheet = XLSX.utils.aoa_to_sheet([['evName', 'evStart', 'evStop', 'evID'], ...rows]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Meldungen');
+      return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+    }
+
+    it('parses the file and returns evName/evStart/evStop/evId without persisting anything', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Landesmeisterschaft 2026', '2026-05-01', '2026-05-02', '654321'],
+      ]);
+
+      const response = await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      expect(response.body).toEqual({
+        evName: 'Landesmeisterschaft 2026',
+        evStart: '2026-05-01',
+        evStop: '2026-05-02',
+        evId: '654321',
+        warning: null,
+      });
+    });
+
+    it('warns when the evID is inconsistent across rows', async () => {
+      const buffer = buildStandardExportBuffer([
+        ['Event', '2026-05-01', '2026-05-02', '111'],
+        ['Event', '2026-05-01', '2026-05-02', '222'],
+      ]);
+
+      const response = await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(200);
+
+      expect(response.body.warning).toContain('unterschiedliche evID');
+    });
+
+    it('returns 400 when no file is attached', async () => {
+      await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .expect(400);
+    });
+
+    it('returns 400 when required columns are missing', async () => {
+      const worksheet = XLSX.utils.aoa_to_sheet([['name'], ['Event']]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Meldungen');
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+      await request(app)
+        .post('/api/events/gymnet-standard-export/parse')
+        .attach('xlsFile', buffer, { filename: 'Standardexport.xls' })
+        .expect(400);
+    });
+  });
 
   describe('Multi-person Mannschaft creates teams', () => {
     it('should import XML and create teams from multi-person Mannschaft nodes', async () => {

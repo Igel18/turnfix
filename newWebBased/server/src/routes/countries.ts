@@ -53,6 +53,16 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/count', async (req, res) => {
+  try {
+    const count = await (prisma as any).tfx_laender.count();
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting countries:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get country by ID
 router.get('/:id', async (req, res) => {
   try {

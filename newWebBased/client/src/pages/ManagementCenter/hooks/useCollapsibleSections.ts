@@ -16,6 +16,7 @@ function usePersisted(key: string, defaultValue: boolean) {
 export function useCollapsibleSections() {
   const [isDatabaseManagementCollapsed, setIsDatabaseManagementCollapsed] = usePersisted('databaseManagementCollapsed', false)
   const [isEventSetupCollapsed,         setIsEventSetupCollapsed]         = usePersisted('eventSetupCollapsed',         false)
+  const [isTimePlanningCollapsed,       setIsTimePlanningCollapsed]       = usePersisted('timePlanningCollapsed',       false)
   const [isCompetitionDayCollapsed,     setIsCompetitionDayCollapsed]     = usePersisted('competitionDayCollapsed',     false)
   const [isResultsAwardsCollapsed,      setIsResultsAwardsCollapsed]      = usePersisted('resultsAwardsCollapsed',      false)
 
@@ -24,6 +25,8 @@ export function useCollapsibleSections() {
     setIsDatabaseManagementCollapsed,
     isEventSetupCollapsed,
     setIsEventSetupCollapsed,
+    isTimePlanningCollapsed,
+    setIsTimePlanningCollapsed,
     isCompetitionDayCollapsed,
     setIsCompetitionDayCollapsed,
     isResultsAwardsCollapsed,

@@ -5,6 +5,8 @@
 //                 /out:TurnFixTray.exe TurnFixTray.cs
 // No external dependencies - uses .NET Framework built into Windows.
 // Uses turnfix.ico as embedded resource for the tray icon.
+// Requires administrator rights via TurnFixTray.manifest
+// so Windows service start/stop works reliably from tray actions.
 //
 // Shows TurnFix server status in the Windows system tray:
 //   Green  = Both servers running

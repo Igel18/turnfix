@@ -11,6 +11,7 @@
 
 import { useTranslation } from 'react-i18next';
 
+import LocalizedNumberInput from '@/components/ui/LocalizedNumberInput';
 import type { TimeSettings } from '../TimePlanning.types';
 import { DEFAULT_TIME_SETTINGS } from '../TimePlanning.types';
 
@@ -28,6 +29,10 @@ export function TimeSettingsModal({
   saveTimeSettings
 }: TimeSettingsModalProps) {
   const { t } = useTranslation();
+  const isValid = timeSettings.exerciseDurationMinutes >= 1 && timeSettings.exerciseDurationMinutes <= 60
+    && timeSettings.rotationIntervalMinutes >= 5 && timeSettings.rotationIntervalMinutes <= 120
+    && timeSettings.breakBetweenDevicesMinutes >= 0 && timeSettings.breakBetweenDevicesMinutes <= 30
+    && timeSettings.warmupDurationMinutes >= 0 && timeSettings.warmupDurationMinutes <= 60;
 
   return (
     <div className="bg-white border rounded-lg p-6">
@@ -46,80 +51,76 @@ export function TimeSettingsModal({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('timePlanning.timeSettings.exerciseDuration')}
           </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="1"
-              max="60"
+            <LocalizedNumberInput
+              id="time-settings-exercise-duration"
+              required
+              min={1}
+              max={60}
               value={timeSettings.exerciseDurationMinutes}
-              onChange={(e) => setTimeSettings(prev => ({
+              onValueChange={(value) => setTimeSettings(prev => ({
                 ...prev,
-                exerciseDurationMinutes: parseInt(e.target.value) || 10
+                exerciseDurationMinutes: value
               }))}
-              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
             <span className="text-sm text-gray-600">{t('timePlanning.minutes')}</span>
-          </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('timePlanning.timeSettings.rotationInterval')}
           </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="5"
-              max="120"
+            <LocalizedNumberInput
+              id="time-settings-rotation-interval"
+              required
+              min={5}
+              max={120}
               value={timeSettings.rotationIntervalMinutes}
-              onChange={(e) => setTimeSettings(prev => ({
+              onValueChange={(value) => setTimeSettings(prev => ({
                 ...prev,
-                rotationIntervalMinutes: parseInt(e.target.value) || 20
+                rotationIntervalMinutes: value
               }))}
-              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
             <span className="text-sm text-gray-600">{t('timePlanning.minutes')}</span>
-          </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('timePlanning.timeSettings.breakBetweenDevices')}
           </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="0"
-              max="30"
+            <LocalizedNumberInput
+              id="time-settings-break-between-devices"
+              required
+              min={0}
+              max={30}
               value={timeSettings.breakBetweenDevicesMinutes}
-              onChange={(e) => setTimeSettings(prev => ({
+              onValueChange={(value) => setTimeSettings(prev => ({
                 ...prev,
-                breakBetweenDevicesMinutes: parseInt(e.target.value) || 5
+                breakBetweenDevicesMinutes: value
               }))}
-              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
             <span className="text-sm text-gray-600">{t('timePlanning.minutes')}</span>
-          </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('timePlanning.timeSettings.warmupDuration')}
           </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="0"
-              max="60"
+            <LocalizedNumberInput
+              id="time-settings-warmup-duration"
+              required
+              min={0}
+              max={60}
               value={timeSettings.warmupDurationMinutes}
-              onChange={(e) => setTimeSettings(prev => ({
+              onValueChange={(value) => setTimeSettings(prev => ({
                 ...prev,
-                warmupDurationMinutes: parseInt(e.target.value) || 15
+                warmupDurationMinutes: value
               }))}
-              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 invalid:border-red-500 invalid:ring-red-500"
             />
             <span className="text-sm text-gray-600">{t('timePlanning.minutes')}</span>
-          </div>
         </div>
       </div>
 
@@ -132,7 +133,8 @@ export function TimeSettingsModal({
         </button>
         <button
           onClick={saveTimeSettings}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          disabled={!isValid}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('common.save')}
         </button>

@@ -15,9 +15,15 @@ test.describe.serial('Master Data: Certificate Layouts', () => {
     await navigateTo(page, '/certificate-layouts');
     await waitForLoadingToFinish(page);
 
-    // Could be table or card view
-    const content = page.locator('table, [class*="grid"], [class*="card"]');
-    await expect(content.first()).toBeVisible({ timeout: 10_000 });
+    // Independent project can start with zero layouts.
+    // Accept either populated list (table/cards) or empty-state panel.
+    const listContent = page.locator('table, [class*="grid"], [class*="card"]');
+    const emptyState = page.locator('h3').filter({ hasText: /No\s+|Keine\s+/i }).first();
+
+    const hasList = await listContent.first().isVisible({ timeout: 3_000 }).catch(() => false);
+    const hasEmptyState = await emptyState.isVisible({ timeout: 3_000 }).catch(() => false);
+
+    expect(hasList || hasEmptyState).toBeTruthy();
   });
 
   test('can create a new layout via add button', async ({ page }) => {

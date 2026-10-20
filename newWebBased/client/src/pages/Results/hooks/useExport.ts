@@ -21,6 +21,7 @@ import {
   addSectionTitle,
   drawRankingBadge
 } from '@/utils/pdfUtils'
+import { resolveEventForPDFHeader } from '@/utils/pdfEventResolver'
 import {
   pdfColors,
   applyTableHeaderStyle,
@@ -36,6 +37,20 @@ import {
 } from '@/utils/formulaUtils'
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types'
 
+export interface GymNetMatchReport {
+  summary: {
+    competitionsMatched: number
+    participantsMatched: number
+    disciplineScoresWritten: number
+    competitionsUnmatched: number
+    participantsUnmatched: number
+    disciplinesUnmatched: number
+  }
+  unmatchedCompetitions: string[]
+  unmatchedParticipants: string[]
+  unmatchedDisciplines: string[]
+}
+
 interface UseExportProps {
   eventId: string | null
   eventName: string
@@ -46,6 +61,24 @@ interface UseExportProps {
   disciplineFormulas: Record<string, string>
   selectedCompetitionDisciplineInfo: DisciplineInfo[]
   formatScore: (score: number) => string
+}
+
+export const resolveCompetitionExportName = (
+  selectedCompetition: string,
+  ranking: Participant[],
+  competitionGroups: CompetitionGroup[]
+) => {
+  const rankingMatch = ranking.find(participant => participant.competitionId?.toString() === selectedCompetition)
+  if (rankingMatch?.competitionName?.trim()) {
+    return rankingMatch.competitionName.trim()
+  }
+
+  const groupMatch = competitionGroups.find(group => group.competitionId.toString() === selectedCompetition)
+  if (groupMatch?.competitionName?.trim()) {
+    return groupMatch.competitionName.trim()
+  }
+
+  return `Competition ${selectedCompetition}`
 }
 
 export const useExport = ({
@@ -164,6 +197,9 @@ export const useExport = ({
     const pageFormat = doc.internal.pageSize
     const pageWidth = pageFormat.width
     const pageHeight = pageFormat.height
+    const eventForPDF = await resolveEventForPDFHeader(selectedEvent, {
+      var_eventname: eventName
+    })
 
     const headerMeta = buildDisciplineHeaderMeta(
       disciplines,
@@ -363,7 +399,7 @@ export const useExport = ({
       doc.setPage(i)
       addPDFHeaderFooter({
         doc,
-        event: selectedEvent,
+        event: eventForPDF,
         documentTitle: `Competition Results - ${competitionName}`,
         pageWidth,
         pageHeight
@@ -371,7 +407,7 @@ export const useExport = ({
     }
 
     doc.save(`results_${competitionName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
-  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, t])
+  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, eventName, t])
 
   /**
    * Export all competitions to PDF
@@ -383,6 +419,9 @@ export const useExport = ({
     const pageFormat = doc.internal.pageSize
     const pageWidth = pageFormat.width
     const pageHeight = pageFormat.height
+    const eventForPDF = await resolveEventForPDFHeader(selectedEvent, {
+      var_eventname: eventName
+    })
 
     let currentY = 60
 
@@ -605,7 +644,7 @@ export const useExport = ({
       doc.setPage(i)
       addPDFHeaderFooter({
         doc,
-        event: selectedEvent,
+        event: eventForPDF,
         documentTitle: 'Competition Results - All Competitions',
         pageWidth,
         pageHeight
@@ -622,7 +661,7 @@ export const useExport = ({
     if (selectedCompetition) {
       // Single competition export
       if (ranking.length === 0) return
-      const competitionName = competitionGroups.find(g => g.competitionId.toString() === selectedCompetition)?.competitionName || `Competition ${selectedCompetition}`
+      const competitionName = resolveCompetitionExportName(selectedCompetition, ranking, competitionGroups)
       void exportSingleCompetitionPDF(ranking, competitionName)
     } else {
       // All competitions export
@@ -633,17 +672,44 @@ export const useExport = ({
   /**
    * Export GymNet XML for current event/competition
    */
-  const exportResultsGymNetXML = useCallback(async () => {
-    if (!eventId) return
+  const exportResultsGymNetXML = useCallback(async (templateFile?: File): Promise<GymNetMatchReport | null> => {
+    if (!eventId) return null
 
-    const params = new URLSearchParams({ eventId })
-    if (selectedCompetition) {
-      params.append('competitionId', selectedCompetition)
+    let response: Response
+
+    if (templateFile) {
+      const formData = new FormData()
+      formData.append('eventId', eventId)
+      if (selectedCompetition) {
+        formData.append('competitionId', selectedCompetition)
+      }
+      formData.append('xmlFile', templateFile)
+
+      response = await fetch('/api/results/export-gymnet-xml-template', {
+        method: 'POST',
+        body: formData
+      })
+    } else {
+      const params = new URLSearchParams({ eventId })
+      if (selectedCompetition) {
+        params.append('competitionId', selectedCompetition)
+      }
+
+      response = await fetch(`/api/results/export-gymnet-xml?${params.toString()}`)
     }
 
-    const response = await fetch(`/api/results/export-gymnet-xml?${params.toString()}`)
     if (!response.ok) {
       throw new Error('Failed to export GymNet XML')
+    }
+
+    let report: GymNetMatchReport | null = null
+    const encodedReport = response.headers.get('x-gymnet-match-report-encoded')
+    if (encodedReport) {
+      try {
+        report = JSON.parse(decodeURIComponent(encodedReport)) as GymNetMatchReport
+      } catch {
+        report = null
+      }
     }
 
     const blob = await response.blob()
@@ -660,6 +726,8 @@ export const useExport = ({
     a.download = fileName
     a.click()
     window.URL.revokeObjectURL(url)
+
+    return report
   }, [eventId, selectedCompetition, eventName])
 
   return {

@@ -18,6 +18,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../msw/server';
 import { renderWithProviders } from '../renderWithProviders';
 import { calculateFinalScoreFromFieldValues } from '@turnfix/shared';
+import GroupScoreCapture from '../../pages/GroupTeamScoring/GroupScoreCapture';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -141,12 +142,8 @@ function setupHandlers() {
   );
 }
 
-// ── Lazy import to let mocks take effect ───────────────────────────────────
-
-async function renderGroupScoreCapture() {
-  const mod = await import('../../pages/GroupTeamScoring/GroupScoreCapture');
-  const Component = mod.default;
-  return renderWithProviders(<Component />);
+function renderGroupScoreCapture() {
+  return renderWithProviders(<GroupScoreCapture />);
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────
@@ -172,10 +169,7 @@ describe('GroupScoreCapture', () => {
   describe('Page Rendering', () => {
     it('should render the page title', async () => {
       await renderGroupScoreCapture();
-
-      await waitFor(() => {
-        expect(screen.getByText('groupTeamScoring.groupScoring')).toBeInTheDocument();
-      });
+      expect(screen.getByText('groupTeamScoring.groupScoring')).toBeInTheDocument();
     });
 
     it('should render the info box', async () => {

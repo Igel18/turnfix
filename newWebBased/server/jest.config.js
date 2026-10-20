@@ -4,10 +4,22 @@ const dotenv = require('dotenv');
 // Load test environment so DATABASE_URL points at the dedicated test DB.
 dotenv.config({ path: path.resolve(__dirname, '.env.test'), override: true });
 
+// Each Jest invocation gets a fresh database that globalTeardown can drop.
+const testDatabaseName = `turnfix_test_${process.pid}_${Date.now()}`;
+const testDatabaseUrl = new URL(process.env.TEST_DATABASE_URL || process.env.DATABASE_URL);
+testDatabaseUrl.pathname = `/${testDatabaseName}`;
+process.env.TURNFIX_TEST_DATABASE_NAME = testDatabaseName;
+process.env.DATABASE_NAME = testDatabaseName;
+process.env.DATABASE_URL = testDatabaseUrl.toString();
+process.env.TEST_DATABASE_URL = testDatabaseUrl.toString();
+
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  globals: {
+    __TURNFIX_TEST_DATABASE_URL: testDatabaseUrl.toString(),
+  },
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
     '**/__tests__/**/*.+(ts|tsx|js)',
