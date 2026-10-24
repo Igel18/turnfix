@@ -39,6 +39,7 @@ import {
 
 // Types
 import type { PaperFormat } from './Results.types'
+import { sortParticipantsForCertificates } from './utils/certificateSort'
 
 const RESULTS_DISCIPLINE_VISIBLE_BUTTON_CLASS = 'bg-blue-100 text-blue-700 hover:bg-blue-200'
 const RESULTS_DISCIPLINE_HIDDEN_BUTTON_CLASS = 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -205,11 +206,11 @@ const Results = () => {
   }
 
   const handleExportCertificates = async () => {
-    const sortedParticipants = [...getAllParticipantsForCertificates()].sort((a, b) => {
-      const rankA = a.rank ?? 0
-      const rankB = b.rank ?? 0
-      return certificateSortOrder === 'desc' ? rankB - rankA : rankA - rankB
-    })
+    const sortedParticipants = sortParticipantsForCertificates(
+      getAllParticipantsForCertificates(),
+      competitions,
+      certificateSortOrder
+    )
 
     await generateCertificates(
       sortedParticipants,
