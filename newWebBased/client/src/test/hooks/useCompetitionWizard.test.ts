@@ -203,6 +203,22 @@ describe('useCompetitionWizard – canGoNext', () => {
     expect(result.current.canGoNext).toBe(false);
   });
 
+  it.each([
+    ['allows an upper age limit of 120', 6, 120, true],
+    ['allows ages above 50', 51, 99, true],
+    ['rejects an upper age limit above 120', 6, 121, false],
+    ['rejects a missing (NaN) age', NaN, 20, false],
+  ])('category: %s', (_label, ageFrom, ageTo, expected) => {
+    const { result } = renderHook(() =>
+      useCompetitionWizard({ ...baseProps, isOpen: true }),
+    );
+    act(() => {
+      result.current.setStep('category');
+      result.current.setFormData(d => ({ ...d, areaId: 2, ageFrom, ageTo }));
+    });
+    expect(result.current.canGoNext).toBe(expected);
+  });
+
   it('category: true when areaId set and valid age range', () => {
     const { result } = renderHook(() =>
       useCompetitionWizard({ ...baseProps, isOpen: true }),

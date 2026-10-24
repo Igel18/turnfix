@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { MIN_COMPETITION_AGE, MAX_COMPETITION_AGE } from '@turnfix/shared';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { debugInfo } from '../utils/debug';
 import { BlueInfoBox } from '@/components/InfoBoxes';
@@ -48,12 +49,6 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
     handleDeselectAllVisible,
     handleBulkSelectGroup,
   } = useCompetitionFormDisciplines({ isOpen, formData, setFormData, bulkMaxScore });
-
-  // Age groups for dropdowns
-  const ageGroups = Array.from({ length: 50 }, (_, i) => ({
-    value: i + 1,
-    label: `${i + 1} years`,
-  }));
 
   const getGenderText = (maleAllowed: boolean, femaleAllowed: boolean) =>
     getDisciplineGenderLabel(maleAllowed, femaleAllowed, {
@@ -210,8 +205,12 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     📅 {t('competitionForm.fields.ageFrom.label')} *
                   </label>
-                  <select
-                    value={formData.ageFrom}
+                  <input
+                    type="number"
+                    min={MIN_COMPETITION_AGE}
+                    max={MAX_COMPETITION_AGE}
+                    step={1}
+                    value={Number.isNaN(formData.ageFrom) ? '' : formData.ageFrom}
                     onChange={(e) => {
                       const newAgeFrom = parseInt(e.target.value);
                       setFormData(prev => ({ 
@@ -223,28 +222,23 @@ const CompetitionFormModal: React.FC<CompetitionFormModalProps> = ({
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                  >
-                    {ageGroups.map(age => (
-                      <option key={age.value} value={age.value}>{age.label}</option>
-                    ))}
-                  </select>
+                  />
                   <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.ageFrom.description')}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     📅 {t('competitionForm.fields.ageTo.label')} (min: {formData.ageFrom} Jahre) *
                   </label>
-                  <select
-                    value={formData.ageTo || ''}
+                  <input
+                    type="number"
+                    min={formData.ageFrom || MIN_COMPETITION_AGE}
+                    max={MAX_COMPETITION_AGE}
+                    step={1}
+                    value={Number.isNaN(formData.ageTo) ? '' : formData.ageTo || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, ageTo: parseInt(e.target.value) }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                  >
-                    {!formData.ageTo && <option value="">Select age...</option>}
-                    {ageGroups.filter(age => age.value >= (formData.ageFrom || 5)).map(age => (
-                      <option key={age.value} value={age.value}>{age.label}</option>
-                    ))}
-                  </select>
+                  />
                   <p className="text-xs text-gray-500 mt-1">{t('competitionForm.fields.ageTo.description')}</p>
                 </div>
               </div>

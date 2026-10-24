@@ -9,6 +9,7 @@
  */
 
 export * from './ageCheckUtils';
+export * from './competitionAge';
 export * from './formulaUtils';
 export * from './builtInFormulaHelper';
 export * from './genderHelpers';

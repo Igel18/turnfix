@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isValidCompetitionAgeRange } from '@turnfix/shared';
 import { apiPost, apiPut, invalidateCache } from '@/utils/api';
 import {
   useCompetitionFormDisciplines,
@@ -136,8 +137,7 @@ export function useCompetitionWizard({
       case 'category':
         return (
           formData.areaId !== null &&
-          formData.ageFrom >= 1 &&
-          formData.ageTo >= formData.ageFrom
+          isValidCompetitionAgeRange(formData.ageFrom, formData.ageTo)
         );
       case 'disciplines':
         return formData.disciplines.length > 0;

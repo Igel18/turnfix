@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isValidCompetitionAge } from '@turnfix/shared';
 import { debugLog } from '../../../utils/debug';
 import { apiGet, apiPost, apiPut, apiDelete, invalidateCache } from '../../../utils/api';
 import { Competition, CompetitionFormData } from '../Competitions.types';
@@ -125,14 +126,14 @@ export const useCompetitions = ({ eventId }: UseCompetitionsProps = {}) => {
     }
     
     // Client-side validation for age values
-    if (formData.ageFrom < 1 || formData.ageFrom > 99) {
+    if (!isValidCompetitionAge(formData.ageFrom)) {
       console.error('❌ Invalid ageFrom value:', formData.ageFrom);
       alert(t('competitions.validation.invalidAgeFrom', { value: formData.ageFrom }));
       setLoading(false);
       return;
     }
     
-    if (formData.ageTo < 1 || formData.ageTo > 99) {
+    if (!isValidCompetitionAge(formData.ageTo)) {
       console.error('❌ Invalid ageTo value:', formData.ageTo);
       alert(t('competitions.validation.invalidAgeTo', { value: formData.ageTo }));
       setLoading(false);

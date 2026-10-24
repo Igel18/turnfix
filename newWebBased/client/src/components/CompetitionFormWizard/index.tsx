@@ -12,6 +12,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
+import { MIN_COMPETITION_AGE, MAX_COMPETITION_AGE } from '@turnfix/shared';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import WizardModal from '@/components/WizardModal';
 import { BlueInfoBox } from '@/components/InfoBoxes';
@@ -139,8 +140,6 @@ function StepCategory({ wizard }: { wizard: ReturnType<typeof useCompetitionWiza
   const { t } = useTranslation();
   const { formData, setFormData, areas } = wizard;
 
-  const ageGroups = Array.from({ length: 50 }, (_, i) => i + 1);
-
   return (
     <div className="space-y-4">
       <BlueInfoBox>
@@ -207,16 +206,18 @@ function StepCategory({ wizard }: { wizard: ReturnType<typeof useCompetitionWiza
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('competitionForm.fields.ageFrom.label')} <span className="text-red-500">*</span>
           </label>
-          <select
-            value={formData.ageFrom}
+          <input
+            type="number"
+            min={MIN_COMPETITION_AGE}
+            max={MAX_COMPETITION_AGE}
+            step={1}
+            value={Number.isNaN(formData.ageFrom) ? '' : formData.ageFrom}
             onChange={(e) => {
               const v = parseInt(e.target.value);
               setFormData((f) => ({ ...f, ageFrom: v, ageTo: f.ageTo < v ? v : f.ageTo }));
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {ageGroups.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
+          />
         </div>
 
         {/* Age to */}
@@ -224,15 +225,15 @@ function StepCategory({ wizard }: { wizard: ReturnType<typeof useCompetitionWiza
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('competitionForm.fields.ageTo.label')} <span className="text-red-500">*</span>
           </label>
-          <select
-            value={formData.ageTo ?? ''}
+          <input
+            type="number"
+            min={formData.ageFrom || MIN_COMPETITION_AGE}
+            max={MAX_COMPETITION_AGE}
+            step={1}
+            value={Number.isNaN(formData.ageTo) ? '' : formData.ageTo}
             onChange={(e) => setFormData((f) => ({ ...f, ageTo: parseInt(e.target.value) }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {ageGroups.filter((a) => a >= formData.ageFrom).map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
+          />
         </div>
       </div>
     </div>

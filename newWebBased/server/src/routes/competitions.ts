@@ -17,6 +17,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { getCompetitionGenderValues } from '../utils/configurationHelpers';
+import { competitionAgeSchema } from '../utils/competitionSchemas';
 import prisma from '../lib/prisma';
 import {
   transformCompetitionListItem,
@@ -45,8 +46,8 @@ const createCompetitionSchema = z.object({
   location: z.string().optional(),
   gender: z.enum(getCompetitionGenderValues() as [string, ...string[]]),
   areaId: z.number().nullable().optional(),
-  ageFrom: z.number().min(1).max(99),
-  ageTo: z.number().min(1).max(99),
+  ageFrom: competitionAgeSchema,
+  ageTo: competitionAgeSchema,
   disciplines: z.array(z.object({
     disciplineId: z.number(),
     maxScore: z.number().min(0)
