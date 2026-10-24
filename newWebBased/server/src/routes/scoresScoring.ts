@@ -11,6 +11,7 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
+import { fetchFormulaFieldRows } from '../utils/formulaFieldRows';
 import { getEventScoringModeByCompetitionId, shouldUseFormulaCalculation } from '../utils/eventScoringMode';
 
 
@@ -170,27 +171,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
           console.log(`🧮 Formula found: "${formula}", fetching jury results for recalculation...`);
           
           // Fetch jury results for this participant/discipline
-          // NOTE: aliases MUST use camelCase (double-quoted) to match what
-          // buildFieldSymbolsMap() expects. snake_case aliases cause field-name
-          // matching to fail → valuesMap stays empty → calculateFormula returns 0
-          // for custom formulas (e.g. "1*x") → live score shows "0.0". Bug #88.
-          const juryResultsQuery = `
-            SELECT 
-              jr.rel_leistung as performance,
-              df.int_sortierung as "sortOrder",
-              df.var_name as "fieldName",
-              df.var_name as "fieldShortName",
-              df.bol_endwert as "isFinalScore",
-              df.bol_ausgangswert as "isStartingScore"
-            FROM tfx_jury_results jr
-            LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
-            WHERE jr.int_wertungenid = $1
-              AND df.int_disziplinenid = $2
-              AND jr.int_versuch = 1
-            ORDER BY df.int_sortierung ASC
-          `;
-          
-          const juryResults = await prisma.$queryRawUnsafe(juryResultsQuery, wertungenId, actualDisciplineId) as any[];
+          const juryResults = await fetchFormulaFieldRows(prisma, wertungenId, actualDisciplineId, 1);
           console.log(`🧮 Jury results:`, juryResults);
           
           if (juryResults && juryResults.length > 0) {
@@ -413,23 +394,7 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
     
     console.log('📝 Formula:', formula);
     
-    // Get all non-final jury results
-    const juryResultsQuery = `
-      SELECT 
-        jr.rel_leistung as performance,
-        df.var_name as "fieldName",
-        df.bol_endwert as "isFinalScore",
-        df.int_sortierung as "sortOrder"
-      FROM tfx_jury_results jr
-      INNER JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
-      WHERE jr.int_wertungenid = $1
-        AND df.int_disziplinenid = $2
-        AND jr.int_versuch = 1
-        AND df.bol_endwert = false
-      ORDER BY df.int_sortierung ASC
-    `;
-    
-    const juryResults = await prisma.$queryRawUnsafe(juryResultsQuery, wertungenId, disciplineId) as any[];
+    const juryResults = await fetchFormulaFieldRows(prisma, wertungenId, disciplineId, 1);
     console.log('📊 Jury results:', juryResults);
     
     if (!juryResults || juryResults.length === 0) {

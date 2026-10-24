@@ -310,6 +310,7 @@ export function isSubtractionField(fieldName: string): boolean {
  */
 export function buildFieldSymbolsMap(
   juryResults: Array<{
+    fieldId?: number;
     fieldName?: string;
     fieldShortName?: string;
     performance: number | null;
@@ -319,8 +320,25 @@ export function buildFieldSymbolsMap(
   }>,
   formula?: string
 ): Record<string, FormulaField> {
+  // A field must map to at most one symbol: keep the latest row per field id
+  const rowIndexByFieldId = new Map<number, number>();
+  const uniqueJuryResults: typeof juryResults = [];
+  juryResults.forEach(jr => {
+    if (jr.fieldId === undefined || jr.fieldId === null) {
+      uniqueJuryResults.push(jr);
+      return;
+    }
+    const existingIndex = rowIndexByFieldId.get(jr.fieldId);
+    if (existingIndex === undefined) {
+      rowIndexByFieldId.set(jr.fieldId, uniqueJuryResults.length);
+      uniqueJuryResults.push(jr);
+    } else {
+      uniqueJuryResults[existingIndex] = jr;
+    }
+  });
+
   // Sort by sortOrder if available
-  const sortedJuryResults = [...juryResults].sort((a, b) => {
+  const sortedJuryResults = [...uniqueJuryResults].sort((a, b) => {
     if (a.sortOrder === undefined || b.sortOrder === undefined) return 0;
     return a.sortOrder - b.sortOrder;
   });

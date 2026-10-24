@@ -114,17 +114,38 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
   const onScoreChangeRef = React.useRef(onScoreChange);
   onScoreChangeRef.current = onScoreChange;
 
-  // ── Sync initialValues (e.g. when parent keys a new participant) ──────────
+  // ── Sync initialValues (e.g. saved values arriving after mount) ───────────
+  // Fields the user already edited are never overwritten: saved values echo back
+  // late and would otherwise wipe what was typed in the meantime.
+  const touchedSymbols = React.useRef<Set<string>>(new Set());
+  const lastFormula = React.useRef(formula);
+
   useEffect(() => {
-    const newValues: Record<string, number> = { ...initialValues };
-    const newInputs: Record<string, string> = {};
-    symbols.forEach(sym => {
-      const v = initialValues[sym];
-      newInputs[sym] = v !== undefined ? formatEditableValue(v) : '';
+    if (lastFormula.current !== formula) {
+      lastFormula.current = formula;
+      touchedSymbols.current = new Set();
+    }
+    const isUntouched = (sym: string) => !touchedSymbols.current.has(sym);
+
+    setFieldValues(prev => {
+      const next: Record<string, number> = {};
+      Object.keys(prev).forEach(sym => { if (!isUntouched(sym)) next[sym] = prev[sym]; });
+      Object.keys(initialValues).forEach(sym => { if (isUntouched(sym)) next[sym] = initialValues[sym]; });
+      return next;
     });
-    setFieldValues(newValues);
-    setFieldInputs(newInputs);
-    setHasInput(Object.keys(initialValues).length > 0);
+    setFieldInputs(prev => {
+      const next: Record<string, string> = {};
+      symbols.forEach(sym => {
+        if (!isUntouched(sym)) {
+          next[sym] = prev[sym] ?? '';
+        } else {
+          const v = initialValues[sym];
+          next[sym] = v !== undefined ? formatEditableValue(v) : '';
+        }
+      });
+      return next;
+    });
+    if (Object.keys(initialValues).length > 0) setHasInput(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formula, JSON.stringify(initialValues)]);
 
@@ -138,6 +159,7 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleChange = (symbol: string, raw: string) => {
+    touchedSymbols.current.add(symbol);
     setHasInput(true);
     setFieldInputs(prev => ({ ...prev, [symbol]: raw }));
 

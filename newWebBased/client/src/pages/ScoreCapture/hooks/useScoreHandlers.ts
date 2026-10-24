@@ -8,6 +8,7 @@
  * - Export handlers (CSV)
  */
 
+import { useRef } from 'react';
 import { useEvent } from '@/contexts/EventContext';
 import { exportToCSV, getScoreCaptureCSVData } from '@/utils/csvExport';
 import type { 
@@ -51,6 +52,7 @@ export function useScoreHandlers({
   selectedEvent
 }: UseScoreHandlersProps): UseScoreHandlersReturn {
   const { setSelectedSquad, setSelectedDiscipline } = useEvent();
+  const fieldSaveTimeouts = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   // Handle simple score change (just update matrix)
   const handleScoreChange = (participantId: number, disciplineId: number | string, value: string) => {
@@ -69,9 +71,11 @@ export function useScoreHandlers({
       [key]: value
     }));
     
-    // Auto-save after a short delay (debounced)
-    clearTimeout((window as any).fieldSaveTimeout);
-    (window as any).fieldSaveTimeout = setTimeout(() => {
+    // Auto-save after a short delay (debounced per participant+field, so other fields keep their save)
+    const pendingSaves = fieldSaveTimeouts.current;
+    clearTimeout(pendingSaves.get(key));
+    pendingSaves.set(key, setTimeout(() => {
+      pendingSaves.delete(key);
       if (value && value.trim() !== '') {
         const field = disciplineFields.find(f => f.id === fieldId);
         if (field) {
@@ -79,7 +83,7 @@ export function useScoreHandlers({
           saveFieldScore(participantId, field, value);
         }
       }
-    }, 1000); // Save 1 second after user stops typing
+    }, 1000)); // Save 1 second after user stops typing
   };
 
   // Handle squad selection change (update context)

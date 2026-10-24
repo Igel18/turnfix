@@ -308,7 +308,9 @@ describe('Scores Jury Results Discipline Filter', () => {
       const scoresScoringPath = path.join(__dirname, '../../src/routes/scoresScoring.ts');
       const scoresContent = fs.readFileSync(scoresPath, 'utf8');
       const scoresScoringContent = fs.readFileSync(scoresScoringPath, 'utf8');
-      const allContent = scoresContent + '\n' + scoresScoringContent;
+      // The recalculation query now lives in the shared formulaFieldRows helper
+      const fieldRowsContent = fs.readFileSync(path.join(__dirname, '../../src/utils/formulaFieldRows.ts'), 'utf8');
+      const allContent = scoresContent + '\n' + scoresScoringContent + '\n' + fieldRowsContent;
 
       // Count how many times the discipline filter appears across both files
       // It should appear at least twice (main query in scores.ts + recalculation queries in scoresScoring.ts)

@@ -13,6 +13,11 @@ import { useFormulaFields, FormulaField } from '../hooks/useFormulaFields';
 import { getPlaceholder } from '../utils/inputMaskUtils';
 import { detectFormulaType, extractFormulaSymbols } from '@turnfix/shared';
 
+const JURY_INPUT_ENABLED_CLASS = 'text-blue-900 bg-blue-50';
+const JURY_INPUT_DISABLED_CLASS = 'text-gray-400 bg-gray-100 cursor-not-allowed';
+const ACTIVE_FIELD_CLASS = 'border-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-900';
+const MISSING_FIELD_CLASS = 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed';
+
 export interface FormulaInputProps {
   inputMask?: string;
   formula?: string;
@@ -100,7 +105,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
               placeholder={'0.' + '0'.repeat(decimalPlaces)}
               disabled={field.isMissingInDb}
               title={field.isMissingInDb ? t('formulaInput.missingField') : undefined}
-              className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold ${field.isMissingInDb ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-blue-900 bg-blue-50'}`}
+              className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold ${field.isMissingInDb ? JURY_INPUT_DISABLED_CLASS : JURY_INPUT_ENABLED_CLASS}`}
             />
           </div>
         ))}
@@ -284,7 +289,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                               placeholder={inputMask ? placeholder : '0,00'}
                               disabled={field.isMissingInDb}
                               title={field.isMissingInDb ? t('formulaInput.missingField') : undefined}
-                              className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} rounded-lg text-center font-bold shadow-sm ${field.isMissingInDb ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' : 'border-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-900'}`}
+                              className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} rounded-lg text-center font-bold shadow-sm ${field.isMissingInDb ? MISSING_FIELD_CLASS : ACTIVE_FIELD_CLASS}`}
                             />
                           )}
                         </div>
@@ -333,7 +338,7 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                             placeholder={inputMask ? placeholder : '0,00'}
                             disabled={field.isMissingInDb}
                             title={field.isMissingInDb ? t('formulaInput.missingField') : undefined}
-                            className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} rounded-lg text-center font-bold shadow-sm ${field.isMissingInDb ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' : 'border-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-900'}`}
+                            className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} rounded-lg text-center font-bold shadow-sm ${field.isMissingInDb ? MISSING_FIELD_CLASS : ACTIVE_FIELD_CLASS}`}
                           />
                         )}
                       </div>

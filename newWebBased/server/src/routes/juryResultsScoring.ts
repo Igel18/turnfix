@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
+import { fetchFormulaFieldRows } from '../utils/formulaFieldRows';
 import {
   getEventScoringModeByCompetitionId,
   getEventScoringModeByWertungenId,
@@ -203,29 +204,12 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
               console.log(`[JuryResults] Formula found: "${formula}", recalculating...`);
               
               // Fetch all jury results for formula calculation
-              const juryResultsQuery = `
-                SELECT 
-                  jr.rel_leistung as performance,
-                  jr.int_versuch as attempt,
-                  df.var_name as "fieldName",
-                  df.var_name as "fieldShortName",
-                  df.int_sortierung as "sortOrder",
-                  df.bol_endwert as "isFinalScore",
-                  df.bol_ausgangswert as "isStartingScore"
-                FROM tfx_jury_results jr
-                LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
-                WHERE jr.int_wertungenid = $1
-                  AND df.int_disziplinenid = $2
-                  AND jr.int_versuch = $3
-                ORDER BY df.int_sortierung ASC, df.int_disziplinen_felderid ASC
-              `;
-              
-              const juryResults = await prisma.$queryRawUnsafe(
-                juryResultsQuery, 
-                wertungenId, 
+              const juryResults = await fetchFormulaFieldRows(
+                prisma,
+                wertungenId,
                 disciplineId,
                 validatedData.attempt
-              ) as any[];
+              );
               
               if (juryResults && juryResults.length > 0) {
                 const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
@@ -489,25 +473,9 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
         if (formula && formulasEnabled) {
           // Fetch all saved jury-result field values for this participant/discipline/attempt
           // Exclude endwert fields (those are the result placeholder, not input values)
-          const juryFieldsQuery = `
-            SELECT
-              jr.rel_leistung as performance,
-              df.var_name as "fieldName",
-              df.int_sortierung as "sortOrder",
-              df.bol_endwert as "isFinalScore",
-              df.bol_ausgangswert as "isStartingScore"
-            FROM tfx_jury_results jr
-            LEFT JOIN tfx_disziplinen_felder df ON jr.int_disziplinen_felderid = df.int_disziplinen_felderid
-            WHERE jr.int_wertungenid = $1
-              AND df.int_disziplinenid = $2
-              AND jr.int_versuch = $3
-              AND df.bol_endwert = false
-              AND df.bol_enabled = true
-            ORDER BY df.int_sortierung ASC
-          `;
-          const juryFields = await prisma.$queryRawUnsafe(
-            juryFieldsQuery, wertungenId, disciplineId, validatedData.attempt
-          ) as any[];
+          const juryFields = await fetchFormulaFieldRows(
+            prisma, wertungenId, disciplineId, validatedData.attempt
+          );
 
           if (juryFields && juryFields.length > 0) {
             const fieldsMap = buildFieldSymbolsMap(juryFields, formula);
