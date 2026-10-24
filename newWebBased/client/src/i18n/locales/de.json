@@ -1849,6 +1849,9 @@
       "save": "Speichern"
     }
   },
+  "formulaInput": {
+    "missingField": "Für diesen Formelwert existiert kein Feld in der Disziplin. Bitte unter Disziplinfelder ein Feld ergänzen."
+  },
   "disciplineFields": {
     "title": "Disziplinfelder-Verwaltung",
     "subtitle": "Eingabefelder für Wertungserfassung konfigurieren",

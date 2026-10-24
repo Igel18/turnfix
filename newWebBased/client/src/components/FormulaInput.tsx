@@ -98,7 +98,9 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
               onChange={(e) => updateFieldValue(field.id, e.target.value)}
               onBlur={() => normalizeFieldValue(field.id)}
               placeholder={'0.' + '0'.repeat(decimalPlaces)}
-              className="w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold text-blue-900 bg-blue-50"
+              disabled={field.isMissingInDb}
+              title={field.isMissingInDb ? t('formulaInput.missingField') : undefined}
+              className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold ${field.isMissingInDb ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-blue-900 bg-blue-50'}`}
             />
           </div>
         ))}
@@ -280,7 +282,9 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                               onChange={(e) => updateFieldValue(field.id, e.target.value)}
                               onBlur={() => normalizeFieldValue(field.id)}
                               placeholder={inputMask ? placeholder : '0,00'}
-                              className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm`}
+                              disabled={field.isMissingInDb}
+                              title={field.isMissingInDb ? t('formulaInput.missingField') : undefined}
+                              className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} rounded-lg text-center font-bold shadow-sm ${field.isMissingInDb ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' : 'border-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-900'}`}
                             />
                           )}
                         </div>
@@ -327,7 +331,9 @@ export const FormulaInput: React.FC<FormulaInputProps> = ({
                             onChange={(e) => updateFieldValue(field.id, e.target.value)}
                             onBlur={() => normalizeFieldValue(field.id)}
                             placeholder={inputMask ? placeholder : '0,00'}
-                            className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} border-purple-400 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-center font-bold text-purple-900 shadow-sm`}
+                            disabled={field.isMissingInDb}
+                            title={field.isMissingInDb ? t('formulaInput.missingField') : undefined}
+                            className={`${sizeClasses.inputWidth} ${sizeClasses.inputPadding} ${sizeClasses.inputBorder} rounded-lg text-center font-bold shadow-sm ${field.isMissingInDb ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' : 'border-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-900'}`}
                           />
                         )}
                       </div>

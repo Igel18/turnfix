@@ -25,8 +25,12 @@ export interface FormulaField {
   normalizedValue: string;
   isFinalScore?: boolean;
   isStartingScore?: boolean;
+  /** Formula symbol without a matching DB field: shown disabled, never saved */
+  isMissingInDb?: boolean;
 }
 
+// Stable reference: a fresh `{}` default would retrigger the field-loading effect on every render
+const NO_INITIAL_VALUES: Record<number, string> = {};
 export interface UseFormulaFieldsOptions {
   formula?: string;
   formulaId?: number | null;
@@ -60,7 +64,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
     formulaId,
     disciplineId,
     inputMask,
-    initialValues: _initialValues = {},
+    initialValues: _initialValues = NO_INITIAL_VALUES,
     onFieldsLoaded,
     onFieldChange,
     onCalculationComplete
@@ -156,7 +160,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
           debugLog('📋 [useFormulaFields] Loaded discipline fields from API:', disciplineFields);
           
           if (disciplineFields.length > 0) {
-            let loadedFields = disciplineFields.map((field: any) => {
+            let loadedFields: FormulaField[] = disciplineFields.map((field: any) => {
               // Apply initial value if available
               const initialValue = _initialValues[field.id];
               const valueToUse = initialValue !== undefined ? initialValue : '';
@@ -180,74 +184,26 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
               debugLog(`🔍 [useFormulaFields] Formula requires ${maxLetterIndex + 1} fields, we have ${nonFinalFields.length} non-final fields`);
               
               if (missingFieldsCount > 0) {
-                debugLog(`⚠️ [useFormulaFields] Creating ${missingFieldsCount} missing fields via API...`);
-                
-                // Auto-create missing fields in the database so they get real IDs
-                const createPromises: Promise<any>[] = [];
+                // No DB field for these symbols: show disabled placeholders (never persisted)
+                const placeholders: FormulaField[] = [];
                 for (let i = nonFinalFields.length; i <= maxLetterIndex; i++) {
-                  const letter = getFieldLetter(i);
-                  const existingEndwertField = loadedFields.find(f => f.isFinalScore);
-                  const maxSortOrder = Math.max(
-                    ...loadedFields.filter(f => !f.isFinalScore).map(f => (f as any).sortOrder ?? 0),
-                    0
-                  );
-                  createPromises.push(
-                    fetch('/api/discipline-fields', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        disciplineId,
-                        name: `Field ${letter}`,
-                        sortOrder: maxSortOrder + i - nonFinalFields.length + 1,
-                        isFinalScore: false,
-                        isStartingScore: false,
-                        group: existingEndwertField ? (existingEndwertField as any).group ?? 1 : 1,
-                        enabled: true,
-                      }),
-                    })
-                      .then(r => r.json())
-                      .then(created => {
-                        const newId = created?.id ?? created?.int_disziplinen_felderid;
-                        debugLog(`✅ [useFormulaFields] Auto-created field "${letter}" with DB ID ${newId}`);
-                        return {
-                          id: newId ?? 1000 + i, // fallback to synthetic if API fails
-                          name: `Field ${letter}`,
-                          value: '',
-                          normalizedValue: '',
-                          isFinalScore: false,
-                          isStartingScore: false,
-                        };
-                      })
-                      .catch(err => {
-                        console.error(`[useFormulaFields] Failed to auto-create field ${letter}:`, err);
-                        return {
-                          id: 1000 + i,
-                          name: `Field ${letter}`,
-                          value: '',
-                          normalizedValue: '',
-                          isFinalScore: false,
-                          isStartingScore: false,
-                        };
-                      })
-                  );
+                  placeholders.push({
+                    id: 1000 + i,
+                    name: `Field ${getFieldLetter(i)}`,
+                    value: '',
+                    normalizedValue: '',
+                    isFinalScore: false,
+                    isStartingScore: false,
+                    isMissingInDb: true
+                  });
                 }
-                
-                // Wait for all field creations, then insert into loadedFields
-                Promise.all(createPromises).then(createdFields => {
-                  const finalFields = [...loadedFields];
-                  const endwertCount = finalFields.filter(f => f.isFinalScore).length;
-                  for (const cf of createdFields) {
-                    finalFields.splice(finalFields.length - endwertCount, 0, cf);
-                  }
-                  debugLog('✅ [useFormulaFields] Fields after auto-creation:', finalFields);
-                  setFields(finalFields);
-                  if (onFieldsLoaded) {
-                    onFieldsLoaded(finalFields);
-                  }
-                });
-                
-                // Don't set fields yet — wait for Promise.all above
-                return;
+                const finalIndex = loadedFields.findIndex(f => f.isFinalScore);
+                const insertAt = finalIndex === -1 ? loadedFields.length : finalIndex;
+                loadedFields = [
+                  ...loadedFields.slice(0, insertAt),
+                  ...placeholders,
+                  ...loadedFields.slice(insertAt)
+                ];
               }
             }
             
@@ -350,7 +306,7 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
     }
 
     const nonFinalFields = fields.filter(f => !f.isFinalScore);
-    const allFieldsHaveValues = nonFinalFields.every(f => f.value !== '');
+    const allFieldsHaveValues = nonFinalFields.every(f => f.isMissingInDb || f.value !== '');
     
     if (!allFieldsHaveValues) {
       setCalculatedResult(null);
@@ -358,8 +314,8 @@ export const useFormulaFields = (options: UseFormulaFieldsOptions): UseFormulaFi
       return;
     }
 
-    // Get field values
-    const fieldValues = nonFinalFields.map(f => f.value);
+    // Get field values (missing DB fields count as 0)
+    const fieldValues = nonFinalFields.map(f => (f.isMissingInDb ? '0' : f.value));
     
     // Calculate
     const { result, error } = calculateFormulaResult(

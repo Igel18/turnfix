@@ -1816,6 +1816,9 @@
       "save": "Save"
     }
   },
+  "formulaInput": {
+    "missingField": "No field exists in the discipline for this formula value. Please add a field under discipline fields."
+  },
   "disciplineFields": {
     "title": "Discipline Fields Management",
     "subtitle": "Configure input fields for score capture",
