@@ -473,7 +473,7 @@ describe('useExport respects hidden discipline details', () => {
     window.URL.createObjectURL = vi.fn(() => 'blob:x');
     window.URL.revokeObjectURL = vi.fn();
     const originalCreate = document.createElement.bind(document);
-    vi.spyOn(document, 'createElement').mockImplementation((tag: string): any =>
+    const createSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string): any =>
       tag.toLowerCase() === 'a' ? { href: '', download: '', click: vi.fn() } : originalCreate(tag)
     );
 
@@ -488,10 +488,65 @@ describe('useExport respects hidden discipline details', () => {
     );
     result.current.exportResultsCSV();
     vi.stubGlobal('Blob', OriginalBlob);
-    vi.restoreAllMocks();
+    createSpy.mockRestore();
 
     const header = csv.split('\n')[0].split(',');
     expect(header.includes('Boden')).toBe(expectedColumn !== null);
     expect(header[header.length - 1]).toBe('Gesamt');
+  });
+});
+
+describe('useExport wraps many disciplines below the person', () => {
+  const names = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6'];
+  const participant = {
+    id: 1, name: 'Anna Test', club: 'TV Test', startNumber: 11, age: 12, gender: 'weiblich',
+    scores: Object.fromEntries(names.map((n, i) => [n, i + 1.5])),
+    juryResults: {}, formulas: {}, totalScore: 30, rank: 1, competitionId: 7
+  };
+  const baseProps = {
+    eventId: '1', eventName: 'Test Event', disciplineFormulas: {},
+    selectedCompetitionDisciplineInfo: [], formatScore: (s: number) => s.toFixed(2)
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    currentDoc = createMockDoc();
+    mockUseEvent.mockReturnValue({ selectedEvent: null });
+    resolveEventForPDFHeaderMock.mockResolvedValue(null);
+  });
+
+  it.each([
+    ['single competition PDF', { selectedCompetition: '7', ranking: [participant], competitionGroups: [] }],
+    ['all competitions PDF', {
+      selectedCompetition: null, ranking: [],
+      competitionGroups: [{ competitionId: 7, competitionName: 'WK 7', participants: [participant], disciplines: names, disciplineInfo: [] }]
+    }]
+  ])('%s: 6 disciplines go into a second row', async (_label, props) => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+    const { result } = renderHook(() => useExport({ ...baseProps, ...props, disciplines: names } as any));
+
+    result.current.exportResultsPDF();
+    await vi.waitFor(() => expect(autoTableMock).toHaveBeenCalled());
+
+    const options = autoTableMock.mock.calls[0][1];
+    expect(options.head[0]).toEqual(['Platz', 'Start-Nr.', 'Name', 'Verein', 'Alter', 'Gesamt']);
+    expect(options.head[1]).toEqual(names);
+    expect(options.body).toHaveLength(2);
+    expect(options.body[0].slice(2, 3)).toEqual(['Anna Test']);
+    expect(options.body[1]).toEqual(['1.50', '2.50', '3.50', '4.50', '5.50', '6.50']);
+  });
+
+  it('keeps the single-row layout for 5 disciplines', async () => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+    const five = names.slice(0, 5);
+    const { result } = renderHook(() =>
+      useExport({ ...baseProps, selectedCompetition: '7', ranking: [participant], competitionGroups: [], disciplines: five } as any)
+    );
+
+    result.current.exportResultsPDF();
+    await vi.waitFor(() => expect(autoTableMock).toHaveBeenCalled());
+
+    expect(autoTableMock.mock.calls[0][1].head).toHaveLength(1);
+    expect(autoTableMock.mock.calls[0][1].body).toHaveLength(1);
   });
 });

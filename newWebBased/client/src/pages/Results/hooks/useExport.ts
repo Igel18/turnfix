@@ -36,6 +36,7 @@ import {
   formatScore as formatScoreUtil 
 } from '@/utils/formulaUtils'
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types'
+import { needsWrappedLayout, getWrappedTableOptions } from '../utils/resultsPdfLayout'
 
 export interface GymNetMatchReport {
   summary: {
@@ -403,6 +404,9 @@ export const useExport = ({
           }
         }
       },
+      ...(needsWrappedLayout(disciplines.length, pageWidth)
+        ? getWrappedTableOptions(doc, headers, tableData)
+        : {})
     })
 
     // Add header/footer to ALL pages AFTER table generation
@@ -644,7 +648,10 @@ export const useExport = ({
         },
         didDrawPage: function (data: any) {
           currentY = (data as any).cursor.y + 15
-        }
+        },
+        ...(needsWrappedLayout(group.disciplines.length, pageWidth)
+          ? getWrappedTableOptions(doc, headers, tableData)
+          : {})
       })
 
       currentY += 10
