@@ -5,7 +5,7 @@
  * Handles all data fetching for Results page
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
 import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
@@ -43,6 +43,11 @@ export function useResultsData(
   const [eventName, setEventName] = useState<string>(initialEventName);
   const [isLoading, setIsLoading] = useState(true);
   const [competitions, setCompetitions] = useState<any[]>([]);
+  // Latest competitions for callbacks captured by stale closures (e.g. socket handlers)
+  const competitionsRef = useRef<any[]>([]);
+  competitionsRef.current = competitions;
+  // Only the most recent ranking request may update state
+  const latestRequestRef = useRef(0);
 
   useEffect(() => {
     if (initialEventName?.trim()) {
@@ -106,6 +111,7 @@ export function useResultsData(
         if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numA - numB;
         return (a.name ?? '').localeCompare(b.name ?? '');
       });
+      competitionsRef.current = sorted;
       setCompetitions(sorted);
       return sorted;
     } catch (error) {
@@ -118,15 +124,18 @@ export function useResultsData(
   const fetchEventRanking = async (competitionsData?: any[]) => {
     if (!eventId) return;
     
+    const requestId = ++latestRequestRef.current;
+    const isStale = () => requestId !== latestRequestRef.current;
     setIsLoading(true);
     try {
-      const availableCompetitions = competitionsData || competitions;
+      const availableCompetitions = competitionsData || competitionsRef.current;
       const participantsParams = new URLSearchParams({ eventId });
       if (selectedCompetition) {
         participantsParams.append('competitionId', selectedCompetition);
       }
 
       const participantsData = await apiGet(`/event-participants?${participantsParams}`);
+      if (isStale()) return;
       const participants = participantsData.participants || [];
       const apiEventName =
         participantsData?.eventName ||
@@ -207,6 +216,7 @@ export function useResultsData(
       }
 
       const scoresMap = new Map<string, { [discipline: string]: number }>();
+      if (isStale()) return;
       const juryResultsMap = new Map<string, { [discipline: string]: any[] }>();
       const formulasMap = new Map<string, { [discipline: string]: string }>();
       const disciplineFormulasMap = new Map<string, { [discipline: string]: string }>();
@@ -490,6 +500,7 @@ export function useResultsData(
           });
         }
 
+        if (isStale()) return;
         groups.sort((a, b) => {
           const compA = availableCompetitions.find(c => c.id === a.competitionId);
           const compB = availableCompetitions.find(c => c.id === b.competitionId);
@@ -519,6 +530,7 @@ export function useResultsData(
       setEventName(resolveEventDisplayName(apiEventName));
     } catch (error) {
       console.error('Error fetching event ranking:', error);
+      if (isStale()) return;
       setRanking([]);
       setCompetitionGroups([]);
       setDisciplines([]);
@@ -526,7 +538,7 @@ export function useResultsData(
       setSelectedCompetitionDisciplineInfo([]);
       setEventName(resolveEventDisplayName());
     } finally {
-      setIsLoading(false);
+      if (!isStale()) setIsLoading(false);
     }
   };
 

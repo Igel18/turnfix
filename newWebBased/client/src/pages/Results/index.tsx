@@ -100,23 +100,6 @@ const Results = () => {
     PAPER_FORMATS
   } = useCertificates()
 
-  // Export Hook - CSV/PDF export
-  const {
-    exportResultsCSV,
-    exportResultsPDF,
-    exportResultsGymNetXML
-  } = useExport({
-    eventId,
-    eventName,
-    selectedCompetition,
-    ranking,
-    competitionGroups,
-    disciplines,
-    disciplineFormulas,
-    selectedCompetitionDisciplineInfo,
-    formatScore
-  })
-
   // Data loading: always fetch competitions first, then ranking
   // Single effect to prevent race conditions between parallel fetches
   useEffect(() => {
@@ -179,6 +162,23 @@ const Results = () => {
       })
     }))
     .filter(group => group.participants.length > 0)
+
+  // Export Hook - receives the filtered data so exports match the active UI filters
+  const {
+    exportResultsCSV,
+    exportResultsPDF,
+    exportResultsGymNetXML
+  } = useExport({
+    eventId,
+    eventName,
+    selectedCompetition,
+    ranking: filteredRanking,
+    competitionGroups: filteredCompetitionGroups,
+    disciplines,
+    disciplineFormulas,
+    selectedCompetitionDisciplineInfo,
+    formatScore
+  })
 
   // Get all participants for certificate export
   const getAllParticipantsForCertificates = () => {

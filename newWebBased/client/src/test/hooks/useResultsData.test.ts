@@ -136,6 +136,70 @@ describe('useResultsData', () => {
     expect(annaInGroup2!.totalScore).toBeCloseTo(5, 2)
   })
 
+  it('uses the latest loaded competitions when fetchEventRanking is called without arguments (stale closure)', async () => {
+    const { apiGet } = await import('../../utils/api')
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/competitions?')) return [{ id: 781, name: 'Kürwettkampf', number: '12' }]
+      if (url.startsWith('/event-participants?')) {
+        return {
+          participants: [
+            { id: 1, firstname: 'A', lastname: 'B', club: 'C', startNumber: 1, age: 9, gender: 'weiblich', assignedCompetitions: [781] },
+          ],
+        }
+      }
+      if (url.startsWith('/scores?')) return { results: [] }
+      if (url === '/disciplines') return []
+      return { disciplines: [] }
+    })
+
+    const { result } = renderHook(() => useResultsData('1', ''))
+    // Simulates a socket handler captured before competitions were loaded
+    const staleFetch = result.current.fetchEventRanking
+
+    await act(async () => {
+      await result.current.fetchCompetitions()
+    })
+    await act(async () => {
+      await staleFetch()
+    })
+
+    expect(result.current.competitionGroups[0].competitionName).toBe('Kürwettkampf (Nr. 12)')
+  })
+
+  it('ignores outdated responses when the competition filter changes quickly', async () => {
+    const { apiGet } = await import('../../utils/api')
+    let releaseFirst: () => void = () => {}
+    const gate = new Promise<void>(r => { releaseFirst = r })
+
+    vi.mocked(apiGet).mockImplementation(async (url: string) => {
+      if (url.startsWith('/event-participants?')) {
+        const isFirst = !url.includes('competitionId=2')
+        if (isFirst) await gate
+        return {
+          participants: [
+            { id: isFirst ? 1 : 2, firstname: isFirst ? 'Old' : 'New', lastname: 'X', club: 'C', startNumber: 1, age: 9, gender: 'weiblich', assignedCompetitions: [1, 2] },
+          ],
+        }
+      }
+      if (url.startsWith('/scores?')) return { results: [] }
+      if (url === '/disciplines') return []
+      return { disciplines: [] }
+    })
+
+    const { result, rerender } = renderHook(({ sel }) => useResultsData('1', sel), { initialProps: { sel: '' } })
+    const comps = [{ id: 1, name: 'C1' }, { id: 2, name: 'C2' }]
+
+    let first!: Promise<void>
+    act(() => { first = result.current.fetchEventRanking(comps) })
+    rerender({ sel: '2' })
+    await act(async () => { await result.current.fetchEventRanking(comps) })
+    await act(async () => { releaseFirst(); await first })
+
+    expect(result.current.ranking.map(p => p.name)).toEqual(['New X'])
+    expect(result.current.competitionGroups).toEqual([])
+  })
+
   it('keeps the selected event name instead of falling back to the event id when no participants are loaded', async () => {
     const { apiGet } = await import('../../utils/api')
 
