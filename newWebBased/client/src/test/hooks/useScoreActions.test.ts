@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useScoreActions } from '@/pages/ScoreCapture/hooks/useScoreActions';
+import { fieldScoreKey } from '@/pages/ScoreCapture/utils/scoreKeys';
 
 vi.mock('@/utils/api', () => ({
   apiPost: vi.fn(),
@@ -139,8 +140,8 @@ describe('useScoreActions', () => {
         ],
         // scoreMatrix has the individual field values (simulating partially filled fields)
         scoreMatrix: {
-          '11-101': '8.5', // field A for participant 11
-          '11-102': '1.5', // field B for participant 11
+          [fieldScoreKey(11, 101)]: '8.5', // field A for participant 11
+          [fieldScoreKey(11, 102)]: '1.5', // field B for participant 11
         },
         selectedEvent: { int_eventid: 1 },
         selectedCompetition: { id: 100 },
@@ -191,7 +192,7 @@ describe('useScoreActions', () => {
         displayDisciplines: [
           { int_disziplinid: 5, var_name: 'Boden', formula: 'A+B' } as any,
         ],
-        scoreMatrix: { '11-101': '8.5' },
+        scoreMatrix: { [fieldScoreKey(11, 101)]: '8.5' },
         selectedEvent: { int_eventid: 1 },
         selectedCompetition: { id: 100 },
         // Simulate formula not yet computable (missing field → return NaN)

@@ -7,6 +7,7 @@
 
 import { apiPost } from '@/utils/api';
 import { parseScoreInput } from '@/utils/scoreFormatter';
+import { fieldScoreKey } from '../utils/scoreKeys';
 import type { 
   Competition, 
   Participant, 
@@ -183,7 +184,7 @@ export function useScoreActions({
 
   // Save field-specific score using jury results API
   const saveFieldScore = async (participantId: number, field: DisciplineField, overrideFieldValue?: string | number) => {
-    const fieldKey = `${participantId}-${field.id}`
+    const fieldKey = fieldScoreKey(participantId, field.id)
     const fieldValue = overrideFieldValue ?? scoreMatrix[fieldKey]
     
     if (fieldValue === '' || fieldValue === null || fieldValue === undefined) {
@@ -261,7 +262,7 @@ export function useScoreActions({
     // Get all participants that have values for this discipline's fields
     const participantsToCalculate = participants.filter(participant => {
       const hasFieldValues = fields.some(field => {
-        const fieldKey = `${participant.id}-${field.id}`
+        const fieldKey = fieldScoreKey(participant.id, field.id)
         return scoreMatrix[fieldKey] !== undefined && scoreMatrix[fieldKey] !== ''
       })
       return hasFieldValues
@@ -276,7 +277,7 @@ export function useScoreActions({
       // Collect field values for this participant
       fields.forEach(field => {
         if (!field.isFinalScore) {
-          const fieldKey = `${participant.id}-${field.id}`
+          const fieldKey = fieldScoreKey(participant.id, field.id)
           const value = scoreMatrix[fieldKey]
           if (value !== undefined && value !== '') {
             fieldValues[field.name] = typeof value === 'string' ? parseScoreInput(value) : value

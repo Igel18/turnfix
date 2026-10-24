@@ -7,12 +7,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve('./src'),
+      '@': path.resolve(__dirname, 'src'),
       // Resolve shared package to TS source (same as vite.config.ts) so Vitest
       // always picks up the latest code without needing a dist rebuild.
       // Note: more specific paths must come before general ones
-      '@turnfix/shared/dist/scoreFormatter': path.resolve('../shared/src/scoreFormatter.ts'),
-      '@turnfix/shared': path.resolve('../shared/src/index.ts'),
+      '@turnfix/shared/dist/scoreFormatter': path.resolve(__dirname, '../shared/src/scoreFormatter.ts'),
+      '@turnfix/shared': path.resolve(__dirname, '../shared/src/index.ts'),
     },
   },
   test: {

@@ -31,6 +31,7 @@ import {
   useSquadDisciplineStatus,
   useScoreHandlers,
 } from '@/pages/ScoreCapture/hooks';
+import { fieldScoreKey } from '@/pages/ScoreCapture/utils/scoreKeys';
 
 // Components
 import { ParticipantList, ScoringPanel } from './components';
@@ -426,7 +427,7 @@ export default function ScoreCaptureV2() {
   if (currentOriginalParticipant && selectedDiscipline) {
     const disciplineId = selectedDiscipline.int_disziplinid || selectedDiscipline.var_name;
     getDisciplineFields(disciplineId).forEach(f => {
-      const raw = scoreMatrix[`${currentOriginalParticipant.id}-${f.id}`];
+      const raw = scoreMatrix[fieldScoreKey(currentOriginalParticipant.id, f.id)];
       if (raw && raw !== '') {
         const num = parseFloat(raw);
         if (!isNaN(num)) currentFieldScores[f.id] = num;

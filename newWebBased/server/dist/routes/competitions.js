@@ -21,6 +21,7 @@ const express_1 = require("express");
 const zod_1 = require("zod");
 const authBypass_1 = require("../middleware/authBypass");
 const configurationHelpers_1 = require("../utils/configurationHelpers");
+const competitionSchemas_1 = require("../utils/competitionSchemas");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const competitionHelpers_1 = require("../utils/competitionHelpers");
 const router = (0, express_1.Router)();
@@ -34,8 +35,8 @@ const createCompetitionSchema = zod_1.z.object({
     location: zod_1.z.string().optional(),
     gender: zod_1.z.enum((0, configurationHelpers_1.getCompetitionGenderValues)()),
     areaId: zod_1.z.number().nullable().optional(),
-    ageFrom: zod_1.z.number().min(1).max(99),
-    ageTo: zod_1.z.number().min(1).max(99),
+    ageFrom: competitionSchemas_1.competitionAgeSchema,
+    ageTo: competitionSchemas_1.competitionAgeSchema,
     disciplines: zod_1.z.array(zod_1.z.object({
         disciplineId: zod_1.z.number(),
         maxScore: zod_1.z.number().min(0)

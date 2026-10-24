@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { normalizeScoreInput } from '@/utils/scoreFormatter';
+import { fieldScoreKey } from '../utils/scoreKeys';
 import type {
   Participant,
   Discipline,
@@ -127,7 +128,7 @@ export function useScoreMatrix({
         } else {
           // New behavior: create entries for each field
           enabledFields.forEach(field => {
-            const fieldKey = `${participant.id}-${field.id}`;
+            const fieldKey = fieldScoreKey(participant.id, field.id);
             matrix[fieldKey] = '';
           });
           
@@ -163,7 +164,7 @@ export function useScoreMatrix({
           if (Array.isArray(scoreWithJuryResults?.juryResults)) {
             scoreWithJuryResults.juryResults.forEach((jr: any) => {
               if (jr?.disciplineFieldId && jr?.performance !== null && jr?.performance !== undefined) {
-                const fieldKey = `${participant.id}-${jr.disciplineFieldId}`;
+                const fieldKey = fieldScoreKey(participant.id, jr.disciplineFieldId);
                 matrix[fieldKey] = normalizeScoreInput(String(jr.performance), discipline.int_berechnung || 2);
               }
             });
@@ -172,7 +173,7 @@ export function useScoreMatrix({
           console.log(`Initialized Endwert for ${participant.firstname} ${participant.lastname} (${participant.id}) - ${discipline.var_name} (${disciplineId}): ${matrix[key]} (from ${existingScore ? 'DB' : 'default'})`);
           
           const conflictingFields = enabledFields.filter(field => {
-            const fieldKey = `${participant.id}-${field.id}`;
+            const fieldKey = fieldScoreKey(participant.id, field.id);
             return fieldKey === key;
           });
           if (conflictingFields.length > 0) {
@@ -210,7 +211,7 @@ export function useScoreMatrix({
           juryResults.results.forEach((result: any) => {
             const isForFilteredParticipant = filteredParticipants.some(p => p.id === result.participantId);
             if (isForFilteredParticipant) {
-              const fieldKey = `${result.participantId}-${result.disciplineFieldId}`;
+              const fieldKey = fieldScoreKey(result.participantId, result.disciplineFieldId);
               const performanceStr = result.performance?.toString() || '';
               matrix[fieldKey] = performanceStr ? normalizeScoreInput(performanceStr, 2) : '';
               console.log(`Loaded field score: ${fieldKey} = ${result.performance} (field: ${result.fieldName})`);

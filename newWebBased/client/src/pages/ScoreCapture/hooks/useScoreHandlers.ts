@@ -9,6 +9,7 @@
  */
 
 import { useRef } from 'react';
+import { fieldScoreKey } from '../utils/scoreKeys';
 import { useEvent } from '@/contexts/EventContext';
 import { exportToCSV, getScoreCaptureCSVData } from '@/utils/csvExport';
 import type { 
@@ -65,7 +66,7 @@ export function useScoreHandlers({
 
   // Handle field score change (update matrix + debounced auto-save)
   const handleFieldScoreChange = (participantId: number, fieldId: number, value: string) => {
-    const key = `${participantId}-${fieldId}`;
+    const key = fieldScoreKey(participantId, fieldId);
     setScoreMatrix(prev => ({
       ...prev,
       [key]: value
