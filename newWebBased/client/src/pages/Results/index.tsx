@@ -177,7 +177,8 @@ const Results = () => {
     disciplines,
     disciplineFormulas,
     selectedCompetitionDisciplineInfo,
-    formatScore
+    formatScore,
+    showDisciplineScores
   })
 
   // Get all participants for certificate export

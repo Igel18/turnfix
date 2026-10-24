@@ -380,3 +380,118 @@ describe('useExport GymNet XML', () => {
     });
   });
 });
+
+describe('useExport respects hidden discipline details', () => {
+  const participant = {
+    id: 1,
+    name: 'Anna Test',
+    club: 'TV Test',
+    startNumber: 11,
+    age: 12,
+    gender: 'weiblich',
+    scores: { Boden: 9.5 },
+    juryResults: {},
+    formulas: {},
+    totalScore: 9.5,
+    rank: 1,
+    competitionId: 7
+  };
+  const baseProps = {
+    eventId: '1',
+    eventName: 'Test Event',
+    disciplines: ['Boden'],
+    disciplineFormulas: {},
+    selectedCompetitionDisciplineInfo: [],
+    formatScore: (score: number) => score.toFixed(2)
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    currentDoc = createMockDoc();
+    mockUseEvent.mockReturnValue({ selectedEvent: null });
+    resolveEventForPDFHeaderMock.mockResolvedValue(null);
+  });
+
+  const tableArgs = () => autoTableMock.mock.calls[0][1];
+
+  it.each([
+    ['visible', true, ['Platz', 'Start-Nr.', 'Name', 'Verein', 'Alter', 'Boden', 'Gesamt']],
+    ['hidden', false, ['Platz', 'Start-Nr.', 'Name', 'Verein', 'Alter', 'Gesamt']]
+  ])('single-competition PDF with discipline scores %s', async (_label, show, expectedHead) => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+    const { result } = renderHook(() =>
+      useExport({
+        ...baseProps,
+        selectedCompetition: '7',
+        ranking: [participant],
+        competitionGroups: [],
+        showDisciplineScores: show
+      } as any)
+    );
+
+    result.current.exportResultsPDF();
+    await vi.waitFor(() => expect(autoTableMock).toHaveBeenCalled());
+
+    expect(tableArgs().head[0]).toEqual(expectedHead);
+    expect(tableArgs().body[0]).toHaveLength(expectedHead.length);
+  });
+
+  it('all-competitions PDF omits discipline columns when hidden', async () => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+    const { result } = renderHook(() =>
+      useExport({
+        ...baseProps,
+        selectedCompetition: null,
+        ranking: [],
+        competitionGroups: [
+          {
+            competitionId: 7,
+            competitionName: 'WK 7',
+            participants: [participant],
+            disciplines: ['Boden'],
+            disciplineInfo: [{ name: 'Boden', icon: '' }]
+          }
+        ],
+        showDisciplineScores: false
+      } as any)
+    );
+
+    result.current.exportResultsPDF();
+    await vi.waitFor(() => expect(autoTableMock).toHaveBeenCalled());
+
+    expect(tableArgs().head[0]).toEqual(['Platz', 'Start-Nr.', 'Name', 'Verein', 'Alter', 'Gesamt']);
+  });
+
+  it.each([
+    ['visible', true, 'Boden'],
+    ['hidden', false, null]
+  ])('CSV with discipline scores %s', async (_label, show, expectedColumn) => {
+    const { useExport } = await import('../../pages/Results/hooks/useExport');
+    let csv = '';
+    const OriginalBlob = global.Blob;
+    vi.stubGlobal('Blob', class { constructor(parts: string[]) { csv = parts.join(''); } });
+    window.URL.createObjectURL = vi.fn(() => 'blob:x');
+    window.URL.revokeObjectURL = vi.fn();
+    const originalCreate = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string): any =>
+      tag.toLowerCase() === 'a' ? { href: '', download: '', click: vi.fn() } : originalCreate(tag)
+    );
+
+    const { result } = renderHook(() =>
+      useExport({
+        ...baseProps,
+        selectedCompetition: '7',
+        ranking: [participant],
+        competitionGroups: [],
+        showDisciplineScores: show
+      } as any)
+    );
+    result.current.exportResultsCSV();
+    vi.stubGlobal('Blob', OriginalBlob);
+    vi.restoreAllMocks();
+
+    const header = csv.split('\n')[0].split(',');
+    expect(header.includes('Boden')).toBe(expectedColumn !== null);
+    expect(header[header.length - 1]).toBe('Gesamt');
+  });
+});

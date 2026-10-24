@@ -10,7 +10,7 @@
  * REFACTORED: Uses centralized formula utilities
  */
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -61,6 +61,8 @@ interface UseExportProps {
   disciplineFormulas: Record<string, string>
   selectedCompetitionDisciplineInfo: DisciplineInfo[]
   formatScore: (score: number) => string
+  /** Mirrors the UI toggle: when false, discipline columns/details are omitted from exports */
+  showDisciplineScores?: boolean
 }
 
 export const resolveCompetitionExportName = (
@@ -86,12 +88,23 @@ export const useExport = ({
   eventName,
   selectedCompetition,
   ranking,
-  competitionGroups,
-  disciplines,
+  competitionGroups: allCompetitionGroups,
+  disciplines: allDisciplines,
   disciplineFormulas,
   selectedCompetitionDisciplineInfo,
-  formatScore
+  formatScore,
+  showDisciplineScores = true
 }: UseExportProps) => {
+  const disciplines = useMemo(
+    () => (showDisciplineScores ? allDisciplines : []),
+    [showDisciplineScores, allDisciplines]
+  )
+  const competitionGroups = useMemo(
+    () => (showDisciplineScores
+      ? allCompetitionGroups
+      : allCompetitionGroups.map(group => ({ ...group, disciplines: [], disciplineInfo: [] }))),
+    [showDisciplineScores, allCompetitionGroups]
+  )
   const { selectedEvent } = useEvent()
   const { t } = useTranslation()
   const labels = getUnifiedResultsHeaderLabels(t)
