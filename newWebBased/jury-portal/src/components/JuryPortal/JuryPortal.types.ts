@@ -73,7 +73,34 @@ export interface Competition {
   disciplines?: Device[];
 }
 
-export type JuryStep = 'event' | 'squad' | 'device' | 'scoring';
+export type JuryStep = 'event' | 'durchgang' | 'squad' | 'device' | 'bahn' | 'scoring';
+
+/** Bahn (lane) within a Durchgang as returned by /api/time-planning/bahn-details */
+export interface BahnDetail {
+  durchgang: number;
+  bahn: number;
+  competitions: { id: number; name: string | null; number: string | null; disciplineIds: number[] }[];
+  squads: { name: string; participantCount: number }[];
+}
+
+/** A selectable Bahn for the chosen squad and discipline */
+export interface BahnOption {
+  bahn: number;
+  durchgang: number;
+  competitions: { id: number; name: string | null; number: string | null }[];
+  /** Competitions of this Bahn that include the chosen discipline */
+  competitionIds: number[];
+  participantCount: number;
+}
+
+/** Durchgang (competition round) as returned by /api/time-planning/durchgaenge */
+export interface Durchgang {
+  durchgang: number;
+  /** HH:MM of the earliest competition start, or null if not planned */
+  startTime: string | null;
+  competitions: { id: number; name: string | null; number: string | null }[];
+  squads: { name: string; participantCount: number }[];
+}
 
 /** Per-squad time-based status returned by /api/time-planning/active-squads */
 export interface ActiveSquadInfo {

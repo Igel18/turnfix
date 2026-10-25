@@ -16,21 +16,32 @@
  */
 
 import React, { useState } from 'react';
-import type { JuryStep } from './JuryPortal.types';
+import type { Durchgang, JuryStep } from './JuryPortal.types';
 import { formatScore } from '../../utils/scoreFormatter';
 import { getScoreToSave, resolveScoringInputMode } from '@turnfix/shared';
+import {
+  filterSquadForDurchgang,
+  filterSquadsByDurchgang,
+  needsDurchgangSelection,
+} from '../../utils/durchgangHelpers';
 import { useJuryData } from './hooks/useJuryData';
 import { useScoreSave } from './hooks/useScoreSave';
 import { useLiveScoreUpdates } from './hooks/useLiveScoreUpdates';
 import { useActiveSquads } from './hooks/useActiveSquads';
+import { useDurchgaenge } from './hooks/useDurchgaenge';
+import { useBahnen } from './hooks/useBahnen';
+import { buildBahnOptions, needsBahnSelection } from '../../utils/bahnHelpers';
 import EventSelection from './components/EventSelection';
+import DurchgangSelection from './components/DurchgangSelection';
 import SquadSelection from './components/SquadSelection';
 import DeviceSelection from './components/DeviceSelection';
+import BahnSelection from './components/BahnSelection';
 import ScoringView from './components/ScoringView';
 
 const JuryPortal: React.FC = () => {
   const [step, setStep] = useState<JuryStep>('event');
   const [squadStatusId, setSquadStatusId] = useState<number | null>(null);
+  const [selectedDurchgang, setSelectedDurchgang] = useState<Durchgang | null>(null);
 
   // All data fetching and state management
   const data = useJuryData();
@@ -123,6 +134,37 @@ const JuryPortal: React.FC = () => {
     data.selectedEvent
   );
 
+  // Durchgang (round) selection before the squads — only when there is more than one
+  const { durchgaenge, loading: durchgaengeLoading } = useDurchgaenge(data.selectedEvent);
+  const durchgangSelectionNeeded = needsDurchgangSelection(durchgaenge);
+
+  React.useEffect(() => {
+    if (step === 'durchgang' && !durchgaengeLoading && !durchgangSelectionNeeded) {
+      setSelectedDurchgang(null);
+      setStep('squad');
+    }
+  }, [step, durchgaengeLoading, durchgangSelectionNeeded]);
+
+  // Bahn (lane) selection after the discipline — only when the squad has more than one for it
+  const { bahnen, loading: bahnenLoading } = useBahnen(data.selectedEvent);
+  const bahnOptions = data.selectedSquad && data.selectedDevice
+    ? buildBahnOptions(bahnen, {
+        durchgang: selectedDurchgang,
+        squad: data.selectedSquad,
+        disciplineId: data.selectedDevice.disciplineId ?? null,
+      })
+    : [];
+  const bahnSelectionNeeded = needsBahnSelection(bahnOptions);
+
+  React.useEffect(() => {
+    if (step === 'bahn' && !bahnenLoading && !bahnSelectionNeeded) {
+      // A single Bahn is taken over automatically so only its participants are scored
+      data.setSelectedBahn(bahnOptions.length === 1 ? bahnOptions[0] : null);
+      setStep('scoring');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, bahnenLoading, bahnSelectionNeeded]);
+
   // ─── Step Routing ──────────────────────────────────────────────────────────
 
   if (step === 'event') {
@@ -133,17 +175,45 @@ const JuryPortal: React.FC = () => {
         filterToday={data.filterToday}
         loading={data.loading}
         selectedEvent={data.selectedEvent}
-        onEventChange={data.setSelectedEvent}
+        onEventChange={(eventId) => {
+          setSelectedDurchgang(null);
+          data.setSelectedEvent(eventId);
+        }}
         onFilterTodayChange={data.setFilterToday}
-        onNext={() => setStep('squad')}
+        onNext={() => setStep('durchgang')}
+      />
+    );
+  }
+
+  if (step === 'durchgang') {
+    // Nothing to choose: the effect above moves on to the squads
+    if (!durchgaengeLoading && !durchgangSelectionNeeded) return null;
+
+    return (
+      <DurchgangSelection
+        durchgaenge={durchgaenge}
+        loading={durchgaengeLoading}
+        activeSquadInfos={activeSquadInfos}
+        currentTime={currentTime}
+        onDurchgangSelect={(durchgang) => {
+          setSelectedDurchgang(durchgang);
+          setStep('squad');
+        }}
+        onBack={() => {
+          setSelectedDurchgang(null);
+          setStep('event');
+        }}
       />
     );
   }
 
   if (step === 'squad') {
+    const squadsOfDurchgang = filterSquadsByDurchgang(data.squads, selectedDurchgang)
+      .map(squad => filterSquadForDurchgang(squad, selectedDurchgang));
+
     return (
       <SquadSelection
-        squads={data.squads}
+        squads={squadsOfDurchgang}
         loading={data.loading}
         activeSquadInfos={activeSquadInfos}
         currentTime={currentTime}
@@ -153,7 +223,7 @@ const JuryPortal: React.FC = () => {
         }}
         onBack={() => {
           refreshActiveSquads();
-          setStep('event');
+          setStep(durchgangSelectionNeeded ? 'durchgang' : 'event');
         }}
       />
     );
@@ -166,10 +236,30 @@ const JuryPortal: React.FC = () => {
         selectedSquad={data.selectedSquad}
         loading={data.loading}
         onDeviceSelect={(device) => {
+          data.setSelectedBahn(null);
           data.setSelectedDevice(device);
-          setStep('scoring');
+          setStep('bahn');
         }}
         onBack={() => setStep('squad')}
+      />
+    );
+  }
+
+  if (step === 'bahn') {
+    // Nothing to choose: the effect above moves on to the scoring
+    if (!bahnenLoading && !bahnSelectionNeeded) return null;
+
+    return (
+      <BahnSelection
+        options={bahnOptions}
+        squad={data.selectedSquad}
+        deviceName={data.selectedDevice?.name ?? ''}
+        loading={bahnenLoading}
+        onBahnSelect={(option) => {
+          data.setSelectedBahn(option);
+          setStep('scoring');
+        }}
+        onBack={() => setStep('device')}
       />
     );
   }
@@ -218,7 +308,7 @@ const JuryPortal: React.FC = () => {
       onScoreSubmit={handleScoreSubmit}
       onDeviceComplete={handleDeviceComplete}
       onSquadStatusChange={handleSquadStatusChange}
-      onBack={() => setStep('device')}
+      onBack={() => setStep(bahnSelectionNeeded ? 'bahn' : 'device')}
       getScoreValidation={getScoreValidation}
     />
   );

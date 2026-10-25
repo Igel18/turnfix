@@ -14,7 +14,8 @@ import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
 import { computeEffectiveParticipantScore } from '../../../utils/effectiveParticipantScore';
 import { computeEffectiveJuryResults } from '../../../utils/effectiveJuryResults';
 import { excludeNonStartingParticipants } from '../../../utils/participantVisibility';
-import type { Participant, Squad, Device, DisciplineField, Competition, JuryStatus } from '../JuryPortal.types';
+import { filterParticipantsForBahn } from '../../../utils/bahnHelpers';
+import type { BahnOption, Participant, Squad, Device, DisciplineField, Competition, JuryStatus } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
 interface UseJuryDataReturn {
@@ -35,6 +36,7 @@ interface UseJuryDataReturn {
   selectedEvent: number | null;
   selectedSquad: Squad | null;
   selectedDevice: Device | null;
+  selectedBahn: BahnOption | null;
   currentParticipantIndex: number;
   score: string;
   loading: boolean;
@@ -44,6 +46,7 @@ interface UseJuryDataReturn {
   setSelectedEvent: (id: number | null) => void;
   setSelectedSquad: (squad: Squad | null) => void;
   setSelectedDevice: (device: Device | null) => void;
+  setSelectedBahn: (bahn: BahnOption | null) => void;
   setCurrentParticipantIndex: (index: number) => void;
   setScore: (score: string) => void;
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
@@ -57,6 +60,7 @@ export function useJuryData(): UseJuryDataReturn {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
   const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [selectedBahn, setSelectedBahn] = useState<BahnOption | null>(null);
   const [currentParticipantIndex, setCurrentParticipantIndex] = useState<number>(0);
   const [score, setScore] = useState<string>('');
 
@@ -339,7 +343,10 @@ export function useJuryData(): UseJuryDataReturn {
 
       try {
         setLoading(true);
-        const rawSquadParticipants = excludeNonStartingParticipants(selectedSquad.participants || []);
+        const rawSquadParticipants = filterParticipantsForBahn(
+          excludeNonStartingParticipants(selectedSquad.participants || []),
+          selectedBahn
+        );
         console.log('Raw squad participants (may contain duplicates):', rawSquadParticipants.length);
 
         // Deduplicate based on participant ID
@@ -457,7 +464,7 @@ export function useJuryData(): UseJuryDataReturn {
     };
 
     fetchParticipants();
-  }, [selectedEvent, selectedSquad, selectedDevice]);
+  }, [selectedEvent, selectedSquad, selectedDevice, selectedBahn]);
 
   // Load discipline fields when device is selected
   useEffect(() => {
@@ -649,6 +656,7 @@ export function useJuryData(): UseJuryDataReturn {
     selectedEvent,
     selectedSquad,
     selectedDevice,
+    selectedBahn,
     currentParticipantIndex,
     score,
     loading,
@@ -657,6 +665,7 @@ export function useJuryData(): UseJuryDataReturn {
     setSelectedEvent,
     setSelectedSquad,
     setSelectedDevice,
+    setSelectedBahn,
     setCurrentParticipantIndex,
     setScore,
     setParticipants,

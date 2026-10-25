@@ -71,6 +71,8 @@ const ALLOWED_API_PATTERNS = [
   { method: 'POST', pattern: /^\/api\/jury-results$/ },
   { method: 'GET',  pattern: /^\/api\/app-settings(\?.*)?$/ },
   { method: 'GET',  pattern: /^\/api\/time-planning\/active-squads(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/time-planning\/durchgaenge(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/time-planning\/bahn-details(\?.*)?$/ },
 ];
 
 function isAllowedApiRequest(method, url) {
