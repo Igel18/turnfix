@@ -23,6 +23,7 @@ import {
   filterSquadForDurchgang,
   filterSquadsByDurchgang,
   needsDurchgangSelection,
+  getSelectableDurchgaenge,
 } from '../../utils/durchgangHelpers';
 import { useJuryData } from './hooks/useJuryData';
 import { useScoreSave } from './hooks/useScoreSave';
@@ -137,6 +138,10 @@ const JuryPortal: React.FC = () => {
   // Durchgang (round) selection before the squads — only when there is more than one
   const { durchgaenge, loading: durchgaengeLoading } = useDurchgaenge(data.selectedEvent);
   const durchgangSelectionNeeded = needsDurchgangSelection(durchgaenge);
+  // With a single Durchgang nothing is asked, but it is still shown while scoring
+  const selectableDurchgaenge = getSelectableDurchgaenge(durchgaenge);
+  const displayedDurchgang = selectedDurchgang?.durchgang
+    ?? (selectableDurchgaenge.length === 1 ? selectableDurchgaenge[0].durchgang : null);
 
   React.useEffect(() => {
     if (step === 'durchgang' && !durchgaengeLoading && !durchgangSelectionNeeded) {
@@ -278,6 +283,8 @@ const JuryPortal: React.FC = () => {
       loading={data.loading}
       statuses={data.statuses}
       squadStatusId={squadStatusId}
+      durchgangNumber={displayedDurchgang}
+      bahnNumber={data.selectedBahn?.bahn ?? null}
       onParticipantSelect={(index) => {
         data.setCurrentParticipantIndex(index);
         // Score is set by the useEffect in useJuryData that watches currentParticipantIndex
