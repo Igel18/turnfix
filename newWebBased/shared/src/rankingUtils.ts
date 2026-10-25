@@ -15,6 +15,8 @@
 // assignRanks
 // ---------------------------------------------------------------------------
 
+const RANK_TIE_TOLERANCE = 1e-9;
+
 /**
  * Assigns 1224 (Olympic / standard competition) ranks to a pre-sorted array.
  *
@@ -35,7 +37,7 @@ export function assignRanks<T extends { totalScore: number }>(
 ): (T & { rank: number })[] {
   let currentRank = 1;
   return sorted.map((item, i) => {
-    if (i > 0 && item.totalScore !== sorted[i - 1].totalScore) {
+    if (i > 0 && Math.abs(item.totalScore - sorted[i - 1].totalScore) > RANK_TIE_TOLERANCE) {
       currentRank = i + 1;
     }
     return { ...item, rank: currentRank };

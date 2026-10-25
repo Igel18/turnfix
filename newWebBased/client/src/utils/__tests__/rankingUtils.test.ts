@@ -117,6 +117,46 @@ describe('sortAndRank (sort direction + ranking combined)', () => {
     expect(result.map(r => r.rank)).toEqual([1, 1, 3]);
   });
 
+  it('ties totals that differ only because of floating-point summation order', () => {
+    const anna = computeTotalScore({ Boden: 10.1, Reck: 10.2, Sprung: 10.3 });
+    const berta = computeTotalScore({ Sprung: 10.3, Reck: 10.2, Boden: 10.1 });
+
+    expect(anna).not.toBe(berta);
+    const result = sortAndRank([
+      { id: 1, name: 'Anna', totalScore: anna },
+      { id: 2, name: 'Berta', totalScore: berta },
+    ]);
+
+    expect(result.map(participant => participant.rank)).toEqual([1, 1]);
+  });
+
+  it('ties the equal totals reported for the event 80 second competition', () => {
+    const rankElevenTotal = computeTotalScore({ Stufenbarren: 13.35, Sprung: 14.15, Balken: 12.1, Boden: 12.6 });
+    const rankTwelveTotal = computeTotalScore({ Sprung: 14.3, Balken: 10.5, Boden: 14, Stufenbarren: 13.4 });
+    const rankFourteenTotal = computeTotalScore({ Stufenbarren: 13.05, Sprung: 13.7, Balken: 10.7, Boden: 14 });
+    const rankFifteenTotal = computeTotalScore({ Sprung: 14.2, Balken: 12.7, Boden: 12.7, Stufenbarren: 11.85 });
+
+    expect(rankElevenTotal).not.toBe(rankTwelveTotal);
+    expect(rankFourteenTotal).not.toBe(rankFifteenTotal);
+    const result = sortAndRank([
+      { id: 11, totalScore: rankElevenTotal },
+      { id: 12, totalScore: rankTwelveTotal },
+      { id: 14, totalScore: rankFourteenTotal },
+      { id: 15, totalScore: rankFifteenTotal },
+    ]);
+
+    expect(result.map(participant => participant.rank)).toEqual([1, 1, 3, 3]);
+  });
+
+  it('keeps score differences larger than floating-point noise as separate ranks', () => {
+    const result = sortAndRank([
+      { id: 1, name: 'Anna', totalScore: 30.00000001 },
+      { id: 2, name: 'Berta', totalScore: 30 },
+    ]);
+
+    expect(result.map(participant => participant.rank)).toEqual([1, 2]);
+  });
+
   it('does not mutate the original array', () => {
     const original = [...participants];
     sortAndRank(participants, false);
