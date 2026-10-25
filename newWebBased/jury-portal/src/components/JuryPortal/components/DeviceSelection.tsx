@@ -15,6 +15,8 @@ interface DeviceSelectionProps {
   loading: boolean;
   onDeviceSelect: (device: Device) => void;
   onBack: () => void;
+  /** Device the squad does next according to its rotation (suggestion only) */
+  nextDeviceId?: number | null;
 }
 
 const DeviceSelection: React.FC<DeviceSelectionProps> = ({
@@ -23,6 +25,7 @@ const DeviceSelection: React.FC<DeviceSelectionProps> = ({
   loading,
   onDeviceSelect,
   onBack,
+  nextDeviceId = null,
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -51,12 +54,22 @@ const DeviceSelection: React.FC<DeviceSelectionProps> = ({
                 <p className="text-gray-500">Keine Geräte gefunden</p>
               </div>
             ) : (
-              devices.map((device) => (
+              devices.map((device) => {
+                const isNext = nextDeviceId !== null && device.disciplineId === nextDeviceId;
+                return (
                 <div
                   key={device.id}
-                  className="border-2 border-gray-200 rounded-lg p-8 hover:border-blue-500 cursor-pointer transition-colors text-center"
+                  {...(isNext ? { 'data-next': 'true' } : {})}
+                  className={`border-2 rounded-lg p-8 cursor-pointer transition-colors text-center ${
+                    isNext ? 'border-orange-400 bg-orange-50 hover:border-orange-500' : 'border-gray-200 hover:border-blue-500'
+                  }`}
                   onClick={() => onDeviceSelect(device)}
                 >
+                  {isNext && (
+                    <span className="inline-block mb-2 text-xs font-semibold text-orange-700 bg-orange-100 border border-orange-300 px-2 py-0.5 rounded-full">
+                      Als Nächstes
+                    </span>
+                  )}
                   <div className="flex justify-center mb-4">
                     {device.iconPath ? (
                       <img
@@ -82,7 +95,8 @@ const DeviceSelection: React.FC<DeviceSelectionProps> = ({
                   </div>
                   <h3 className="text-xl font-semibold">{device.name}</h3>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

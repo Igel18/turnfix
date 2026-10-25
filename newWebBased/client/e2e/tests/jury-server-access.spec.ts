@@ -236,4 +236,39 @@ test.describe('API access control on port 3002', () => {
     });
     expect(response.status()).not.toBe(403);
   });
+
+  test('time-planning read endpoints used by the jury portal are allowed', async ({ request }) => {
+    for (const endpoint of ['active-squads', 'durchgaenge', 'bahn-details']) {
+      const response = await request.get(`${JURY_SERVER}/api/time-planning/${endpoint}?eventId=999999999`);
+      expect(response.status(), `${endpoint} should be accessible`).toBe(200);
+    }
+  });
+
+  test('durchgaenge and bahn-details return empty lists for an unknown event', async ({ request }) => {
+    const durchgaenge = await (await request.get(`${JURY_SERVER}/api/time-planning/durchgaenge?eventId=999999999`)).json();
+    expect(durchgaenge.durchgaenge).toEqual([]);
+
+    const bahnen = await (await request.get(`${JURY_SERVER}/api/time-planning/bahn-details?eventId=999999999`)).json();
+    expect(bahnen.bahnen).toEqual([]);
+  });
+
+  test('other time-planning endpoints stay blocked on the jury port', async ({ request }) => {
+    for (const url of [
+      '/api/time-planning?eventId=1',
+      '/api/time-planning/matrix?eventId=1',
+      '/api/time-planning/bahnen?eventId=1',
+      '/api/time-planning/wizard/durchgang-data?eventId=1',
+    ]) {
+      const response = await request.get(`${JURY_SERVER}${url}`);
+      expect(response.status(), `GET ${url} should be blocked`).toBe(403);
+    }
+  });
+
+  test('time-planning allowlist is read-only', async ({ request }) => {
+    const post = await request.post(`${JURY_SERVER}/api/time-planning/durchgaenge`, { data: {} });
+    expect(post.status()).toBe(403);
+
+    const put = await request.put(`${JURY_SERVER}/api/time-planning/competition/1/bahn`, { data: { bahn: 2 } });
+    expect(put.status()).toBe(403);
+  });
 });

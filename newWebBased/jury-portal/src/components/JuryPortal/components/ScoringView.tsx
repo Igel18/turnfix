@@ -23,7 +23,7 @@ import {
   BuiltInFormulaInput,
   LinkedFormulaInput,
 } from '@turnfix/shared';
-import type { Participant, Device, Squad, DisciplineField, JuryStatus } from '../JuryPortal.types';
+import type { Participant, Device, Squad, DisciplineField, JuryStatus, RotationDevice } from '../JuryPortal.types';
 import ScoringContextBar from './ScoringContextBar';
 
 const hasStoredScore = (value: number | null | undefined): value is number =>
@@ -45,6 +45,8 @@ interface ScoringViewProps {
   /** Durchgang and Bahn numbers shown in the context bar (null = not applicable) */
   durchgangNumber?: number | null;
   bahnNumber?: number | null;
+  /** Devices of the squad in rotation order, shown with done/current/next state */
+  rotation?: RotationDevice[];
 
   // Handlers
   onParticipantSelect: (index: number) => void;
@@ -71,6 +73,7 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   squadStatusId,
   durchgangNumber = null,
   bahnNumber = null,
+  rotation = [],
   onParticipantSelect,
   onScoreChange,
   onCalculationComplete,
@@ -98,6 +101,8 @@ const ScoringView: React.FC<ScoringViewProps> = ({
         squadName={selectedSquad?.name}
         bahn={bahnNumber}
         deviceName={selectedDevice?.name}
+        rotation={rotation}
+        currentDisciplineId={selectedDevice?.disciplineId ?? null}
       />
 
       {/* Main Content: Split View */}

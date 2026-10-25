@@ -31,7 +31,9 @@ import { useLiveScoreUpdates } from './hooks/useLiveScoreUpdates';
 import { useActiveSquads } from './hooks/useActiveSquads';
 import { useDurchgaenge } from './hooks/useDurchgaenge';
 import { useBahnen } from './hooks/useBahnen';
+import { useSquadRotation } from './hooks/useSquadRotation';
 import { buildBahnOptions, needsBahnSelection } from '../../utils/bahnHelpers';
+import { getNextDevice } from '../../utils/rotationHelpers';
 import EventSelection from './components/EventSelection';
 import DurchgangSelection from './components/DurchgangSelection';
 import SquadSelection from './components/SquadSelection';
@@ -43,6 +45,8 @@ const JuryPortal: React.FC = () => {
   const [step, setStep] = useState<JuryStep>('event');
   const [squadStatusId, setSquadStatusId] = useState<number | null>(null);
   const [selectedDurchgang, setSelectedDurchgang] = useState<Durchgang | null>(null);
+  // Device the squad just completed: the next one of its rotation is suggested on the device list
+  const [completedDeviceId, setCompletedDeviceId] = useState<number | null>(null);
 
   // All data fetching and state management
   const data = useJuryData();
@@ -152,6 +156,15 @@ const JuryPortal: React.FC = () => {
 
   // Bahn (lane) selection after the discipline — only when the squad has more than one for it
   const { bahnen, loading: bahnenLoading } = useBahnen(data.selectedEvent);
+
+  // Rotation of the chosen squad: shown while scoring and used to suggest the next device
+  const { rotation } = useSquadRotation(data.selectedEvent, data.selectedSquad?.name);
+  const nextDeviceId = getNextDevice(rotation, completedDeviceId)?.disciplineId ?? null;
+
+  const handleDeviceCompleteAndRemember = async () => {
+    setCompletedDeviceId(data.selectedDevice?.disciplineId ?? null);
+    await handleDeviceComplete();
+  };
   const bahnOptions = data.selectedSquad && data.selectedDevice
     ? buildBahnOptions(bahnen, {
         durchgang: selectedDurchgang,
@@ -223,6 +236,7 @@ const JuryPortal: React.FC = () => {
         activeSquadInfos={activeSquadInfos}
         currentTime={currentTime}
         onSquadSelect={(squad) => {
+          setCompletedDeviceId(null);
           data.setSelectedSquad(squad);
           setStep('device');
         }}
@@ -240,12 +254,17 @@ const JuryPortal: React.FC = () => {
         devices={data.devices}
         selectedSquad={data.selectedSquad}
         loading={data.loading}
+        nextDeviceId={nextDeviceId}
         onDeviceSelect={(device) => {
+          setCompletedDeviceId(null);
           data.setSelectedBahn(null);
           data.setSelectedDevice(device);
           setStep('bahn');
         }}
-        onBack={() => setStep('squad')}
+        onBack={() => {
+          setCompletedDeviceId(null);
+          setStep('squad');
+        }}
       />
     );
   }
@@ -285,6 +304,7 @@ const JuryPortal: React.FC = () => {
       squadStatusId={squadStatusId}
       durchgangNumber={displayedDurchgang}
       bahnNumber={data.selectedBahn?.bahn ?? null}
+      rotation={rotation}
       onParticipantSelect={(index) => {
         data.setCurrentParticipantIndex(index);
         // Score is set by the useEffect in useJuryData that watches currentParticipantIndex
@@ -313,7 +333,7 @@ const JuryPortal: React.FC = () => {
         }
       }}
       onScoreSubmit={handleScoreSubmit}
-      onDeviceComplete={handleDeviceComplete}
+      onDeviceComplete={handleDeviceCompleteAndRemember}
       onSquadStatusChange={handleSquadStatusChange}
       onBack={() => setStep(bahnSelectionNeeded ? 'bahn' : 'device')}
       getScoreValidation={getScoreValidation}

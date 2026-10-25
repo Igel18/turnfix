@@ -6,6 +6,7 @@ import timePlanningWizardRouter from './timePlanningWizard';
 import timePlanningActiveSquadsRouter from './timePlanningActiveSquads';
 import timePlanningDurchgaengeRouter from './timePlanningDurchgaenge';
 import timePlanningBahnenRouter from './timePlanningBahnen';
+import timePlanningSquadRotationRouter from './timePlanningSquadRotation';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use(timePlanningWizardRouter);
 router.use(timePlanningActiveSquadsRouter);
 router.use(timePlanningDurchgaengeRouter);
 router.use(timePlanningBahnenRouter);
+router.use(timePlanningSquadRotationRouter);
 
 export default router;

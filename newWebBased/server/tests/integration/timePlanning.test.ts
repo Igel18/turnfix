@@ -17,6 +17,7 @@ describe('timePlanning aggregator router', () => {
       ['/api/time-planning/active-squads', 'get', 'query'],
       ['/api/time-planning/durchgaenge', 'get', 'query'],
       ['/api/time-planning/bahn-details', 'get', 'query'],
+      ['/api/time-planning/squad-rotation', 'get', 'query'],
     ];
 
     for (const [path, method] of routeChecks) {

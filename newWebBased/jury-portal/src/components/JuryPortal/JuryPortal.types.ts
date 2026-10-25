@@ -84,6 +84,15 @@ export interface BahnDetail {
 }
 
 /** A selectable Bahn for the chosen squad and discipline */
+/** Device of a squad's rotation as returned by /api/time-planning/squad-rotation */
+export interface RotationDevice {
+  round: number | null;
+  disciplineId: number;
+  name: string;
+  shortName: string;
+  icon: string | null;
+}
+
 export interface BahnOption {
   bahn: number;
   durchgang: number;
