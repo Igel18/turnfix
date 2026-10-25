@@ -263,5 +263,15 @@ describe('ScoringView', () => {
 
       await waitFor(() => expect(props.onCalculationComplete).toHaveBeenLastCalledWith(12.5, { A: 5, B: 7.5 }));
     });
+
+    it('marks and disables formula inputs without a configured database field', async () => {
+      const configuredFields = [fields[0]];
+      render(<ScoringView {...baseProps()} selectedDevice={device({ int_formelid: 5 })} disciplineFields={configuredFields} />);
+
+      const inputs = await screen.findAllByRole('textbox');
+      expect(inputs[0]).toBeEnabled();
+      expect(inputs[1]).toBeDisabled();
+      expect(screen.getByText(/B:.*nicht konfiguriert/i)).toBeInTheDocument();
+    });
   });
 });

@@ -40,6 +40,9 @@ export interface LinkedFormulaInputProps {
   /** Disable all inputs (e.g. while saving) */
   disabled?: boolean;
 
+  /** Disable formula symbols that have no corresponding configured input field. */
+  disableMissingFields?: boolean;
+
   /**
    * Positional field metadata. field[0] is for the first symbol, field[1]
    * for the second, and so on. Only `name` is used for the label.
@@ -74,6 +77,7 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
   formula,
   decimals = 2,
   disabled = false,
+  disableMissingFields = false,
   disciplineFields = [],
   initialValues = {},
   autoFocusFirst = false,
@@ -188,11 +192,13 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
   return (
     <div className={`space-y-3 ${className}`}>
       {symbols.map((symbol, index) => {
-        const fieldName = disciplineFields[index]?.name ?? symbol;
+        const field = disciplineFields[index];
+        const isMissingField = disableMissingFields && !field;
+        const fieldName = field?.name ?? symbol;
         return (
           <div key={symbol}>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              {symbol}: {fieldName}
+            <label className={`block text-xs font-medium mb-1 ${isMissingField ? 'text-gray-400' : 'text-gray-700'}`}>
+              {symbol}: {fieldName}{isMissingField ? ' (nicht konfiguriert)' : ''}
             </label>
             <input
               type="text"
@@ -201,9 +207,9 @@ export const LinkedFormulaInput: React.FC<LinkedFormulaInputProps> = ({
               onChange={e => handleChange(symbol, e.target.value)}
               onBlur={() => handleBlur(symbol)}
               placeholder={placeholder}
-              disabled={disabled}
+              disabled={disabled || isMissingField}
               autoFocus={autoFocusFirst && index === 0}
-              className="w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold text-blue-900 bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full text-3xl sm:text-4xl text-center p-2 sm:p-3 border-2 rounded-lg focus:outline-none focus:border-blue-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed ${isMissingField ? 'border-gray-200 bg-gray-100 text-gray-400' : 'text-blue-900 bg-blue-50'}`}
             />
           </div>
         );

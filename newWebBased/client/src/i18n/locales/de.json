@@ -3898,6 +3898,12 @@
         "descriptionOk": "Keine Mehrfachplatzierungen in den Top-3.",
         "action": "Ergebnisse prüfen"
       },
+      "formula_fields_missing": {
+        "title": "Formelfelder nicht konfiguriert",
+        "description": "{{count}} Wettkampf/Disziplin-Kombination(en) haben weniger aktivierte Eingabefelder als die Formel benötigt.",
+        "descriptionOk": "Alle Formelvariablen haben ein aktiviertes Eingabefeld.",
+        "action": "Disziplinen prüfen"
+      },
       "schedule_missing_start_times": {
         "title": "Fehlende Startzeiten",
         "description": "{{count}} Wettkampf/Wettkämpfe haben keine Startzeit gesetzt.",

@@ -18,6 +18,7 @@
  *   8. duplicate_top_placements      – tied ranks 1–3 in any competition
  *   9. schedule_missing_start_times  – competitions without tim_startzeit (Point 110i)
  *  10. schedule_matrix_incomplete    – squad/discipline rotation matrix incomplete (Point 122i)
+ *  11. formula_fields_missing        – linked formula symbols without enabled DB input fields
  */
 
 import { Router, Request, Response } from 'express'
@@ -89,6 +90,7 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
       participantsWithoutCompetition,
       competitionsWithoutParticipants,
       competitionsWithoutRound,
+      formulaFieldsMissing,
     ] = await Promise.all([
       checkMissingStartNumbers(eventId),
       checkCompetitionsWithoutDisciplines(eventId),
@@ -103,6 +105,7 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
       checkParticipantsWithoutCompetition(eventId),
       checkCompetitionsWithoutParticipants(eventId),
       checkCompetitionsWithoutRound(eventId),
+      checkFormulaFieldsMissing(eventId),
     ])
 
     const checks: AnalyzerCheckResult[] = [
@@ -119,6 +122,7 @@ router.get('/event/:eventId', async (req: Request, res: Response) => {
       participantsWithoutCompetition,
       competitionsWithoutParticipants,
       competitionsWithoutRound,
+      formulaFieldsMissing,
     ]
 
     const summary: AnalyzerSummary = {
@@ -513,6 +517,55 @@ export async function checkDuplicateTopPlacements(eventId: number): Promise<Anal
     affectedCount: count,
     details: rows.slice(0, 5).map(r => ({ id: Number(r.id), label: String(r.label) })),
     actionRoute: '/results',
+  }
+}
+
+// ============================================================================
+// Check: Linked formula symbols without configured input fields
+// ============================================================================
+
+export async function checkFormulaFieldsMissing(eventId: number): Promise<AnalyzerCheckResult> {
+  const rows: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT
+      wk.int_wettkaempfeid AS id,
+      COALESCE(wk.var_name, 'WK ' || wk.int_wettkaempfeid) || ' – ' ||
+        COALESCE(d.var_name, 'Disziplin ' || d.int_disziplinenid) AS label,
+      f.var_formel AS formula,
+      COUNT(df.int_disziplinen_felderid) FILTER (
+        WHERE COALESCE(df.bol_enabled, true)
+          AND df.bol_endwert IS NOT TRUE
+          AND df.bol_ausgangswert IS NOT TRUE
+      )::int AS input_field_count
+    FROM tfx_wettkaempfe wk
+    JOIN tfx_wettkaempfe_x_disziplinen wx ON wx.int_wettkaempfeid = wk.int_wettkaempfeid
+    JOIN tfx_disziplinen d ON d.int_disziplinenid = wx.int_disziplinenid
+    JOIN tfx_formeln f ON f.int_formelid = d.int_formelid
+    LEFT JOIN tfx_disziplinen_felder df ON df.int_disziplinenid = d.int_disziplinenid
+    WHERE wk.int_veranstaltungenid = $1
+      AND d.int_formelid IS NOT NULL
+      AND f.var_formel IS NOT NULL
+    GROUP BY wk.int_wettkaempfeid, wk.var_name, d.int_disziplinenid, d.var_name, f.var_formel
+    ORDER BY wk.var_name, d.var_name
+  `, eventId)
+
+  const missing = rows.flatMap(row => {
+    const symbols = String(row.formula).match(/\b[A-Za-z]\b/g) ?? []
+    const uniqueSymbols = [...new Set(symbols)]
+    const configuredCount = Number(row.input_field_count ?? 0)
+    const missingSymbols = uniqueSymbols.slice(configuredCount)
+    return missingSymbols.length > 0
+      ? [{ id: Number(row.id), label: `${String(row.label)} – fehlende DB-Felder: ${missingSymbols.join(', ')}` }]
+      : []
+  })
+
+  return {
+    id: 'formula_fields_missing',
+    category: 'capture',
+    severity: 'warning',
+    status: missing.length === 0 ? 'ok' : 'warning',
+    affectedCount: missing.length,
+    details: missing.slice(0, 5),
+    actionRoute: '/disciplines',
   }
 }
 

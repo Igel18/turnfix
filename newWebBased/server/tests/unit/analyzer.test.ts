@@ -13,7 +13,8 @@
  *   6. checkMissingScoreDetails     – ok / info
  *   7. checkSquadCombination        – ok / warning variants
  *   8. checkDuplicateTopPlacements  – ok / info
- *   9. HTTP endpoint structure & 400 on invalid eventId
+ *   9. checkFormulaFieldsMissing   – ok / warning
+ *  10. HTTP endpoint structure & 400 on invalid eventId
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
@@ -47,6 +48,7 @@ import {
   checkMissingScoreDetails,
   checkSquadCombination,
   checkDuplicateTopPlacements,
+  checkFormulaFieldsMissing,
   checkMissingStartTimes,
   checkScheduleMatrixIncomplete,
   checkParticipantsWithoutCompetition,
@@ -308,6 +310,45 @@ describe('checkDuplicateTopPlacements', () => {
 })
 
 // ============================================================================
+// Tests – checkFormulaFieldsMissing
+// ============================================================================
+
+describe('checkFormulaFieldsMissing', () => {
+  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+
+  it('returns ok when each linked formula symbol has an enabled DB input field', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([
+      { id: 10, label: 'WK 1 – Boden', formula: 'A + B', input_field_count: 2 },
+    ])
+    const result = await checkFormulaFieldsMissing(1)
+    expect(result.id).toBe('formula_fields_missing')
+    expect(result.status).toBe('ok')
+    expect(result.affectedCount).toBe(0)
+  })
+
+  it('warns when formula symbols have no matching enabled DB field', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([
+      { id: 10, label: 'WK 1 – Boden', formula: 'A + B + C', input_field_count: 2 },
+    ])
+    const result = await checkFormulaFieldsMissing(1)
+    expect(result.status).toBe('warning')
+    expect(result.severity).toBe('warning')
+    expect(result.affectedCount).toBe(1)
+    expect(result.details).toEqual([{ id: 10, label: 'WK 1 – Boden – fehlende DB-Felder: C' }])
+    expect(result.actionRoute).toBe('/disciplines')
+  })
+
+  it('uses a field count that excludes disabled, final and starting fields', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([])
+    await checkFormulaFieldsMissing(1)
+    const query = String((mockQueryRawUnsafe.mock.calls as any[])[0]?.[0] || '')
+    expect(query).toContain('df.bol_enabled')
+    expect(query).toContain('df.bol_endwert')
+    expect(query).toContain('df.bol_ausgangswert')
+  })
+})
+
+// ============================================================================
 // Tests – checkMissingStartTimes (Point 110i)
 // ============================================================================
 
@@ -512,21 +553,21 @@ describe('GET /event/:eventId (HTTP layer)', () => {
   })
 
   it('returns response with checks array and summary object', async () => {
-    // 13 checks × 1-2 queries each – return empty array for all
+    // 14 checks × 1-2 queries each – return empty array for all
     // (arrays use .length for count; c-based checks use [0]?.c ?? 0 = 0)
     mockQueryRawUnsafe.mockResolvedValue([])
 
     const res = await request(app).get('/analyzer/event/1')
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.checks)).toBe(true)
-    expect(res.body.checks).toHaveLength(13)
+    expect(res.body.checks).toHaveLength(14)
     expect(typeof res.body.summary).toBe('object')
     expect(typeof res.body.summary.total).toBe('number')
-    expect(res.body.summary.total).toBe(13)
+    expect(res.body.summary.total).toBe(14)
   })
 
   it('summary correctly sums ok/warning/error/info from checks', async () => {
-    // Return empty arrays → all 13 checks should be ok
+    // Return empty arrays → all 14 checks should be ok
     mockQueryRawUnsafe.mockResolvedValue([])
 
     const res = await request(app).get('/analyzer/event/1')

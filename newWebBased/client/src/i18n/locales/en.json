@@ -3843,6 +3843,12 @@
         "descriptionOk": "No tied placements in the top 3.",
         "action": "Check results"
       },
+      "formula_fields_missing": {
+        "title": "Formula fields not configured",
+        "description": "{{count}} competition/discipline combination(s) have fewer enabled input fields than the formula requires.",
+        "descriptionOk": "Every formula variable has an enabled input field.",
+        "action": "Check disciplines"
+      },
       "schedule_missing_start_times": {
         "title": "Missing start times",
         "description": "{{count}} competition(s) have no start time set.",

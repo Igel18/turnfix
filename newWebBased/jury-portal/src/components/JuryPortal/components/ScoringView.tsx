@@ -494,6 +494,7 @@ const ScoreInputPanel: React.FC<ScoreInputPanelProps> = ({
                     disciplineFields={disciplineFields
                       .filter(f => !f.isEndValue && !f.isStartValue)
                       .map(f => ({ id: f.id, name: f.name }))}
+                    disableMissingFields
                     initialValues={loadedJuryResults}
                     onScoreChange={(calculatedScore, fieldValues) => {
                       onCalculationComplete(calculatedScore, fieldValues);
