@@ -168,6 +168,104 @@ describe('Medals API', () => {
       // Standings should be an array (possibly empty for test events without scores)
       expect(response.body.standings).toBeInstanceOf(Array);
     });
+
+    describe('medal awarding', () => {
+      const SCORES = {
+        tieA: [13.35, 14.15, 12.1, 12.6],
+        tieB: [14.3, 10.5, 14, 13.4],
+        low: [5, 5, 5, 5],
+      };
+
+      const setupCompetition = async (competitionData: object = {}, scores: Record<string, number[]> = SCORES) => {
+        const clubs = await prisma.tfx_vereine.findMany({ take: 3, orderBy: { int_vereineid: 'asc' } });
+        const disciplines = await prisma.tfx_disziplinen.findMany({ take: 4, orderBy: { int_disziplinenid: 'asc' } });
+        const status = await prisma.tfx_status.findFirstOrThrow();
+        const competition = await TestUtils.createTestCompetition({
+          name: 'Medal competition',
+          int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        });
+        await prisma.tfx_wettkaempfe.update({
+          where: { int_wettkaempfeid: competition.int_wettkaempfeid },
+          data: competitionData,
+        });
+
+        const clubByKey: Record<string, number> = {};
+        for (const [index, [key, values]] of Object.entries(scores).entries()) {
+          const participant = await TestUtils.createTestParticipant({ firstName: key, lastName: 'Medal', clubId: clubs[index].int_vereineid });
+          const wertung = await prisma.tfx_wertungen.create({
+            data: {
+              int_wettkaempfeid: competition.int_wettkaempfeid,
+              int_teilnehmerid: participant.int_teilnehmerid,
+              int_statusid: status.int_statusid,
+            },
+          });
+          for (const [disciplineIndex, value] of values.entries()) {
+            await prisma.tfx_wertungen_details.create({
+              data: {
+                int_wertungenid: wertung.int_wertungenid,
+                int_disziplinenid: disciplines[disciplineIndex].int_disziplinenid,
+                int_versuch: 1,
+                rel_leistung: value,
+              },
+            });
+          }
+          clubByKey[key] = clubs[index].int_vereineid;
+        }
+        return { competition, clubByKey };
+      };
+
+      const standingOf = async (clubId: number) => {
+        const response = await request(app).get(`/api/medals/${testEvent.int_veranstaltungenid}`).expect(200);
+        return response.body.standings.find((s: any) => s.clubId === clubId);
+      };
+
+      it('gives tied participants the same medal, despite floating-point summation order', async () => {
+        const { clubByKey } = await setupCompetition();
+
+        const a = await standingOf(clubByKey.tieA);
+        const b = await standingOf(clubByKey.tieB);
+        const low = await standingOf(clubByKey.low);
+
+        expect([a.totalGold, a.totalSilver, a.totalBronze]).toEqual([1, 0, 0]);
+        expect([b.totalGold, b.totalSilver, b.totalBronze]).toEqual([1, 0, 0]);
+        expect([low.totalGold, low.totalSilver, low.totalBronze]).toEqual([0, 0, 1]);
+      });
+
+      it('reports the same medals per competition as in the total', async () => {
+        const { clubByKey } = await setupCompetition();
+
+        const low = await standingOf(clubByKey.low);
+        const b = await standingOf(clubByKey.tieB);
+
+        expect(low.competitions[0]).toMatchObject({ gold: 0, silver: 0, bronze: 1 });
+        expect(b.competitions[0]).toMatchObject({ gold: 1, silver: 0, bronze: 0 });
+      });
+
+      it('ranks ascending when the competition sorts ascending', async () => {
+        const { clubByKey } = await setupCompetition({ bol_sortasc: true });
+
+        const low = await standingOf(clubByKey.low);
+        expect([low.totalGold, low.totalSilver, low.totalBronze]).toEqual([1, 0, 0]);
+      });
+
+      it('applies the Streichwertung of the competition', async () => {
+        const { clubByKey } = await setupCompetition(
+          { bol_streichwertung: true, int_anz_streich: 1 },
+          { first: [10, 10, 10, 1], second: [9, 9, 9, 9], third: [1, 1, 1, 1] },
+        );
+
+        const first = await standingOf(clubByKey.first);
+        const second = await standingOf(clubByKey.second);
+        expect([first.totalGold, second.totalSilver]).toEqual([1, 1]);
+      });
+
+      it('does not award medals without a score', async () => {
+        const { clubByKey } = await setupCompetition({}, { none: [0, 0, 0, 0] });
+
+        const none = await standingOf(clubByKey.none);
+        expect(none.totalMedals).toBe(0);
+      });
+    });
   });
 
   describe('DELETE /api/medals/:id', () => {

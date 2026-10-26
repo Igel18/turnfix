@@ -183,4 +183,58 @@ describe('gymnetXmlExport', () => {
     expect(xml).toContain('<etPlatzierung>0</etPlatzierung>');
     expect(xml).toContain('<etErfasst>3</etErfasst>');
   });
+
+  const participantWithScores = (participantId: number, scores: number[]) => ({
+    participantId,
+    firstName: `P${participantId}`,
+    lastName: 'T',
+    birthDate: null,
+    gender: 1,
+    clubId: null,
+    clubName: '',
+    startNumber: null,
+    disciplines: scores.map((score, index) => ({ disciplineId: index + 1, name: `D${index + 1}`, score, position: index + 1 })),
+  });
+
+  const competitionWith = (participants: any[], extra: object = {}) => ({
+    competitionId: 4,
+    competitionNumber: '104',
+    competitionName: 'Gleichstand',
+    genderMale: false,
+    genderFemale: true,
+    ageFrom: 7,
+    ageTo: 8,
+    participants,
+    ...extra,
+  });
+
+  const placements = (xml: string) =>
+    [...xml.matchAll(/<perID>(\d+)<\/perID>[\s\S]*?<etPlatzierung>(\d+)<\/etPlatzierung>/g)]
+      .reduce<Record<string, string>>((acc, match) => ({ ...acc, [match[1]]: match[2] }), {});
+
+  it('gives equal totals the same placement despite floating-point summation order', () => {
+    const xml = buildGymNetResultsXml([competitionWith([
+      participantWithScores(11, [13.35, 14.15, 12.1, 12.6]),
+      participantWithScores(12, [14.3, 10.5, 14, 13.4]),
+      participantWithScores(14, [13.05, 13.7, 10.7, 14]),
+      participantWithScores(15, [14.2, 12.7, 12.7, 11.85]),
+    ])]);
+
+    expect(placements(xml)).toEqual({ 11: '1', 12: '1', 14: '3', 15: '3' });
+  });
+
+  it('applies the sort direction and the Streichwertung of the competition', () => {
+    const ascending = buildGymNetResultsXml([competitionWith(
+      [participantWithScores(1, [12]), participantWithScores(2, [9])],
+      { sortAscending: true },
+    )]);
+    expect(placements(ascending)).toEqual({ 1: '2', 2: '1' });
+
+    const dropping = buildGymNetResultsXml([competitionWith(
+      [participantWithScores(1, [10, 10, 1]), participantWithScores(2, [9, 9, 9])],
+      { dropWorstScore: true, dropCount: 1 },
+    )]);
+    expect(placements(dropping)).toEqual({ 1: '1', 2: '2' });
+    expect(dropping).toContain('<etPunkte>20.000</etPunkte>');
+  });
 });

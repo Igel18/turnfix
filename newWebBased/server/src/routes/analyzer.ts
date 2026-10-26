@@ -481,10 +481,10 @@ export async function checkDuplicateTopPlacements(eventId: number): Promise<Anal
         w.int_wertungenid,
         wk.int_wettkaempfeid,
         wk.var_name AS wk_name,
-        SUM(wd.rel_leistung) AS total_score,
+        ROUND(SUM(wd.rel_leistung)::numeric, 6) AS total_score,
         RANK() OVER (
           PARTITION BY wk.int_wettkaempfeid
-          ORDER BY SUM(wd.rel_leistung) DESC
+          ORDER BY ROUND(SUM(wd.rel_leistung)::numeric, 6) DESC
         ) AS rnk
       FROM tfx_wertungen w
       JOIN tfx_wettkaempfe wk    ON w.int_wettkaempfeid = wk.int_wettkaempfeid

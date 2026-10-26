@@ -1,6 +1,8 @@
 import { Builder } from 'xml2js';
 import { parseXmlAsync } from './gymnetXmlParser';
 import type { GymNetExportCompetition, GymNetExportParticipant } from './gymnetXmlExport';
+import { resolveCompetitionResults } from './gymnetXmlExport';
+import type { CompetitionRankingResult } from '@turnfix/shared';
 import { wedDisNrToTurnFixId } from './gymnetMapping';
 
 interface MergeStats {
@@ -88,64 +90,12 @@ function formatScore(score: number | null): string {
   return Number(score).toFixed(3);
 }
 
-function sumDisciplineScores(participant: GymNetExportParticipant): number | null {
-  const values = participant.disciplines
-    .map((discipline) => discipline.score)
-    .filter((score): score is number => score !== null && score !== undefined && !Number.isNaN(score));
-
-  if (values.length === 0) {
-    return null;
-  }
-
-  return values.reduce((sum, value) => sum + value, 0);
-}
-
-function buildRankMap(participants: GymNetExportParticipant[]): Map<number, number> {
-  const scored = participants.reduce<Array<{
-    participantId: number;
-    total: number;
-    captured: number | null | undefined;
-    isOutOfCompetition: boolean | null | undefined;
-    isAbsent: boolean | null | undefined;
-  }>>((entries, participant) => {
-    const total = participant.totalScore ?? sumDisciplineScores(participant);
-    if (total === null) {
-      return entries;
-    }
-
-    entries.push({
-      participantId: participant.participantId,
-      total,
-      captured: participant.captured,
-      isOutOfCompetition: participant.isOutOfCompetition,
-      isAbsent: participant.isAbsent,
-    });
-    return entries;
-  }, [])
-    .filter((entry) => entry.isOutOfCompetition !== true && entry.isAbsent !== true && entry.captured !== 2 && entry.captured !== 3)
-    .sort((a, b) => b.total - a.total);
-
-  const rankMap = new Map<number, number>();
-  let currentRank = 0;
-  let lastTotal: number | null = null;
-
-  scored.forEach((entry, index) => {
-    if (lastTotal === null || entry.total < lastTotal) {
-      currentRank = index + 1;
-      lastTotal = entry.total;
-    }
-    rankMap.set(entry.participantId, currentRank);
-  });
-
-  return rankMap;
-}
-
 function applyOverallResultFields(
   resultNode: any,
   matchedParticipant: GymNetExportParticipant,
-  rankMap: Map<number, number>
+  results: Map<number, CompetitionRankingResult>
 ) {
-  const totalScore = matchedParticipant.totalScore ?? sumDisciplineScores(matchedParticipant);
+  const totalScore = results.get(matchedParticipant.participantId)?.totalScore ?? null;
   const captured = matchedParticipant.isAbsent === true
     ? 3
     : matchedParticipant.isOutOfCompetition === true
@@ -153,7 +103,7 @@ function applyOverallResultFields(
       : matchedParticipant.captured ?? 1;
   const rank = captured === 2 || captured === 3
     ? 0
-    : matchedParticipant.rank ?? rankMap.get(matchedParticipant.participantId) ?? 0;
+    : matchedParticipant.rank ?? results.get(matchedParticipant.participantId)?.rank ?? 0;
 
   resultNode.etPunkte = captured === 3 ? '' : formatScore(totalScore);
   resultNode.etPlatzierung = String(rank);
@@ -376,7 +326,7 @@ export async function mergeGymNetTemplateWithResults(
     }
 
     stats.competitionsMatched += 1;
-    const rankMap = buildRankMap(matchedCompetition.participants);
+    const results = resolveCompetitionResults(matchedCompetition);
 
     const participantEntries = extractTemplateCompetitionEntries(competitionNode);
     participantEntries.forEach(({ resultNode, participantNode, disciplineNodes, clubName }) => {
@@ -389,7 +339,7 @@ export async function mergeGymNetTemplateWithResults(
       }
 
       stats.participantsMatched += 1;
-      applyOverallResultFields(resultNode, matchedParticipant, rankMap);
+      applyOverallResultFields(resultNode, matchedParticipant, results);
 
       disciplineNodes.forEach((disciplineNode) => {
         const hasTemplateDiscipline = normalizeText(disciplineNode?.wedDisName || disciplineNode?.wedDisNr);

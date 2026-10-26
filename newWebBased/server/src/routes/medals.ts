@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { getMedalTypeValues } from '../utils/configurationHelpers';
 import { isActiveStarter } from '../utils/participantFilters';
+import { latestDisciplineScores } from '../utils/competitionScores';
+import { rankCompetition } from '@turnfix/shared';
 
 const router = express.Router();
 
@@ -178,7 +180,6 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
                 tfx_vereine: true
               }
             },
-            tfx_jury_results: true,
             tfx_wertungen_details: true
           }
         }
@@ -229,32 +230,35 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
     for (const competition of competitions) {
       console.log(`DEBUG: Processing competition ${competition.int_wettkaempfeid} with ${competition.tfx_wertungen.length} entries`);
       
-      // Calculate total scores for each participant
-      const participantScores = competition.tfx_wertungen
-        .filter(w => isActiveStarter(w) && w.tfx_teilnehmer?.tfx_vereine) // Only active starters with valid club
-        .map(wertung => {
-          // Calculate total score from jury results and wertungen details
-          const juryScores = wertung.tfx_jury_results.reduce((sum, result) => 
-            sum + (result.rel_leistung || 0), 0);
-          const detailScores = wertung.tfx_wertungen_details.reduce((sum, detail) => 
-            sum + (detail.rel_leistung || 0), 0);
-          
-          const totalScore = juryScores + detailScores;
-          
-          return {
-            wertung,
-            totalScore,
-            participant: wertung.tfx_teilnehmer!,
-            club: wertung.tfx_teilnehmer!.tfx_vereine!
-          };
-        })
-        .sort((a, b) => b.totalScore - a.totalScore); // Descending order
+      // Totals and placements come from the shared ranking, like results and exports
+      const activeWertungen = competition.tfx_wertungen
+        .filter(w => isActiveStarter(w) && w.tfx_teilnehmer?.tfx_vereine); // Only active starters with valid club
+      const ranking = rankCompetition(
+        activeWertungen.map(wertung => ({
+          key: wertung.int_wertungenid,
+          scores: latestDisciplineScores(wertung.tfx_wertungen_details),
+        })),
+        {
+          sortAscending: competition.bol_sortasc === true,
+          dropWorstScore: competition.bol_streichwertung === true,
+          dropCount: competition.int_anz_streich ?? 0,
+        }
+      );
+      const participantScores = activeWertungen
+        .map(wertung => ({
+          wertung,
+          totalScore: ranking.get(wertung.int_wertungenid)?.totalScore ?? 0,
+          rank: ranking.get(wertung.int_wertungenid)?.rank ?? 0,
+          participant: wertung.tfx_teilnehmer!,
+          club: wertung.tfx_teilnehmer!.tfx_vereine!
+        }))
+        .sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity));
 
       console.log(`DEBUG: Competition ${competition.int_wettkaempfeid} - ${participantScores.length} valid participants`);
 
-      // Award medals to top 3
-      participantScores.forEach((entry, index) => {
-        if (index >= 3 || entry.totalScore === 0) return; // Only top 3 get medals and must have a score
+      // Award medals for places 1-3; tied participants share the place
+      participantScores.forEach((entry) => {
+        if (entry.rank < 1 || entry.rank > 3 || entry.totalScore === 0) return; // Only top 3 get medals and must have a score
         
         const clubId = entry.club.int_vereineid;
         const clubName = entry.club.var_name || `Club ${clubId}`;
@@ -275,13 +279,13 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
         const standing = clubStandings.get(clubId)!;
         
         // Award medal based on position
-        if (index === 0) standing.totalGold++;
-        else if (index === 1) standing.totalSilver++;
-        else if (index === 2) standing.totalBronze++;
+        if (entry.rank === 1) standing.totalGold++;
+        else if (entry.rank === 2) standing.totalSilver++;
+        else if (entry.rank === 3) standing.totalBronze++;
         
         standing.totalMedals++;
         
-        console.log(`DEBUG: Awarded ${index === 0 ? 'GOLD' : index === 1 ? 'SILVER' : 'BRONZE'} to ${clubName} (score: ${entry.totalScore})`);
+        console.log(`DEBUG: Awarded ${entry.rank === 1 ? 'GOLD' : entry.rank === 2 ? 'SILVER' : 'BRONZE'} to ${clubName} (score: ${entry.totalScore})`);
       });
 
       // Count total starters per club for this competition
@@ -302,11 +306,11 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
           
           // Find medals for this club in this competition
           const competitionMedals = { gold: 0, silver: 0, bronze: 0 };
-          participantScores.slice(0, 3).forEach((entry, index) => {
+          participantScores.forEach((entry) => {
             if (entry.club.int_vereineid === clubId && entry.totalScore > 0) {
-              if (index === 0) competitionMedals.gold++;
-              else if (index === 1) competitionMedals.silver++;
-              else if (index === 2) competitionMedals.bronze++;
+              if (entry.rank === 1) competitionMedals.gold++;
+              else if (entry.rank === 2) competitionMedals.silver++;
+              else if (entry.rank === 3) competitionMedals.bronze++;
             }
           });
 

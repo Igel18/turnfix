@@ -1,4 +1,5 @@
 import { Builder } from 'xml2js';
+import { rankCompetition, type CompetitionRankingResult } from '@turnfix/shared';
 import { BASE_DTB_MAPPING, turnFixIdToWedDisNr } from './gymnetMapping';
 
 export interface GymNetExportDiscipline {
@@ -35,6 +36,9 @@ export interface GymNetExportCompetition {
   genderFemale: boolean;
   ageFrom: number;
   ageTo: number | null;
+  sortAscending?: boolean;
+  dropWorstScore?: boolean;
+  dropCount?: number;
   participants: GymNetExportParticipant[];
 }
 
@@ -58,56 +62,26 @@ function formatScore(score: number | null): string {
   return Number(score).toFixed(3);
 }
 
-function sumDisciplineScores(participant: GymNetExportParticipant): number | null {
-  const values = participant.disciplines
-    .map((discipline) => discipline.score)
-    .filter((score): score is number => score !== null && score !== undefined && !Number.isNaN(score));
-
-  if (values.length === 0) {
-    return null;
-  }
-
-  return values.reduce((sum, value) => sum + value, 0);
-}
-
-function buildRankMap(participants: GymNetExportParticipant[]): Map<number, number> {
-  const scored = participants.reduce<Array<{
-    participantId: number;
-    total: number;
-    captured: GymNetCapturedValue | null | undefined;
-    isOutOfCompetition: boolean | null | undefined;
-    isAbsent: boolean | null | undefined;
-  }>>((entries, participant) => {
-    const total = participant.totalScore ?? sumDisciplineScores(participant);
-    if (total === null) {
-      return entries;
+/** Totals and placements of a competition; the only ranking path of all GymNet exports. */
+export function resolveCompetitionResults(
+  competition: Pick<GymNetExportCompetition, 'participants' | 'sortAscending' | 'dropWorstScore' | 'dropCount'>
+): Map<number, CompetitionRankingResult> {
+  return rankCompetition(
+    competition.participants.map((participant) => ({
+      key: participant.participantId,
+      scores: participant.disciplines.map((discipline) => discipline.score),
+      totalScore: participant.totalScore,
+      excluded: participant.isOutOfCompetition === true
+        || participant.isAbsent === true
+        || participant.captured === 2
+        || participant.captured === 3,
+    })),
+    {
+      sortAscending: competition.sortAscending,
+      dropWorstScore: competition.dropWorstScore,
+      dropCount: competition.dropCount,
     }
-
-    entries.push({
-      participantId: participant.participantId,
-      total,
-      captured: participant.captured,
-      isOutOfCompetition: participant.isOutOfCompetition,
-      isAbsent: participant.isAbsent,
-    });
-    return entries;
-  }, [])
-    .filter((entry) => entry.isOutOfCompetition !== true && entry.isAbsent !== true && entry.captured !== 2 && entry.captured !== 3)
-    .sort((a, b) => b.total - a.total);
-
-  const rankMap = new Map<number, number>();
-  let currentRank = 0;
-  let lastTotal: number | null = null;
-
-  scored.forEach((entry, index) => {
-    if (lastTotal === null || entry.total < lastTotal) {
-      currentRank = index + 1;
-      lastTotal = entry.total;
-    }
-    rankMap.set(entry.participantId, currentRank);
-  });
-
-  return rankMap;
+  );
 }
 
 function resolveCapturedValue(participant: GymNetExportParticipant, hasAnyScore: boolean): GymNetCapturedValue {
@@ -127,12 +101,12 @@ function resolveCapturedValue(participant: GymNetExportParticipant, hasAnyScore:
   return hasAnyScore ? 1 : 1;
 }
 
-function resolvePlacement(participant: GymNetExportParticipant, rankMap: Map<number, number>, captured: GymNetCapturedValue): number {
+function resolvePlacement(participant: GymNetExportParticipant, results: Map<number, CompetitionRankingResult>, captured: GymNetCapturedValue): number {
   if (captured === 2 || captured === 3) {
     return 0;
   }
 
-  return participant.rank ?? rankMap.get(participant.participantId) ?? 0;
+  return participant.rank ?? results.get(participant.participantId)?.rank ?? 0;
 }
 
 function getCompetitionGenderValue(genderMale: boolean, genderFemale: boolean): string {
@@ -175,7 +149,7 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
   const xmlObject = {
     Wettkämpfe: {
       Wettkampf: competitions.map((competition) => {
-        const rankMap = buildRankMap(competition.participants);
+        const results = resolveCompetitionResults(competition);
 
         return {
           waID: String(competition.competitionId),
@@ -186,7 +160,7 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
           waAlterMax: competition.ageTo !== null && competition.ageTo !== undefined ? String(competition.ageTo) : '',
           Teilnehmer: {
             TN: competition.participants.map((participant) => {
-              const resolvedTotal = participant.totalScore ?? sumDisciplineScores(participant);
+              const resolvedTotal = results.get(participant.participantId)?.totalScore ?? null;
               const hasAnyScore = resolvedTotal !== null;
               const captured = resolveCapturedValue(participant, hasAnyScore);
 
@@ -200,7 +174,7 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
                 verKurzname: participant.clubName || '',
                 espStartnummer: participant.startNumber !== null && participant.startNumber !== undefined ? String(participant.startNumber) : '',
                 etPunkte: captured === 3 ? '' : formatScore(resolvedTotal),
-                etPlatzierung: String(resolvePlacement(participant, rankMap, captured)),
+                etPlatzierung: String(resolvePlacement(participant, results, captured)),
                 etErfasst: String(captured),
                 Disziplinen: {
                   Disziplin: participant.disciplines.map((discipline) => {

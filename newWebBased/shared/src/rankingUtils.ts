@@ -103,3 +103,59 @@ export function sortAndRank<T extends { totalScore: number }>(
   );
   return assignRanks(sorted);
 }
+
+// ---------------------------------------------------------------------------
+// rankCompetition
+// ---------------------------------------------------------------------------
+
+export interface CompetitionRankingOptions {
+  sortAscending?: boolean;
+  dropWorstScore?: boolean;
+  dropCount?: number;
+}
+
+export interface CompetitionRankingEntry<K> {
+  key: K;
+  scores: Array<number | null | undefined>;
+  /** Out of competition / absent: gets a total but no rank */
+  excluded?: boolean;
+  /** Precomputed total, used instead of summing `scores` */
+  totalScore?: number | null;
+}
+
+export interface CompetitionRankingResult {
+  totalScore: number | null;
+  /** 0 = not ranked */
+  rank: number;
+}
+
+/**
+ * Single entry point for totals and placements of one competition.
+ * Every export and view must use this instead of summing and ranking itself.
+ */
+export function rankCompetition<K>(
+  entries: CompetitionRankingEntry<K>[],
+  { sortAscending = false, dropWorstScore = false, dropCount = 0 }: CompetitionRankingOptions = {}
+): Map<K, CompetitionRankingResult> {
+  const withTotals = entries.map(entry => {
+    const values = entry.scores.filter((s): s is number => typeof s === 'number' && !Number.isNaN(s));
+    const totalScore = entry.totalScore ?? (values.length === 0
+      ? null
+      : computeTotalScore(Object.fromEntries(values.map((v, i) => [String(i), v])), dropWorstScore, dropCount));
+    return { key: entry.key, totalScore, excluded: entry.excluded === true };
+  });
+
+  const results = new Map<K, CompetitionRankingResult>(
+    withTotals.map(e => [e.key, { totalScore: e.totalScore, rank: 0 }])
+  );
+
+  const rankable = withTotals
+    .filter(e => e.totalScore !== null && !e.excluded)
+    .map(e => ({ key: e.key, totalScore: e.totalScore as number }));
+
+  sortAndRank(rankable, sortAscending).forEach(e => {
+    results.set(e.key, { totalScore: e.totalScore, rank: e.rank });
+  });
+
+  return results;
+}

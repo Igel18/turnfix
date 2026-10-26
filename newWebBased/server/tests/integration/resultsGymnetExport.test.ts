@@ -92,6 +92,70 @@ describe('resultsGymnetExport router', () => {
     expect(response.text).toContain('<wtdWertung>12.500</wtdWertung>');
   });
 
+  describe('placements from the competition settings', () => {
+    const addScores = async (scoresByName: Record<string, number[]>) => {
+      const sport = await prisma.tfx_sport.findFirstOrThrow();
+      const status = await prisma.tfx_status.findFirstOrThrow();
+      const disciplines = [];
+      for (let index = 0; index < 3; index++) {
+        const discipline = await prisma.tfx_disziplinen.create({
+          data: { int_sportid: sport.int_sportid, var_name: `Gerät ${index} ${Date.now()}` },
+        });
+        TestUtils.trackCreated('disciplines', discipline.int_disziplinenid);
+        await prisma.tfx_wettkaempfe_x_disziplinen.create({
+          data: { int_wettkaempfeid: competition.int_wettkaempfeid, int_disziplinenid: discipline.int_disziplinenid, int_sortierung: index + 1 },
+        });
+        disciplines.push(discipline);
+      }
+
+      for (const [name, scores] of Object.entries(scoresByName)) {
+        const participant = await TestUtils.createTestParticipant({ firstName: name, lastName: 'Platz' });
+        const wertung = await prisma.tfx_wertungen.create({
+          data: { int_wettkaempfeid: competition.int_wettkaempfeid, int_teilnehmerid: participant.int_teilnehmerid, int_statusid: status.int_statusid },
+        });
+        for (const [index, score] of scores.entries()) {
+          await prisma.tfx_wertungen_details.create({
+            data: { int_wertungenid: wertung.int_wertungenid, int_disziplinenid: disciplines[index].int_disziplinenid, int_versuch: 1, rel_leistung: score },
+          });
+        }
+      }
+    };
+
+    const exportPlacements = async () => {
+      const { text } = await request(app)
+        .get('/api/results/export-gymnet-xml')
+        .query({ eventId: event.int_veranstaltungenid })
+        .expect(200);
+      return [...text.matchAll(/<perVorname>(\w+)<\/perVorname>[\s\S]*?<etPlatzierung>(\d+)<\/etPlatzierung>/g)]
+        .reduce<Record<string, string>>((acc, match) => ({ ...acc, [match[1]]: match[2] }), {});
+    };
+
+    it('ranks descending by default', async () => {
+      await addScores({ Anna: [12, 12, 12], Berta: [9, 9, 9] });
+      expect(await exportPlacements()).toEqual({ Anna: '1', Berta: '2' });
+    });
+
+    it('ranks ascending when the competition sorts ascending', async () => {
+      await prisma.tfx_wettkaempfe.update({ where: { int_wettkaempfeid: competition.int_wettkaempfeid }, data: { bol_sortasc: true } });
+      await addScores({ Anna: [12, 12, 12], Berta: [9, 9, 9] });
+      expect(await exportPlacements()).toEqual({ Anna: '2', Berta: '1' });
+    });
+
+    it('drops the worst scores of the competition', async () => {
+      await prisma.tfx_wettkaempfe.update({
+        where: { int_wettkaempfeid: competition.int_wettkaempfeid },
+        data: { bol_streichwertung: true, int_anz_streich: 1 },
+      });
+      await addScores({ Anna: [10, 10, 1], Berta: [9, 9, 9] });
+      expect(await exportPlacements()).toEqual({ Anna: '1', Berta: '2' });
+    });
+
+    it('gives equal totals the same placement', async () => {
+      await addScores({ Anna: [13.35, 14.15, 12.1], Berta: [12.1, 14.15, 13.35], Clara: [5, 5, 5] });
+      expect(await exportPlacements()).toEqual({ Anna: '1', Berta: '1', Clara: '3' });
+    });
+  });
+
   it('rejects an invalid event id and returns 404 when the event has no competitions', async () => {
     await request(app)
       .get('/api/results/export-gymnet-xml')

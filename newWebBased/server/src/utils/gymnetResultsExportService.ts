@@ -22,7 +22,10 @@ export async function loadGymNetExportPayload(
       w.yer_von,
       w.yer_bis,
       COALESCE(b.bol_maennlich, true) AS bol_maennlich,
-      COALESCE(b.bol_weiblich, true) AS bol_weiblich
+      COALESCE(b.bol_weiblich, true) AS bol_weiblich,
+      COALESCE(w.bol_sortasc, false) AS bol_sortasc,
+      COALESCE(w.bol_streichwertung, false) AS bol_streichwertung,
+      COALESCE(w.int_anz_streich, 0) AS int_anz_streich
     FROM tfx_wettkaempfe w
     JOIN tfx_bereiche b ON b.int_bereicheid = w.int_bereicheid
     WHERE w.int_veranstaltungenid = $1${competitionFilter}
@@ -117,6 +120,9 @@ export async function loadGymNetExportPayload(
       genderFemale: competition.bol_weiblich === true,
       ageFrom: Number(competition.yer_von || 0),
       ageTo: competition.yer_bis !== null && competition.yer_bis !== undefined ? Number(competition.yer_bis) : null,
+      sortAscending: competition.bol_sortasc === true,
+      dropWorstScore: competition.bol_streichwertung === true,
+      dropCount: Number(competition.int_anz_streich || 0),
       participants: participants.map(participant => ({
         participantId: participant.int_teilnehmerid,
         firstName: participant.var_vorname,
