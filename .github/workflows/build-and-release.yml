@@ -460,7 +460,7 @@ jobs:
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ steps.release_tag.outputs.tag }}
         name: TurnFix Web ${{ steps.release_tag.outputs.tag }}
