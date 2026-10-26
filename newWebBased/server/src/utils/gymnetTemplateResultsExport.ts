@@ -357,9 +357,8 @@ export async function mergeGymNetTemplateWithResults(
           return;
         }
 
-        const formattedScore = formatScore(matchedDiscipline.score);
-        disciplineNode.wtdWertung = formattedScore;
-        disciplineNode.wtdPunkte = formattedScore;
+        disciplineNode.wtdWertung = formatScore(matchedDiscipline.score);
+        disciplineNode.wtdPunkte = formatScore(matchedDiscipline.points ?? matchedDiscipline.score);
         stats.disciplineScoresWritten += 1;
       });
     });

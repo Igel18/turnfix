@@ -154,6 +154,37 @@ describe('resultsGymnetExport router', () => {
       await addScores({ Anna: [13.35, 14.15, 12.1], Berta: [12.1, 14.15, 13.35], Clara: [5, 5, 5] });
       expect(await exportPlacements()).toEqual({ Anna: '1', Berta: '1', Clara: '3' });
     });
+
+    it('ranks by the effective score of a discipline with var_formel and exports the raw value as Wertung', async () => {
+      const sport = await prisma.tfx_sport.findFirstOrThrow();
+      const status = await prisma.tfx_status.findFirstOrThrow();
+      const discipline = await prisma.tfx_disziplinen.create({
+        data: { int_sportid: sport.int_sportid, var_name: `Lauf ${Date.now()}`, var_formel: '20-x' },
+      });
+      TestUtils.trackCreated('disciplines', discipline.int_disziplinenid);
+      await prisma.tfx_wettkaempfe_x_disziplinen.create({
+        data: { int_wettkaempfeid: competition.int_wettkaempfeid, int_disziplinenid: discipline.int_disziplinenid, int_sortierung: 1 },
+      });
+      for (const [name, raw] of [['Schnell', 6], ['Langsam', 9]] as const) {
+        const participant = await TestUtils.createTestParticipant({ firstName: name, lastName: 'Lauf' });
+        const wertung = await prisma.tfx_wertungen.create({
+          data: { int_wettkaempfeid: competition.int_wettkaempfeid, int_teilnehmerid: participant.int_teilnehmerid, int_statusid: status.int_statusid },
+        });
+        await prisma.tfx_wertungen_details.create({
+          data: { int_wertungenid: wertung.int_wertungenid, int_disziplinenid: discipline.int_disziplinenid, int_versuch: 1, rel_leistung: raw },
+        });
+      }
+
+      const { text } = await request(app)
+        .get('/api/results/export-gymnet-xml')
+        .query({ eventId: event.int_veranstaltungenid })
+        .expect(200);
+
+      expect(await exportPlacements()).toEqual({ Schnell: '1', Langsam: '2' });
+      expect(text).toContain('<wtdWertung>6.000</wtdWertung>');
+      expect(text).toContain('<wtdPunkte>14.000</wtdPunkte>');
+      expect(text).toContain('<etPunkte>14.000</etPunkte>');
+    });
   });
 
   it('rejects an invalid event id and returns 404 when the event has no competitions', async () => {

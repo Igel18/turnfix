@@ -237,4 +237,17 @@ describe('gymnetXmlExport', () => {
     expect(placements(dropping)).toEqual({ 1: '1', 2: '2' });
     expect(dropping).toContain('<etPunkte>20.000</etPunkte>');
   });
+
+  it('exports the raw score as Wertung and the effective points as Punkte, total and placement', () => {
+    const withPoints = (participantId: number, raw: number, points: number) => ({
+      ...participantWithScores(participantId, [raw]),
+      disciplines: [{ disciplineId: 1, name: 'Lauf', score: raw, points, position: 1 }],
+    });
+    const xml = buildGymNetResultsXml([competitionWith([withPoints(1, 6, 14), withPoints(2, 9, 11)])]);
+
+    expect(xml).toContain('<wtdWertung>6.000</wtdWertung>');
+    expect(xml).toContain('<wtdPunkte>14.000</wtdPunkte>');
+    expect(xml).toContain('<etPunkte>14.000</etPunkte>');
+    expect(placements(xml)).toEqual({ 1: '1', 2: '2' });
+  });
 });

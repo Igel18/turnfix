@@ -38,6 +38,12 @@ jest.mock('../../src/utils/debug', () => ({
   isDebug: () => false,
 }))
 
+const mockLoadEffectiveScores = jest.fn<() => Promise<any[]>>()
+
+jest.mock('../../src/utils/effectiveScoreLoader', () => ({
+  loadEffectiveDisciplineScores: (...args: unknown[]) => (mockLoadEffectiveScores as any)(...args),
+}))
+
 // Import AFTER mocks are registered
 import {
   checkMissingStartNumbers,
@@ -288,24 +294,77 @@ describe('checkSquadCombination', () => {
 // ============================================================================
 
 describe('checkDuplicateTopPlacements', () => {
-  beforeEach(() => { mockQueryRawUnsafe.mockReset() })
+  beforeEach(() => {
+    mockQueryRawUnsafe.mockReset()
+    mockLoadEffectiveScores.mockReset()
+  })
+
+  const competition = (id: number, name: string, extra: object = {}) => ({
+    id, name, sort_asc: false, drop_worst: false, drop_count: 0, ...extra,
+  })
+  const starters = (...pairs: Array<[number, number]>) =>
+    pairs.map(([wertungenId, competitionId]) => ({ int_wertungenid: wertungenId, int_wettkaempfeid: competitionId }))
+  const score = (wertungenId: number, effectiveScore: number | null, disciplineId = 1) =>
+    ({ wertungenId, competitionId: 50, participantId: wertungenId, disciplineId, rawScore: effectiveScore, effectiveScore })
 
   it('returns ok when no tied top-3 placements', async () => {
-    mockQueryRawUnsafe.mockResolvedValueOnce([])
+    mockSequential([competition(50, 'WK Herren')], starters([1, 50], [2, 50]))
+    mockLoadEffectiveScores.mockResolvedValueOnce([score(1, 10), score(2, 9)])
     const result = await checkDuplicateTopPlacements(1)
     expect(result.status).toBe('ok')
     expect(result.category).toBe('results')
   })
 
+  it('returns ok without competitions and does not load scores', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce([])
+    const result = await checkDuplicateTopPlacements(1)
+    expect(result.status).toBe('ok')
+    expect(mockLoadEffectiveScores).not.toHaveBeenCalled()
+  })
+
   it('returns info when tied placements exist', async () => {
-    mockQueryRawUnsafe.mockResolvedValueOnce([
-      { id: 50, label: 'WK Herren – Platz 1' },
-    ])
+    mockSequential([competition(50, 'WK Herren')], starters([1, 50], [2, 50], [3, 50]))
+    mockLoadEffectiveScores.mockResolvedValueOnce([score(1, 10), score(2, 10), score(3, 5)])
     const result = await checkDuplicateTopPlacements(1)
     expect(result.status).toBe('info')
     expect(result.severity).toBe('info')
     expect(result.affectedCount).toBe(1)
+    expect(result.details).toEqual([{ id: 50, label: 'WK Herren – Platz 1' }])
     expect(result.actionRoute).toBe('/results')
+  })
+
+  it('treats totals that differ only by floating-point summation order as tied', async () => {
+    mockSequential([competition(50, 'WK Damen')], starters([1, 50], [2, 50]))
+    mockLoadEffectiveScores.mockResolvedValueOnce([
+      ...[13.35, 14.15, 12.1, 12.6].map((value, index) => score(1, value, index + 1)),
+      ...[14.3, 10.5, 14, 13.4].map((value, index) => score(2, value, index + 1)),
+    ])
+    const result = await checkDuplicateTopPlacements(1)
+    expect(result.affectedCount).toBe(1)
+  })
+
+  it('uses the effective scores, ignores ties below place 3 and absent starters', async () => {
+    mockSequential([competition(50, 'WK Damen')], starters([1, 50], [2, 50], [3, 50], [4, 50], [5, 50], [6, 50]))
+    mockLoadEffectiveScores.mockResolvedValueOnce([
+      score(1, 9), score(2, 8), score(3, 7), score(4, 5), score(5, 5),
+      score(7, 9), // wertung 7 is not an active starter
+    ])
+    const result = await checkDuplicateTopPlacements(1)
+    expect(result.status).toBe('ok')
+  })
+
+  it('applies sort direction and Streichwertung of the competition', async () => {
+    mockSequential(
+      [competition(50, 'WK Zeit', { sort_asc: true }), competition(51, 'WK Streich', { drop_worst: true, drop_count: 1 })],
+      starters([1, 50], [2, 50], [3, 51], [4, 51]),
+    )
+    mockLoadEffectiveScores.mockResolvedValueOnce([
+      score(1, 9), score(2, 12),
+      { ...score(3, 10, 1), competitionId: 51 }, { ...score(3, 1, 2), competitionId: 51 },
+      { ...score(4, 10, 1), competitionId: 51 }, { ...score(4, 9, 2), competitionId: 51 },
+    ])
+    const result = await checkDuplicateTopPlacements(1)
+    expect(result.details).toEqual([{ id: 51, label: 'WK Streich – Platz 1' }])
   })
 })
 

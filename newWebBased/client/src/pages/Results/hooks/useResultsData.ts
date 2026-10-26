@@ -8,9 +8,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
-import { calculateFormula, buildFieldSymbolsMap, applyBuiltInFormula, detectFormulaType } from '@/utils/formulaUtils';
+import { effectiveDisciplineScore } from '@turnfix/shared';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
-import { computeTotalScore, sortAndRank } from '@/utils/rankingUtils';
+import { rankParticipants } from '../utils/rankParticipants';
 
 interface UseResultsDataReturn {
   ranking: Participant[];
@@ -314,71 +314,24 @@ export function useResultsData(
             });
           }
           
-          // Two-step score calculation (C++ backward compatible):
-          //   Step 1: If linked formula + jury results exist, recalculate Endwert from fields
-          //   Step 2: Apply built-in formula (var_formel) to transform score for ranking
-          // This matches result_calc.cpp behavior where var_formel is applied at ranking time.
+          // Same calculation as exports and medals: linked formula from the jury fields, then var_formel
           const recalculatedScores: { [discipline: string]: number } = {};
           
           Object.keys(participantScores).forEach(discipline => {
             const storedScore = participantScores[discipline];
-            const juryResults = participantJuryResults[discipline];
-            const formula = effectiveFormulas[discipline];       // use current formula, fallback to old linked
-            const discFormula = participantDisciplineFormulas[discipline]; // built-in var_formel
-            const formulaType = formula ? detectFormulaType(formula) : 'none'
-            
-            // Step 1: If we have jury results and linked formula, recalculate Endwert from fields
-            let scoreForRanking = storedScore;
-            if (juryResults && juryResults.length > 0 && formula && formulaType === 'letter') {
-              const fieldsMap = buildFieldSymbolsMap(juryResults, formula);
-              const fields = Object.values(fieldsMap);
-              
-              if (fields.length > 0) {
-                const valuesMap: Record<string, number> = {};
-                fields.forEach(field => {
-                  if (field.value !== null) {
-                    valuesMap[field.symbol] = field.value;
-                  }
-                });
-                
-                const calculatedScore = calculateFormula(formula, valuesMap);
-                
-                if (calculatedScore !== null) {
-                  scoreForRanking = calculatedScore;
-                  
-                  if (Math.abs(calculatedScore - storedScore) > 0.01) {
-                    console.log(`🔄 [Results] Recalculated ${participant.firstname} ${participant.lastname} - ${discipline}:`, {
-                      stored: storedScore,
-                      calculated: calculatedScore,
-                      difference: calculatedScore - storedScore
-                    });
-                  }
-                }
-                // If calculation failed, scoreForRanking stays as storedScore
-              }
-            } else if (formula && formulaType === 'variable') {
-              console.log(`ℹ️ [Results] Skip linked-formula recalculation for variable formula "${formula}" on ${participant.firstname} ${participant.lastname} - ${discipline}; using stored score ${storedScore}`);
+            const scoreForRanking = effectiveDisciplineScore({
+              storedScore,
+              juryResults: participantJuryResults[discipline],
+              linkedFormula: effectiveFormulas[discipline], // current formula, fallback to old linked
+              builtInFormula: participantDisciplineFormulas[discipline]
+            });
+
+            if (Math.abs(scoreForRanking - storedScore) > 0.01) {
+              console.log(`🔄 [Results] Effective score of ${participant.firstname} ${participant.lastname} - ${discipline}: ${storedScore} → ${scoreForRanking}`);
             }
-            
-            // Step 2: Apply built-in formula (var_formel) for ranking
-            // This mirrors C++ result_calc.cpp: var_formel transforms the stored
-            // score into the ranking value (e.g. "20-x" converts time to points)
-            if (discFormula) {
-              const transformedScore = applyBuiltInFormula(discFormula, scoreForRanking);
-              if (transformedScore !== scoreForRanking) {
-                console.log(`📐 [Results] Applied var_formel "${discFormula}" to ${participant.firstname} ${participant.lastname} - ${discipline}: ${scoreForRanking} → ${transformedScore}`);
-              }
-              scoreForRanking = transformedScore;
-            }
-            
+
             recalculatedScores[discipline] = scoreForRanking;
           });
-          
-          // Calculate total from recalculated scores, respecting Streichwertung
-          const currentComp = availableCompetitions.find(c => c.id === competitionId);
-          const dropWorstScore: boolean = currentComp?.dropWorstScore ?? false;
-          const dropCount: number = currentComp?.dropCount ?? 0;
-          const totalScore = computeTotalScore(recalculatedScores, dropWorstScore, dropCount);
 
           return {
             id: participant.id,
@@ -391,7 +344,7 @@ export function useResultsData(
             scores: recalculatedScores, // Use recalculated scores instead of stored scores
             juryResults: participantJuryResults,
             formulas: participantFormulas,
-            totalScore,
+            totalScore: 0, // set by rankParticipants
             rank: 0,
             competitionId,
             competitionName: (() => {
@@ -422,11 +375,15 @@ export function useResultsData(
 
       if (selectedCompetition) {
         const selectedCompetitionData = availableCompetitions.find(c => c.id === parseInt(selectedCompetition));
-        const sortAscending: boolean = selectedCompetitionData?.sortAscending ?? false;
-        // sortAndRank returns a new array: correctly sorted + ranks assigned.
-        // Use it directly — do NOT assign ranks back by index (that maps ranked[i]
-        // onto participantsList[i] which are different participants).
-        const ranked = sortAndRank(participantsList, sortAscending);
+        const ranked = rankParticipants(
+          participantsList,
+          participant => Object.values(participant.scores),
+          {
+            sortAscending: selectedCompetitionData?.sortAscending ?? false,
+            dropWorstScore: selectedCompetitionData?.dropWorstScore ?? false,
+            dropCount: selectedCompetitionData?.dropCount ?? 0,
+          }
+        );
         setRanking(ranked);
         setCompetitionGroups([]);
         setDisciplineFormulas(selectedCompetitionFormulaMap);
@@ -475,21 +432,17 @@ export function useResultsData(
           }
 
           const groupCompetition = availableCompetitions.find(c => c.id === competitionId);
-          const groupSortAscending: boolean = groupCompetition?.sortAscending ?? false;
-          const groupDropWorst: boolean = groupCompetition?.dropWorstScore ?? false;
-          const groupDropCount: number = groupCompetition?.dropCount ?? 0;
 
-          participants.forEach(participant => {
-            const disciplineScores = competitionDisciplines.reduce((acc, discipline) => {
-              acc[discipline] = participant.scores[discipline] || 0;
-              return acc;
-            }, {} as Record<string, number>);
-            participant.totalScore = computeTotalScore(disciplineScores, groupDropWorst, groupDropCount);
-          });
-
-          // sortAndRank returns a new sorted array with ranks assigned.
-          // Use it directly for the group — never assign back by index.
-          const rankedGroup = sortAndRank(participants, groupSortAscending);
+          // Missing disciplines count as 0 here, so the Streichwertung can drop them
+          const rankedGroup = rankParticipants(
+            participants,
+            participant => competitionDisciplines.map(discipline => participant.scores[discipline] || 0),
+            {
+              sortAscending: groupCompetition?.sortAscending ?? false,
+              dropWorstScore: groupCompetition?.dropWorstScore ?? false,
+              dropCount: groupCompetition?.dropCount ?? 0,
+            }
+          );
 
           groups.push({
             competitionId,

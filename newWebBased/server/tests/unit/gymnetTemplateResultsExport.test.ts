@@ -233,5 +233,19 @@ describe('mergeGymNetTemplateWithResults', () => {
       expect(placementsByName(dropping.xml)).toEqual({ Anna: '1', Berta: '2' });
       expect(dropping.xml).toContain('<etPunkte>20.000</etPunkte>');
     });
+
+    it('writes the raw score as Wertung and the effective points as Punkte', async () => {
+      const withPoints = (id: number, firstName: string, raw: number, points: number) => ({
+        ...turner(id, firstName, [raw]),
+        disciplines: [{ disciplineId: 1, name: 'Gerät 1', score: raw, points, position: 1 }],
+      });
+      const template = templateFor(['Anna', 'Berta']).replace(/<Disziplinen\/>/g, '<Disziplinen><Disziplin><wedDisName>Gerät 1</wedDisName><wtdWertung></wtdWertung><wtdPunkte></wtdPunkte></Disziplin></Disziplinen>');
+      const result = await mergeGymNetTemplateWithResults(template, [competition([withPoints(1, 'Anna', 6, 14), withPoints(2, 'Berta', 9, 11)])]);
+
+      expect(result.xml).toContain('<wtdWertung>6.000</wtdWertung>');
+      expect(result.xml).toContain('<wtdPunkte>14.000</wtdPunkte>');
+      expect(result.xml).toContain('<etPunkte>14.000</etPunkte>');
+      expect(placementsByName(result.xml)).toEqual({ Anna: '1', Berta: '2' });
+    });
   });
 });

@@ -5,7 +5,10 @@ import { BASE_DTB_MAPPING, turnFixIdToWedDisNr } from './gymnetMapping';
 export interface GymNetExportDiscipline {
   disciplineId: number;
   name: string;
+  /** Stored score (rel_leistung) */
   score: number | null;
+  /** Effective score after the formulas; falls back to `score` */
+  points?: number | null;
   position: number;
 }
 
@@ -69,7 +72,7 @@ export function resolveCompetitionResults(
   return rankCompetition(
     competition.participants.map((participant) => ({
       key: participant.participantId,
-      scores: participant.disciplines.map((discipline) => discipline.score),
+      scores: participant.disciplines.map((discipline) => discipline.points ?? discipline.score),
       totalScore: participant.totalScore,
       excluded: participant.isOutOfCompetition === true
         || participant.isAbsent === true
@@ -182,6 +185,7 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
                     const wedDisNrByName = getWedDisNrByDisciplineName(discipline.name || '');
                     const wedDisNr = wedDisNrByName ?? wedDisNrById;
                     const formattedScore = formatScore(discipline.score);
+                    const formattedPoints = formatScore(discipline.points ?? discipline.score);
 
                     return {
                       wedDisID: String(discipline.disciplineId),
@@ -189,7 +193,7 @@ export function buildGymNetResultsXml(competitions: GymNetExportCompetition[]): 
                       wedDisName: discipline.name || '',
                       wtdPosition: String(discipline.position),
                       wtdWertung: formattedScore,
-                      wtdPunkte: formattedScore
+                      wtdPunkte: formattedPoints
                     };
                   })
                 }

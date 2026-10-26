@@ -24,6 +24,8 @@
 import { Router, Request, Response } from 'express'
 import prisma from '../lib/prisma'
 import { isDebug } from '../utils/debug'
+import { loadEffectiveDisciplineScores } from '../utils/effectiveScoreLoader'
+import { rankCompetition } from '@turnfix/shared'
 
 const router = Router()
 
@@ -475,37 +477,61 @@ export async function checkSquadCombination(eventId: number): Promise<AnalyzerCh
 // ============================================================================
 
 export async function checkDuplicateTopPlacements(eventId: number): Promise<AnalyzerCheckResult> {
-  const rows: any[] = await (prisma as any).$queryRawUnsafe(`
-    WITH scores AS (
-      SELECT
-        w.int_wertungenid,
-        wk.int_wettkaempfeid,
-        wk.var_name AS wk_name,
-        ROUND(SUM(wd.rel_leistung)::numeric, 6) AS total_score,
-        RANK() OVER (
-          PARTITION BY wk.int_wettkaempfeid
-          ORDER BY ROUND(SUM(wd.rel_leistung)::numeric, 6) DESC
-        ) AS rnk
+  const competitions: any[] = await (prisma as any).$queryRawUnsafe(`
+    SELECT
+      wk.int_wettkaempfeid AS id,
+      COALESCE(wk.var_name, 'WK') AS name,
+      COALESCE(wk.bol_sortasc, false) AS sort_asc,
+      COALESCE(wk.bol_streichwertung, false) AS drop_worst,
+      COALESCE(wk.int_anz_streich, 0) AS drop_count
+    FROM tfx_wettkaempfe wk
+    WHERE wk.int_veranstaltungenid = $1
+    ORDER BY wk.var_name
+  `, eventId)
+
+  const rows: Array<{ id: number; label: string }> = []
+
+  if (competitions.length > 0) {
+    const starters: any[] = await (prisma as any).$queryRawUnsafe(`
+      SELECT w.int_wertungenid, w.int_wettkaempfeid
       FROM tfx_wertungen w
-      JOIN tfx_wettkaempfe wk    ON w.int_wettkaempfeid = wk.int_wettkaempfeid
-      JOIN tfx_wertungen_details wd ON wd.int_wertungenid = w.int_wertungenid
+      JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       WHERE wk.int_veranstaltungenid = $1
         AND w.int_teilnehmerid IS NOT NULL
         AND w.bol_startet_nicht IS NOT TRUE
-      GROUP BY w.int_wertungenid, wk.int_wettkaempfeid, wk.var_name
-    ),
-    tied AS (
-      SELECT int_wettkaempfeid, wk_name, rnk, COUNT(*) AS tie_count
-      FROM scores
-      WHERE rnk <= 3
-      GROUP BY int_wettkaempfeid, wk_name, rnk
-      HAVING COUNT(*) > 1
-    )
-    SELECT int_wettkaempfeid AS id,
-           COALESCE(wk_name, 'WK') || ' – Platz ' || rnk AS label
-    FROM tied
-    ORDER BY wk_name, rnk
-  `, eventId)
+    `, eventId)
+
+    // Same effective scores and ranking as the results page and the exports
+    const effectiveScores = await loadEffectiveDisciplineScores(competitions.map(c => Number(c.id)))
+    const scoresByWertung = new Map<number, Array<number | null>>()
+    effectiveScores.forEach(row => {
+      const scores = scoresByWertung.get(row.wertungenId) ?? []
+      scores.push(row.effectiveScore)
+      scoresByWertung.set(row.wertungenId, scores)
+    })
+
+    for (const competition of competitions) {
+      const ranking = rankCompetition(
+        starters
+          .filter(s => Number(s.int_wettkaempfeid) === Number(competition.id))
+          .map(s => ({ key: Number(s.int_wertungenid), scores: scoresByWertung.get(Number(s.int_wertungenid)) ?? [] })),
+        {
+          sortAscending: competition.sort_asc === true,
+          dropWorstScore: competition.drop_worst === true,
+          dropCount: Number(competition.drop_count ?? 0),
+        }
+      )
+
+      const countByRank = new Map<number, number>()
+      ranking.forEach(({ rank }) => {
+        if (rank >= 1 && rank <= 3) countByRank.set(rank, (countByRank.get(rank) ?? 0) + 1)
+      })
+      ;[...countByRank.entries()]
+        .filter(([, count]) => count > 1)
+        .sort(([a], [b]) => a - b)
+        .forEach(([rank]) => rows.push({ id: Number(competition.id), label: `${competition.name} – Platz ${rank}` }))
+    }
+  }
 
   const count = rows.length
 
@@ -515,7 +541,7 @@ export async function checkDuplicateTopPlacements(eventId: number): Promise<Anal
     severity: 'info',
     status: count === 0 ? 'ok' : 'info',
     affectedCount: count,
-    details: rows.slice(0, 5).map(r => ({ id: Number(r.id), label: String(r.label) })),
+    details: rows.slice(0, 5),
     actionRoute: '/results',
   }
 }

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { getMedalTypeValues } from '../utils/configurationHelpers';
 import { isActiveStarter } from '../utils/participantFilters';
-import { latestDisciplineScores } from '../utils/competitionScores';
+import { loadEffectiveDisciplineScores } from '../utils/effectiveScoreLoader';
 import { rankCompetition } from '@turnfix/shared';
 
 const router = express.Router();
@@ -179,14 +179,22 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
               include: {
                 tfx_vereine: true
               }
-            },
-            tfx_wertungen_details: true
+            }
           }
         }
       }
     });
 
     console.log(`DEBUG: Found ${competitions.length} competitions`);
+
+    // Same effective scores (incl. formulas) as the results page and the exports
+    const effectiveScores = await loadEffectiveDisciplineScores(competitions.map(c => c.int_wettkaempfeid));
+    const scoresByWertung = new Map<number, Array<number | null>>();
+    effectiveScores.forEach(row => {
+      const scores = scoresByWertung.get(row.wertungenId) ?? [];
+      scores.push(row.effectiveScore);
+      scoresByWertung.set(row.wertungenId, scores);
+    });
 
     // Calculate medal standings by club
     const clubStandings = new Map<number, {
@@ -236,7 +244,7 @@ router.get('/:eventId', authenticateToken, async (req: AuthRequest, res) => {
       const ranking = rankCompetition(
         activeWertungen.map(wertung => ({
           key: wertung.int_wertungenid,
-          scores: latestDisciplineScores(wertung.tfx_wertungen_details),
+          scores: scoresByWertung.get(wertung.int_wertungenid) ?? [],
         })),
         {
           sortAscending: competition.bol_sortasc === true,

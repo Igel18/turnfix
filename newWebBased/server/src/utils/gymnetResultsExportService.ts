@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma';
 import type { GymNetExportCompetition } from './gymnetXmlExport';
+import { loadEffectiveDisciplineScores } from './effectiveScoreLoader';
 
 /** Load competition, participant and latest score data in GymNet export format. */
 export async function loadGymNetExportPayload(
@@ -66,26 +67,7 @@ export async function loadGymNetExportPayload(
       WHERE wr.int_wettkaempfeid = ANY($1::int[])
       ORDER BY wr.int_wettkaempfeid, wr.int_startnummer NULLS LAST, t.var_nachname, t.var_vorname
     `, competitionIds) as Promise<any[]>,
-    prisma.$queryRawUnsafe(`
-      WITH latest_scores AS (
-        SELECT
-          wr.int_wettkaempfeid,
-          wr.int_teilnehmerid,
-          wd.int_disziplinenid,
-          wd.rel_leistung,
-          ROW_NUMBER() OVER (
-            PARTITION BY wr.int_wettkaempfeid, wr.int_teilnehmerid, wd.int_disziplinenid
-            ORDER BY COALESCE(wd.int_versuch, 0) DESC, wd.int_wertungen_detailsid DESC
-          ) AS rn
-        FROM tfx_wertungen_details wd
-        JOIN tfx_wertungen wr ON wr.int_wertungenid = wd.int_wertungenid
-        WHERE wr.int_wettkaempfeid = ANY($1::int[])
-          AND COALESCE(wd.int_kp, 0) = 0
-      )
-      SELECT int_wettkaempfeid, int_teilnehmerid, int_disziplinenid, rel_leistung
-      FROM latest_scores
-      WHERE rn = 1
-    `, competitionIds) as Promise<any[]>,
+    loadEffectiveDisciplineScores(competitionIds),
   ]);
 
   const disciplinesByCompetition = new Map<number, any[]>();
@@ -95,10 +77,10 @@ export async function loadGymNetExportPayload(
     disciplinesByCompetition.set(row.int_wettkaempfeid, disciplines);
   }
 
-  const scoreByParticipantAndDiscipline = new Map<string, number | null>();
+  const scoreByParticipantAndDiscipline = new Map<string, { raw: number | null; effective: number | null }>();
   for (const row of scoreRows) {
-    const key = `${row.int_wettkaempfeid}:${row.int_teilnehmerid}:${row.int_disziplinenid}`;
-    scoreByParticipantAndDiscipline.set(key, row.rel_leistung ?? null);
+    const key = `${row.competitionId}:${row.participantId}:${row.disciplineId}`;
+    scoreByParticipantAndDiscipline.set(key, { raw: row.rawScore, effective: row.effectiveScore });
   }
 
   const participantsByCompetition = new Map<number, any[]>();
@@ -136,11 +118,13 @@ export async function loadGymNetExportPayload(
         isAbsent: participant.bol_startet_nicht === true,
         disciplines: disciplines.map((discipline, index) => {
           const key = `${competition.int_wettkaempfeid}:${participant.int_teilnehmerid}:${discipline.int_disziplinenid}`;
+          const score = scoreByParticipantAndDiscipline.get(key);
           return {
             disciplineId: discipline.int_disziplinenid,
             name: discipline.var_name,
             position: index + 1,
-            score: scoreByParticipantAndDiscipline.get(key) ?? null,
+            score: score?.raw ?? null,
+            points: score?.effective ?? null,
           };
         }),
       })),

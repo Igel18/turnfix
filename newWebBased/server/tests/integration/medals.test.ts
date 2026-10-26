@@ -265,6 +265,36 @@ describe('Medals API', () => {
         const none = await standingOf(clubByKey.none);
         expect(none.totalMedals).toBe(0);
       });
+
+      it('ranks by the effective score of a discipline with var_formel, like the results page', async () => {
+        const clubs = await prisma.tfx_vereine.findMany({ take: 2, orderBy: { int_vereineid: 'asc' } });
+        const sport = await prisma.tfx_sport.findFirstOrThrow();
+        const status = await prisma.tfx_status.findFirstOrThrow();
+        const discipline = await prisma.tfx_disziplinen.create({
+          data: { int_sportid: sport.int_sportid, var_name: `Lauf ${Date.now()}`, var_formel: '20-x' },
+        });
+        TestUtils.trackCreated('disciplines', discipline.int_disziplinenid);
+        const competition = await TestUtils.createTestCompetition({
+          name: 'Medal formula competition',
+          int_veranstaltungenid: testEvent.int_veranstaltungenid,
+        });
+
+        // 20-x turns the raw 6 into 14 points and the raw 9 into 11 points
+        for (const [index, raw] of [9, 6].entries()) {
+          const participant = await TestUtils.createTestParticipant({ firstName: `Lauf${index}`, lastName: 'Medal', clubId: clubs[index].int_vereineid });
+          const wertung = await prisma.tfx_wertungen.create({
+            data: { int_wettkaempfeid: competition.int_wettkaempfeid, int_teilnehmerid: participant.int_teilnehmerid, int_statusid: status.int_statusid },
+          });
+          await prisma.tfx_wertungen_details.create({
+            data: { int_wertungenid: wertung.int_wertungenid, int_disziplinenid: discipline.int_disziplinenid, int_versuch: 1, rel_leistung: raw },
+          });
+        }
+
+        const rawNine = await standingOf(clubs[0].int_vereineid);
+        const rawSix = await standingOf(clubs[1].int_vereineid);
+        expect([rawSix.totalGold, rawSix.totalSilver]).toEqual([1, 0]);
+        expect([rawNine.totalGold, rawNine.totalSilver]).toEqual([0, 1]);
+      });
     });
   });
 

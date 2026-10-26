@@ -960,4 +960,120 @@ describe('useResultsData', () => {
     expect(group.participants[0].scores['Boden m']).toBeCloseTo(9.5, 2)
     expect(group.participants[0].totalScore).toBeCloseTo(9.5, 2)
   })
+
+  describe('placements through the shared score calculation', () => {
+    type Entry = { id: number; name: string; scores: Record<string, number>; disciplineFormula?: string; formula?: string | null; juryResults?: any[] }
+
+    const mockEvent = async (entries: Entry[], disciplineNames: string[]) => {
+      const { apiGet } = await import('@/utils/api')
+      vi.mocked(apiGet).mockImplementation(async (url: string) => {
+        if (url.startsWith('/event-participants?')) {
+          return {
+            participants: entries.map(entry => ({
+              id: entry.id, firstname: entry.name, lastname: 'T', club: 'TV', startNumber: entry.id,
+              age: 10, gender: 'weiblich', startet_nicht: false, assignedCompetitions: [1],
+            })),
+          }
+        }
+        if (url.startsWith('/scores?')) {
+          return {
+            results: entries.flatMap(entry => Object.entries(entry.scores).map(([discipline, score]) => ({
+              participantId: entry.id,
+              competitionId: 1,
+              disciplineName: discipline,
+              score,
+              formula: entry.formula ?? null,
+              disciplineFormula: entry.disciplineFormula ?? null,
+              juryResults: entry.juryResults ?? [],
+            }))),
+          }
+        }
+        if (url === '/disciplines') return disciplineNames.map((name, index) => ({ id: index + 1, name }))
+        if (url === '/competitions/1/disciplines') {
+          return { disciplines: disciplineNames.map(name => ({ var_name: name, var_kurz1: name.slice(0, 3) })) }
+        }
+        throw new Error(`Unhandled apiGet URL in test: ${url}`)
+      })
+    }
+
+    const rankSingle = async (competition: object) => {
+      const { result } = renderHook(() => useResultsData('1', '1'))
+      await act(async () => {
+        await result.current.fetchEventRanking([{ id: 1, name: 'WK', number: '0001', ...competition }])
+      })
+      return result.current.ranking
+    }
+
+    const rankGrouped = async (competition: object) => {
+      const { result } = renderHook(() => useResultsData('1', ''))
+      await act(async () => {
+        await result.current.fetchEventRanking([{ id: 1, name: 'WK', number: '0001', ...competition }])
+      })
+      return result.current.competitionGroups[0].participants
+    }
+
+    const apparatus = ['Boden', 'Sprung', 'Balken', 'Reck']
+    const first = (p: { name: string }) => p.name.split(' ')[0]
+    const named = (id: number, name: string, values: number[], extra: Partial<Entry> = {}): Entry => ({
+      id, name, scores: Object.fromEntries(values.map((value, index) => [apparatus[index], value])), ...extra,
+    })
+
+    it('gives equal totals the same place despite floating-point summation order (single competition)', async () => {
+      await mockEvent([
+        named(11, 'Anna', [13.35, 14.15, 12.1, 12.6]),
+        named(12, 'Berta', [14.3, 10.5, 14, 13.4]),
+        named(13, 'Clara', [5, 5, 5, 5]),
+      ], apparatus)
+
+      const ranking = await rankSingle({})
+      expect(Object.fromEntries(ranking.map(p => [first(p), p.rank]))).toEqual({ Anna: 1, Berta: 1, Clara: 3 })
+    })
+
+    it('gives equal totals the same place in the grouped view as well', async () => {
+      await mockEvent([
+        named(11, 'Anna', [13.35, 14.15, 12.1, 12.6]),
+        named(12, 'Berta', [14.3, 10.5, 14, 13.4]),
+      ], apparatus)
+
+      const participants = await rankGrouped({})
+      expect(participants.map(p => p.rank)).toEqual([1, 1])
+    })
+
+    it('applies the built-in formula var_formel before ranking', async () => {
+      await mockEvent([
+        named(1, 'Schnell', [6], { disciplineFormula: '20-x' }),
+        named(2, 'Langsam', [9], { disciplineFormula: '20-x' }),
+      ], ['Boden'])
+
+      const ranking = await rankSingle({})
+      expect(ranking.map(p => [first(p), p.totalScore, p.rank])).toEqual([['Schnell', 14, 1], ['Langsam', 11, 2]])
+    })
+
+    it('recalculates a linked formula from the jury fields before ranking', async () => {
+      const jury = (a: number, b: number) => [
+        { fieldName: 'A', fieldShortName: 'A', performance: a, isFinalScore: false, isStartingScore: false },
+        { fieldName: 'B', fieldShortName: 'B', performance: b, isFinalScore: false, isStartingScore: false },
+      ]
+      await mockEvent([
+        named(1, 'Alt', [1], { formula: 'A+B', juryResults: jury(5, 3) }),
+        named(2, 'Neu', [1], { formula: 'A+B', juryResults: jury(6, 4) }),
+      ], ['Boden'])
+
+      const ranking = await rankSingle({})
+      expect(ranking.map(p => [first(p), p.totalScore])).toEqual([['Neu', 10], ['Alt', 8]])
+    })
+
+    it('ranks ascending and applies the Streichwertung of the competition', async () => {
+      await mockEvent([
+        named(1, 'Anna', [10, 10, 1]),
+        named(2, 'Berta', [9, 9, 9]),
+      ], apparatus.slice(0, 3))
+
+      const ascending = await rankSingle({ sortAscending: true })
+      expect(ascending.map(first)).toEqual(['Anna', 'Berta'])
+
+      const dropping = await rankSingle({ dropWorstScore: true, dropCount: 1 })
+      expect(dropping.map(p => [first(p), p.totalScore, p.rank])).toEqual([['Anna', 20, 1], ['Berta', 18, 2]])
+    })
+  })
 })
