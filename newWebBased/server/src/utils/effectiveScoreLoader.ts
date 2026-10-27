@@ -1,5 +1,5 @@
 import prisma from '../lib/prisma';
-import { effectiveDisciplineScore, type EffectiveScoreJuryResult } from '@turnfix/shared';
+import { effectiveDisciplineScore, recalculateLinkedScore, type EffectiveScoreJuryResult } from '@turnfix/shared';
 import { parseEventScoringMode, shouldUseFormulaCalculation } from './eventScoringMode';
 
 export interface EffectiveDisciplineScoreRow {
@@ -8,7 +8,9 @@ export interface EffectiveDisciplineScoreRow {
   participantId: number;
   disciplineId: number;
   rawScore: number | null;
-  /** Stored score with linked and built-in formula applied, as on the results page */
+  /** Final score after the linked formula (A+B-C) is recalculated from the jury fields */
+  calculatedScore: number | null;
+  /** Calculated score with the built-in formula applied, as on the results page */
   effectiveScore: number | null;
 }
 
@@ -94,6 +96,7 @@ export async function loadEffectiveDisciplineScores(competitionIds: number[]): P
   return scoreRows.map(row => {
     const rawScore = row.rel_leistung === null || row.rel_leistung === undefined ? null : Number(row.rel_leistung);
     const formulasEnabled = formulasEnabledByCompetition.get(row.int_wettkaempfeid) ?? true;
+    const juryResults = juryByWertungAndDiscipline.get(`${row.int_wertungenid}:${row.int_disziplinenid}`);
 
     return {
       competitionId: row.int_wettkaempfeid,
@@ -101,9 +104,10 @@ export async function loadEffectiveDisciplineScores(competitionIds: number[]): P
       participantId: row.int_teilnehmerid,
       disciplineId: row.int_disziplinenid,
       rawScore,
+      calculatedScore: rawScore === null ? null : recalculateLinkedScore(rawScore, juryResults, row.linked_formula),
       effectiveScore: rawScore === null ? null : effectiveDisciplineScore({
         storedScore: rawScore,
-        juryResults: juryByWertungAndDiscipline.get(`${row.int_wertungenid}:${row.int_disziplinenid}`),
+        juryResults,
         linkedFormula: row.linked_formula,
         builtInFormula: formulasEnabled ? row.builtin_formula : null,
       }),

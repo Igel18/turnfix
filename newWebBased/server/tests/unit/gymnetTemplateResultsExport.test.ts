@@ -173,6 +173,73 @@ describe('mergeGymNetTemplateWithResults', () => {
     expect(absentResult.xml).toContain('<etPlatzierung>0</etPlatzierung>');
   });
 
+  describe('discipline matching', () => {
+    const templateDiscipline = (id: number, nr: number, name: string, position: number) => `
+      <Disziplin><wedDisID>${id}</wedDisID><wedDisNr>${nr}</wedDisNr><wedDisName>${name}</wedDisName><wtdPosition>${position}</wtdPosition><wtdWertung></wtdWertung><wtdPunkte></wtdPunkte></Disziplin>`;
+
+    // Same order and names as the GymNet P-level export of the Bestenkämpfe event
+    const template = `<?xml version="1.0" encoding="UTF-8"?>
+<Wettkämpfe><Wettkampf><waNr>101</waNr><waBezeichnung>WK</waBezeichnung><Mannschaften>
+  <Mannschaft><etErfasst>0</etErfasst><etPunkte></etPunkte><etPlatzierung>0</etPlatzierung>
+    <Teilnehmer><TN><perName>Muster</perName><perVorname>Anna</perVorname><perGeburt>14.03.2014</perGeburt></TN></Teilnehmer>
+    <Disziplinen>${templateDiscipline(1731, 160, 'Sprung w. P1-P9', 1)}${templateDiscipline(1732, 170, 'Stu.-Barren w. P1-P9', 2)}${templateDiscipline(1734, 190, 'Boden w. P1-P9', 3)}${templateDiscipline(1733, 180, 'Sch.-Balken w. P1-P9', 4)}</Disziplinen>
+  </Mannschaft></Mannschaften></Wettkampf></Wettkämpfe>`;
+
+    // TurnFix order differs from the template: Boden is the 4th device here
+    const payload = (disciplines: Array<[number, string, number]>): GymNetExportCompetition[] => [{
+      competitionId: 1,
+      competitionNumber: '101',
+      competitionName: 'WK',
+      genderMale: false,
+      genderFemale: true,
+      ageFrom: 1,
+      ageTo: 6,
+      participants: [{
+        participantId: 1,
+        firstName: 'Anna',
+        lastName: 'Muster',
+        birthDate: new Date('2014-03-14'),
+        gender: 1,
+        clubId: 3,
+        clubName: 'TV Test',
+        startNumber: 1,
+        disciplines: disciplines.map(([disciplineId, name, score], index) => ({ disciplineId, name, score, position: index + 1 })),
+      }],
+    }];
+
+    const scoreOf = (xml: string, name: string) =>
+      xml.match(new RegExp(`<wedDisName>${name.replace(/[.]/g, '\\.')}</wedDisName>[\\s\\S]*?<wtdWertung>([^<]*)</wtdWertung>`))?.[1];
+
+    it('assigns "Sch.-Balken" to Balken instead of the device at the same position', async () => {
+      const result = await mergeGymNetTemplateWithResults(template, payload([
+        [71, 'Sprung', 12.95], [68, 'Stufenbarren', 12], [73, 'Balken', 10.5], [74, 'Boden', 12.3],
+      ]));
+
+      expect(scoreOf(result.xml, 'Sch.-Balken w. P1-P9')).toBe('10.500');
+      expect(scoreOf(result.xml, 'Boden w. P1-P9')).toBe('12.300');
+      expect(scoreOf(result.xml, 'Sprung w. P1-P9')).toBe('12.950');
+      expect(scoreOf(result.xml, 'Stu.-Barren w. P1-P9')).toBe('12.000');
+      expect(result.report.unmatchedDisciplines).toEqual([]);
+    });
+
+    it('assigns the apparatus by name for the other common abbreviations', async () => {
+      const result = await mergeGymNetTemplateWithResults(template, payload([
+        [71, 'Sprung w', 1], [68, 'Reck/StuBa.', 2], [73, 'Schwebebalken', 3], [74, 'Boden w', 4],
+      ]));
+
+      expect(scoreOf(result.xml, 'Sch.-Balken w. P1-P9')).toBe('3.000');
+      expect(scoreOf(result.xml, 'Stu.-Barren w. P1-P9')).toBe('2.000');
+    });
+
+    it('does not guess when two devices have the same apparatus', async () => {
+      const result = await mergeGymNetTemplateWithResults(template, payload([
+        [73, 'Balken', 5], [75, 'Schwebebalken Kür', 6], [71, 'Sprung', 7], [74, 'Boden', 8],
+      ]));
+
+      expect(scoreOf(result.xml, 'Sch.-Balken w. P1-P9')).not.toBe('8.000');
+    });
+  });
+
   describe('placements', () => {
     const turner = (id: number, firstName: string, scores: number[]) => ({
       participantId: id,

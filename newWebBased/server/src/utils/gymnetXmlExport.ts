@@ -5,9 +5,9 @@ import { BASE_DTB_MAPPING, turnFixIdToWedDisNr } from './gymnetMapping';
 export interface GymNetExportDiscipline {
   disciplineId: number;
   name: string;
-  /** Stored score (rel_leistung) */
+  /** Final score of the discipline (linked formula recalculated), exported as Wertung */
   score: number | null;
-  /** Effective score after the formulas; falls back to `score` */
+  /** Score after the discipline formula var_formel, exported as Punkte; falls back to `score` */
   points?: number | null;
   position: number;
 }

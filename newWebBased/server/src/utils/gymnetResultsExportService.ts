@@ -77,10 +77,10 @@ export async function loadGymNetExportPayload(
     disciplinesByCompetition.set(row.int_wettkaempfeid, disciplines);
   }
 
-  const scoreByParticipantAndDiscipline = new Map<string, { raw: number | null; effective: number | null }>();
+  const scoreByParticipantAndDiscipline = new Map<string, { calculated: number | null; effective: number | null }>();
   for (const row of scoreRows) {
     const key = `${row.competitionId}:${row.participantId}:${row.disciplineId}`;
-    scoreByParticipantAndDiscipline.set(key, { raw: row.rawScore, effective: row.effectiveScore });
+    scoreByParticipantAndDiscipline.set(key, { calculated: row.calculatedScore, effective: row.effectiveScore });
   }
 
   const participantsByCompetition = new Map<number, any[]>();
@@ -123,7 +123,7 @@ export async function loadGymNetExportPayload(
             disciplineId: discipline.int_disziplinenid,
             name: discipline.var_name,
             position: index + 1,
-            score: score?.raw ?? null,
+            score: score?.calculated ?? null,
             points: score?.effective ?? null,
           };
         }),

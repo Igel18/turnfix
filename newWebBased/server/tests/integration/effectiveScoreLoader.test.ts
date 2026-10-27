@@ -91,6 +91,7 @@ describe('loadEffectiveDisciplineScores', () => {
 
     const [row] = await load();
     expect(row.rawScore).toBe(6);
+    expect(row.calculatedScore).toBe(6);
     expect(row.effectiveScore).toBe(14);
   });
 
@@ -121,6 +122,7 @@ describe('loadEffectiveDisciplineScores', () => {
 
     const [row] = await load();
     expect(row.rawScore).toBe(1);
+    expect(row.calculatedScore).toBe(8);
     expect(row.effectiveScore).toBe(8);
   });
 

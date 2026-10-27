@@ -54,6 +54,22 @@ function normalizeNameForComparison(value: unknown): string {
     .trim();
 }
 
+/** Apparatus type of a discipline name, e.g. "Sch.-Balken w. P1-P9" and "Balken" are both "balken". */
+function getApparatusKey(name: unknown): string | null {
+  const normalized = normalizeText(name);
+  if (!normalized) return null;
+
+  if (/stufen|\bstu\b|\bstuba\b/.test(normalized)) return 'stufenbarren';
+  if (/balken/.test(normalized)) return 'balken';
+  if (/boden/.test(normalized)) return 'boden';
+  if (/sprung/.test(normalized)) return 'sprung';
+  if (/\breck\b/.test(normalized)) return 'reck';
+  if (/barren/.test(normalized)) return 'barren';
+  if (/ringe/.test(normalized)) return 'ringe';
+  if (/pferd|pauschen/.test(normalized)) return 'pferd';
+  return null;
+}
+
 function normalizeDateKey(value: unknown): string {
   const input = String(value || '').trim();
   if (!input) return '';
@@ -238,6 +254,15 @@ function findDisciplineMatch(
     );
     if (byExactName) {
       return byExactName;
+    }
+
+    // A known apparatus is matched by type only; guessing by prefix or position mixes up devices.
+    const templateApparatus = getApparatusKey(templateDisciplineNode?.wedDisName);
+    if (templateApparatus) {
+      const sameApparatus = participant.disciplines.filter((discipline) =>
+        getApparatusKey(discipline.name) === templateApparatus
+      );
+      return sameApparatus.length === 1 ? sameApparatus[0] : null;
     }
 
     const templatePrefix = templateByName.split(' ')[0] || templateByName;
