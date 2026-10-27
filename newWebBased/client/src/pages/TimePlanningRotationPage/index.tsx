@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -27,11 +27,10 @@ import {
 import type { TimeSettings } from '@/pages/TimePlanning/TimePlanning.types'
 import { DEFAULT_TIME_SETTINGS } from '@/pages/TimePlanning/TimePlanning.types'
 import {
-  loadRotationRoundFromStorage,
   loadTimeSettingsFromStorage,
-  saveRotationRoundToStorage,
   saveTimeSettingsToStorage,
 } from '@/pages/TimePlanning/timePlanningSettingsStorage'
+import { getRotationRoundFromSessionFilter } from '@/pages/TimePlanning/rotationUtils'
 
 const HELP_BUTTON_ACTIVE_CLASS = 'bg-blue-600 text-white border-blue-600'
 const HELP_BUTTON_DEFAULT_CLASS = 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -47,7 +46,6 @@ export default function TimePlanningRotationPage() {
   const [timeSettings, setTimeSettings] = useState<TimeSettings>(() =>
     eventId ? loadTimeSettingsFromStorage(eventId) : DEFAULT_TIME_SETTINGS
   )
-  const [selectedRotationRound, setSelectedRotationRound] = useState<number>(1)
   const [showTimeSettings, setShowTimeSettings] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
@@ -78,15 +76,10 @@ export default function TimePlanningRotationPage() {
     sessionGroups,
   })
 
-  useEffect(() => {
-    if (!eventId) return
-    setSelectedRotationRound(loadRotationRoundFromStorage(eventId))
-  }, [eventId])
-
-  useEffect(() => {
-    if (!eventId) return
-    saveRotationRoundToStorage(eventId, selectedRotationRound)
-  }, [eventId, selectedRotationRound])
+  // The session filter decides the round; no filter shows all rounds
+  const selectedRotationRound = getRotationRoundFromSessionFilter(timePlanningFilters.sessionFilter)
+  const setSelectedRotationRound = (round: number | null) =>
+    timePlanningFilters.setSessionFilter(round === null ? '' : String(round))
 
   const saveTimeSettings = () => {
     if (eventId) saveTimeSettingsToStorage(eventId, timeSettings)

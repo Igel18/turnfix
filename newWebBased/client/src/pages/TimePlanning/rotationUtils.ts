@@ -35,3 +35,9 @@ export const squadMatchesCompetition = (
 ): boolean => {
   return getSquadCompetitionIds(squad).includes(competitionId);
 };
+
+/** Session filter value to rotation round; empty or invalid means all rounds (null). */
+export const getRotationRoundFromSessionFilter = (sessionFilter: string): number | null => {
+  const round = Number(sessionFilter);
+  return Number.isInteger(round) && round > 0 ? round : null;
+};

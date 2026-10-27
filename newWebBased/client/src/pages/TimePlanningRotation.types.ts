@@ -39,8 +39,8 @@ export interface TimePlanningRotationProps {
   devices: Device[];
   competitions: Competition[];
   onDataChange?: () => void;
-  selectedRound?: number;
-  onSelectedRoundChange?: (round: number) => void;
+  selectedRound?: number | null;
+  onSelectedRoundChange?: (round: number | null) => void;
 }
 
 export interface TimePlanningRotationRef {

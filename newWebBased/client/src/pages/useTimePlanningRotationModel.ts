@@ -47,10 +47,12 @@ export function generateRoundRobinSchedule(
 export function buildBahnenForRound(
   competitions: Competition[],
   squads: Squad[],
-  round: number,
+  round: number | null,
   manualBahnen: number[] = [],
 ): Bahn[] {
-  const currentRoundCompetitions = competitions.filter((comp) => (comp.round || 1) === round);
+  const currentRoundCompetitions = round === null
+    ? competitions
+    : competitions.filter((comp) => (comp.round || 1) === round);
   const compIds = new Set(currentRoundCompetitions.map((c) => c.id));
   const currentRoundSquads = squads.filter((s) => squadBelongsToRound(s, compIds));
 
@@ -102,11 +104,13 @@ export function useTimePlanningRotationModel({
     fromBahn: number | null;
   } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [internalSelectedRound, setInternalSelectedRound] = useState<number>(1);
+  const [internalSelectedRound, setInternalSelectedRound] = useState<number | null>(1);
 
-  const activeSelectedRound = selectedRound ?? internalSelectedRound;
+  // null stands for all rounds
+  const activeSelectedRound = selectedRound !== undefined ? selectedRound : internalSelectedRound;
+  const isAllRounds = activeSelectedRound === null;
 
-  const setActiveSelectedRound = (round: number) => {
+  const setActiveSelectedRound = (round: number | null) => {
     if (onSelectedRoundChange) {
       onSelectedRoundChange(round);
       return;
@@ -129,7 +133,7 @@ export function useTimePlanningRotationModel({
   }, [competitions]);
 
   useEffect(() => {
-    if (competitionsByRound.length === 0) {
+    if (competitionsByRound.length === 0 || activeSelectedRound === null) {
       return;
     }
 
@@ -142,8 +146,10 @@ export function useTimePlanningRotationModel({
   }, [competitionsByRound, activeSelectedRound]);
 
   const currentRoundCompetitions = useMemo(
-    () => competitions.filter((comp) => (comp.round || 1) === activeSelectedRound),
-    [competitions, activeSelectedRound],
+    () => (isAllRounds
+      ? competitions
+      : competitions.filter((comp) => (comp.round || 1) === activeSelectedRound)),
+    [competitions, activeSelectedRound, isAllRounds],
   );
 
   const currentRoundUnassignedCompetitions = useMemo(
@@ -161,7 +167,7 @@ export function useTimePlanningRotationModel({
       setBahnen([]);
       return;
     }
-    const manualBahnen = manualBahnenByRound[activeSelectedRound] || [];
+    const manualBahnen = manualBahnenByRound[activeSelectedRound ?? 0] || [];
     const nextBahnen = buildBahnenForRound(
       competitions,
       squads,
@@ -187,13 +193,14 @@ export function useTimePlanningRotationModel({
     const nextBahn = currentMaxBahn + 1;
 
     setManualBahnenByRound((prev) => {
-      const roundLanes = prev[activeSelectedRound] || [];
+      const roundKey = activeSelectedRound ?? 0;
+      const roundLanes = prev[roundKey] || [];
       if (roundLanes.includes(nextBahn)) {
         return prev;
       }
       return {
         ...prev,
-        [activeSelectedRound]: [...roundLanes, nextBahn],
+        [roundKey]: [...roundLanes, nextBahn],
       };
     });
     setSelectedLane(nextBahn);

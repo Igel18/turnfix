@@ -9,8 +9,11 @@ const ROTATION_ROW_ODD_CLASS = "bg-gray-50";
 
 type TimePlanningRotationOverviewProps = Pick<
   TimePlanningRotationProps,
-  "competitions" | "devices" | "selectedRound" | "squads" | "onSelectedRoundChange"
->;
+  "competitions" | "devices" | "squads"
+> & {
+  selectedRound?: number;
+  onSelectedRoundChange?: (round: number) => void;
+};
 
 export default function TimePlanningRotationOverview({
   competitions,
