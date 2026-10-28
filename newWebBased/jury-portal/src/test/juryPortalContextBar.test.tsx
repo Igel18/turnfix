@@ -67,7 +67,7 @@ async function goToScoring(pickDurchgang?: number, pickBahn?: number) {
   if (pickBahn !== undefined) {
     fireEvent.click(await screen.findByTestId(`bahn-card-${pickBahn}`));
   }
-  return screen.findByTestId('context-device');
+  return screen.findByRole('heading', { level: 1, name: 'Boden' });
 }
 
 describe('JuryPortal scoring view — context bar', () => {
@@ -77,7 +77,7 @@ describe('JuryPortal scoring view — context bar', () => {
     localStorage.clear();
   });
 
-  it('shows the chosen Durchgang, Riege, Bahn and Gerät', async () => {
+  it('shows the chosen Durchgang, Riege and Bahn beside the single device title', async () => {
     mockApi(
       [durchgang(1, [10]), durchgang(2, [20])],
       [bahn(1, 1, 10), bahn(2, 1, 20), bahn(2, 2, 20)]
@@ -87,7 +87,8 @@ describe('JuryPortal scoring view — context bar', () => {
     expect(within(screen.getByTestId('context-durchgang')).getByText('2')).toBeInTheDocument();
     expect(within(screen.getByTestId('context-squad')).getByText('Riege A')).toBeInTheDocument();
     expect(within(screen.getByTestId('context-bahn')).getByText('2')).toBeInTheDocument();
-    expect(within(screen.getByTestId('context-device')).getByText('Boden')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Boden' })).toBeInTheDocument();
+    expect(screen.queryByTestId('context-device')).not.toBeInTheDocument();
   });
 
   it('shows the only Durchgang even though it was not asked for', async () => {
@@ -111,6 +112,6 @@ describe('JuryPortal scoring view — context bar', () => {
     expect(screen.queryByTestId('context-durchgang')).not.toBeInTheDocument();
     expect(screen.queryByTestId('context-bahn')).not.toBeInTheDocument();
     expect(screen.getByTestId('context-squad')).toBeInTheDocument();
-    expect(screen.getByTestId('context-device')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Boden' })).toBeInTheDocument();
   });
 });

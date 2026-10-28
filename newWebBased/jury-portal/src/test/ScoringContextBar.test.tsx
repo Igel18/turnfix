@@ -4,21 +4,22 @@ import ScoringContextBar from '../components/JuryPortal/components/ScoringContex
 import type { RotationDevice } from '../components/JuryPortal/JuryPortal.types';
 
 describe('ScoringContextBar', () => {
-  it('shows Durchgang, Riege, Bahn and Gerät', () => {
+  it('shows only Durchgang, Riege and Bahn; Gerät is the page title', () => {
     render(<ScoringContextBar durchgang={2} squadName="Riege A" bahn={3} deviceName="Boden" />);
 
     expect(within(screen.getByTestId('context-durchgang')).getByText('Durchgang')).toBeInTheDocument();
     expect(within(screen.getByTestId('context-durchgang')).getByText('2')).toBeInTheDocument();
     expect(within(screen.getByTestId('context-squad')).getByText('Riege A')).toBeInTheDocument();
     expect(within(screen.getByTestId('context-bahn')).getByText('3')).toBeInTheDocument();
-    expect(within(screen.getByTestId('context-device')).getByText('Boden')).toBeInTheDocument();
+    expect(screen.queryByTestId('context-device')).not.toBeInTheDocument();
   });
 
   it('labels every entry', () => {
     render(<ScoringContextBar durchgang={1} squadName="A" bahn={1} deviceName="Boden" />);
-    ['Durchgang', 'Riege', 'Bahn', 'Gerät'].forEach(label => {
+    ['Durchgang', 'Riege', 'Bahn'].forEach(label => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
+    expect(screen.queryByText('Gerät')).not.toBeInTheDocument();
   });
 
   it('omits the Durchgang when there is none', () => {
@@ -30,18 +31,18 @@ describe('ScoringContextBar', () => {
   it('omits the Bahn when there is none', () => {
     render(<ScoringContextBar durchgang={1} squadName="A" bahn={null} deviceName="Boden" />);
     expect(screen.queryByTestId('context-bahn')).not.toBeInTheDocument();
-    expect(screen.getByTestId('context-device')).toBeInTheDocument();
+    expect(screen.queryByTestId('context-device')).not.toBeInTheDocument();
   });
 
   it('keeps the order Durchgang, Riege, Bahn, Gerät', () => {
     render(<ScoringContextBar durchgang={1} squadName="A" bahn={2} deviceName="Boden" />);
     const order = screen.getAllByTestId(/^context-/).map(el => el.getAttribute('data-testid'));
-    expect(order).toEqual(['context-durchgang', 'context-squad', 'context-bahn', 'context-device']);
+    expect(order).toEqual(['context-durchgang', 'context-squad', 'context-bahn']);
   });
 
   it('highlights the device as the current input target', () => {
     render(<ScoringContextBar durchgang={1} squadName="A" bahn={1} deviceName="Boden" />);
-    expect(screen.getByTestId('context-device')).toHaveAttribute('data-current', 'true');
+    expect(screen.queryByTestId('context-device')).not.toBeInTheDocument();
     expect(screen.getByTestId('context-squad')).not.toHaveAttribute('data-current');
   });
 
@@ -110,6 +111,7 @@ describe('ScoringContextBar', () => {
     it('is hidden without a rotation, for an unknown current device or without a current device', () => {
       const { unmount } = renderBar(2, []);
       expect(screen.queryByTestId('rotation-device-2')).not.toBeInTheDocument();
+      expect(screen.getByTestId('rotation-status')).toHaveTextContent('Keine Geräterotation geplant');
       unmount();
 
       const second = renderBar(99);
@@ -123,7 +125,7 @@ describe('ScoringContextBar', () => {
     it('still works without the rotation props', () => {
       render(<ScoringContextBar durchgang={1} squadName="A" bahn={1} deviceName="Boden" />);
       expect(screen.queryAllByTestId(/^rotation-device-/)).toHaveLength(0);
-      expect(screen.getByTestId('context-device')).toBeInTheDocument();
+      expect(screen.queryByTestId('context-device')).not.toBeInTheDocument();
     });
   });
 });

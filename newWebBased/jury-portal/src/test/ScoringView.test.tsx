@@ -53,8 +53,13 @@ describe('ScoringView', () => {
   describe('header', () => {
     it('shows the device and the squad and goes back', () => {
       const props = baseProps();
-      render(<ScoringView {...props} />);
+      render(<ScoringView {...props} durchgangNumber={2} bahnNumber={3} />);
       expect(screen.getByRole('heading', { level: 1, name: 'Boden' })).toBeInTheDocument();
+      expect(screen.queryAllByText('Boden')).toHaveLength(1);
+      expect(screen.getAllByText('Riege 7')).toHaveLength(1);
+      expect(screen.getByTestId('context-durchgang')).toHaveTextContent('2');
+      expect(screen.getByTestId('context-bahn')).toHaveTextContent('3');
+      expect(screen.queryByTestId('context-device')).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /Zurück/ }));
       expect(props.onBack).toHaveBeenCalledTimes(1);
     });
@@ -87,6 +92,8 @@ describe('ScoringView', () => {
       props.participants[1] = participant(2, 'Berta Bunt', { currentScore: 12.5 });
       render(<ScoringView {...props} />);
       expect(within(sidebar()).getByText('1 / 3')).toBeInTheDocument();
+      expect(within(sidebar()).getByRole('progressbar', { name: 'Teilnehmerfortschritt' })).toHaveAttribute('aria-valuenow', '1');
+      expect(within(sidebar()).getByRole('progressbar')).toHaveAttribute('aria-valuemax', '3');
     });
 
     it('counts a stored score of 0 as completed', () => {
@@ -94,6 +101,12 @@ describe('ScoringView', () => {
       props.participants[0] = participant(1, 'Anna Alt', { currentScore: 0 });
       render(<ScoringView {...props} />);
       expect(within(sidebar()).getByText('1 / 3')).toBeInTheDocument();
+    });
+
+    it('shows a zero-valued progress bar for an empty squad', () => {
+      render(<ScoringView {...baseProps()} participants={[]} currentParticipant={undefined} />);
+      expect(within(sidebar()).getByRole('progressbar', { name: 'Teilnehmerfortschritt' })).toHaveAttribute('aria-valuenow', '0');
+      expect(within(sidebar()).getByRole('progressbar')).toHaveAttribute('aria-valuemax', '1');
     });
 
     it('shows stored scores and a checkmark', () => {

@@ -91,17 +91,12 @@ const ScoringView: React.FC<ScoringViewProps> = ({
       {/* Header */}
       <ScoringHeader
         selectedDevice={selectedDevice}
-        selectedSquad={selectedSquad}
         onBack={onBack}
         onDeviceComplete={onDeviceComplete}
-      />
-
-      <ScoringContextBar
+        rotation={rotation}
         durchgang={durchgangNumber}
         squadName={selectedSquad?.name}
         bahn={bahnNumber}
-        deviceName={selectedDevice?.name}
-        rotation={rotation}
         currentDisciplineId={selectedDevice?.disciplineId ?? null}
       />
 
@@ -112,7 +107,6 @@ const ScoringView: React.FC<ScoringViewProps> = ({
           participants={participants}
           currentParticipantIndex={currentParticipantIndex}
           selectedDevice={selectedDevice}
-          selectedSquad={selectedSquad}
           completedCount={completedCount}
           progressPercent={progressPercent}
           statuses={statuses}
@@ -146,20 +140,28 @@ const ScoringView: React.FC<ScoringViewProps> = ({
 
 interface ScoringHeaderProps {
   selectedDevice: Device | null;
-  selectedSquad: Squad | null;
   onBack: () => void;
   onDeviceComplete: () => void;
+  durchgang: number | null;
+  squadName: string | undefined;
+  bahn: number | null;
+  rotation: RotationDevice[];
+  currentDisciplineId: number | null;
 }
 
 const ScoringHeader: React.FC<ScoringHeaderProps> = ({
   selectedDevice,
-  selectedSquad,
   onBack,
   onDeviceComplete,
+  durchgang,
+  squadName,
+  bahn,
+  rotation,
+  currentDisciplineId,
 }) => (
-  <div className="bg-blue-600 text-white p-2 sm:p-4 flex-shrink-0">
-    <div className="max-w-7xl mx-auto flex items-center justify-between">
-      <div className="flex items-center space-x-2 sm:space-x-4">
+  <div className="bg-blue-600 text-white px-2 py-2 sm:px-4 sm:py-3 flex-shrink-0">
+    <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-4">
         <button
           onClick={onBack}
           className="text-blue-100 hover:text-white text-sm sm:text-base"
@@ -192,9 +194,15 @@ const ScoringHeader: React.FC<ScoringHeaderProps> = ({
           )}
           <div>
             <h1 className="text-sm sm:text-xl font-bold">{selectedDevice?.name}</h1>
-            <p className="text-xs sm:text-base text-blue-100">{selectedSquad?.name}</p>
           </div>
         </div>
+        <ScoringContextBar
+          durchgang={durchgang}
+          squadName={squadName}
+          bahn={bahn}
+          rotation={rotation}
+          currentDisciplineId={currentDisciplineId}
+        />
       </div>
       <button
         onClick={onDeviceComplete}
@@ -210,7 +218,6 @@ interface ParticipantSidebarProps {
   participants: Participant[];
   currentParticipantIndex: number;
   selectedDevice: Device | null;
-  selectedSquad: Squad | null;
   completedCount: number;
   progressPercent: number;
   statuses: JuryStatus[];
@@ -223,7 +230,6 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
   participants,
   currentParticipantIndex,
   selectedDevice,
-  selectedSquad,
   completedCount,
   progressPercent,
   statuses,
@@ -234,8 +240,6 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
   <div className="w-full sm:w-2/5 lg:w-1/3 bg-white border-b sm:border-b-0 sm:border-r border-gray-300 flex flex-col">
     <div className="p-2 sm:p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
       <h2 className="text-base sm:text-lg font-semibold text-gray-900">Teilnehmer ({participants.length})</h2>
-      <p className="text-xs sm:text-sm text-gray-600 truncate">{selectedDevice?.name} - {selectedSquad?.name}</p>
-
       {/* Progress Bar */}
       <div className="mt-2 sm:mt-3">
         <div className="flex items-center justify-between mb-1">
@@ -244,7 +248,14 @@ const ParticipantSidebar: React.FC<ParticipantSidebarProps> = ({
             {completedCount} / {participants.length}
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className="w-full bg-gray-200 rounded-full h-2"
+          role="progressbar"
+          aria-label="Teilnehmerfortschritt"
+          aria-valuemin={0}
+          aria-valuemax={Math.max(participants.length, 1)}
+          aria-valuenow={completedCount}
+        >
           <div
             className="bg-green-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progressPercent}%` }}

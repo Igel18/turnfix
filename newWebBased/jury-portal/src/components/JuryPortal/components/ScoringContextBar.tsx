@@ -11,7 +11,6 @@ interface ScoringContextBarProps {
   durchgang: number | null;
   squadName: string | undefined;
   bahn: number | null;
-  deviceName: string | undefined;
   /** Devices of the squad in rotation order (empty/omitted = no rotation planned) */
   rotation?: RotationDevice[];
   currentDisciplineId?: number | null;
@@ -35,7 +34,6 @@ const ScoringContextBar: React.FC<ScoringContextBarProps> = ({
   durchgang,
   squadName,
   bahn,
-  deviceName,
   rotation = [],
   currentDisciplineId = null,
 }) => {
@@ -43,16 +41,15 @@ const ScoringContextBar: React.FC<ScoringContextBarProps> = ({
     durchgang !== null && { key: 'durchgang', label: 'Durchgang', value: String(durchgang) },
     squadName && { key: 'squad', label: 'Riege', value: squadName },
     bahn !== null && { key: 'bahn', label: 'Bahn', value: String(bahn) },
-    deviceName && { key: 'device', label: 'Gerät', value: deviceName, current: true },
   ].filter(Boolean) as ContextEntry[];
 
   const progress = getRotationProgress(rotation, currentDisciplineId);
   const showRotation = progress.some(p => p.state === 'current');
   const next = progress.find(p => p.state === 'next')?.device;
+  const rotationStatus = !showRotation ? 'Keine Geräterotation geplant' : null;
 
   return (
-    <div className="bg-blue-700 text-white px-2 py-1.5 sm:px-4 sm:py-2 flex-shrink-0">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs sm:gap-2 sm:text-sm">
         {entries.map(entry => (
           <div
             key={entry.key}
@@ -70,11 +67,9 @@ const ScoringContextBar: React.FC<ScoringContextBarProps> = ({
             <span className="font-semibold">{entry.value}</span>
           </div>
         ))}
-      </div>
-
-      {showRotation && (
-        <div className="max-w-7xl mx-auto mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-blue-200 uppercase tracking-wide text-[10px] mr-1">Geräte</span>
+      {showRotation ? (
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5" data-testid="rotation-status">
+          <span className="sr-only">Geräterotation</span>
           {progress.map(({ device, state }) => (
             <span
               key={device.disciplineId}
@@ -94,6 +89,8 @@ const ScoringContextBar: React.FC<ScoringContextBarProps> = ({
             )}
           </span>
         </div>
+      ) : (
+        <span className="sr-only" data-testid="rotation-status">{rotationStatus}</span>
       )}
     </div>
   );

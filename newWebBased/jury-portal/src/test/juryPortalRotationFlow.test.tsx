@@ -174,7 +174,7 @@ describe('Jury Portal — device rotation of the squad', () => {
     await openDeviceList();
     pickDevice('Boden');
 
-    await screen.findByTestId('context-device');
+    await screen.findByRole('heading', { name: 'Boden' });
     expect(screen.queryAllByTestId(/^rotation-device-/)).toHaveLength(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Gerät abschließen' }));
@@ -187,7 +187,7 @@ describe('Jury Portal — device rotation of the squad', () => {
     await openDeviceList();
     pickDevice('Ringe');
 
-    await screen.findByTestId('context-device');
+    await screen.findByRole('heading', { name: 'Ringe' });
     expect(screen.queryAllByTestId(/^rotation-device-/)).toHaveLength(0);
   });
 });
