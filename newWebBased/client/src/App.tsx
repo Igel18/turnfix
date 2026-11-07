@@ -5,7 +5,11 @@ import { CertificateLayoutProvider } from '@/contexts/CertificateLayoutContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import SectionNavigationLayout from '@/components/SectionNavigationLayout'
-import { eventSetupActions } from '@/pages/ManagementCenter/ManagementCenter.constants'
+import {
+  competitionDayActions,
+  eventSetupActions,
+  timePlanningActions,
+} from '@/pages/ManagementCenter/ManagementCenter.constants'
 import './i18n'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
@@ -81,19 +85,23 @@ function App() {
             <Route path="/associations" element={<Associations />} />
             <Route path="/participants" element={<ParticipantsUnified />} />
             <Route path="/results" element={<Results />} />
-            <Route path="/score-capture" element={<ScoreCapture />} />
-            <Route path="/score-capture-v2" element={<ScoreCaptureV2 />} />
-            <Route path="/group-scoring" element={<GroupScoreCapture />} />
-            <Route path="/team-scoring" element={<TeamScoreCapture />} />
-            <Route path="/time-planning" element={<TimePlanningRounds />} />
-            <Route path="/time-planning/rounds" element={<TimePlanningRounds />} />
-            <Route path="/time-planning/rotation" element={<TimePlanningRotationPage />} />
-            <Route path="/time-planning/rotation-overview" element={<TimePlanningRotationOverviewPage />} />
-            <Route path="/time-planning/matrix" element={<TimePlanningMatrixPage />} />
-            <Route path="/squad-status" element={<SquadStatusManagement />} />
-            <Route path="/participant-status" element={<ParticipantStatusManagement />} />
-            <Route path="/competition-status" element={<CompetitionStatusManagement />} />
-            <Route path="/live-scores" element={<LiveScoresPage />} />
+            <Route element={<SectionNavigationLayout actions={timePlanningActions} titleKey="managementCenter.eventManagement.timePlanning.title" />}>
+              <Route path="/time-planning" element={<TimePlanningRounds />} />
+              <Route path="/time-planning/rounds" element={<TimePlanningRounds />} />
+              <Route path="/time-planning/rotation" element={<TimePlanningRotationPage />} />
+              <Route path="/time-planning/rotation-overview" element={<TimePlanningRotationOverviewPage />} />
+              <Route path="/time-planning/matrix" element={<TimePlanningMatrixPage />} />
+            </Route>
+            <Route element={<SectionNavigationLayout actions={competitionDayActions} titleKey="managementCenter.eventManagement.competitionDay.title" />}>
+              <Route path="/squad-status" element={<SquadStatusManagement />} />
+              <Route path="/participant-status" element={<ParticipantStatusManagement />} />
+              <Route path="/competition-status" element={<CompetitionStatusManagement />} />
+              <Route path="/live-scores" element={<LiveScoresPage />} />
+              <Route path="/score-capture" element={<ScoreCapture />} />
+              <Route path="/score-capture-v2" element={<ScoreCaptureV2 />} />
+              <Route path="/group-scoring" element={<GroupScoreCapture />} />
+              <Route path="/team-scoring" element={<TeamScoreCapture />} />
+            </Route>
             <Route path="/medallienspiegel" element={<Medallienspiegel />} />
             <Route path="/areas" element={<Areas />} />
             <Route path="/disciplines" element={<DisciplinesUnified />} />

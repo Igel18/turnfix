@@ -24,20 +24,17 @@ export default function SectionNavigationLayout({ actions, titleKey }: SectionNa
         const active = location.pathname === action.href
         const search = new URLSearchParams()
         if (eventId) search.set('eventId', String(eventId))
-        const href = `${action.href}${search.size ? `?${search}` : ''}`
+        const href = action.external
+          ? action.href
+          : `${action.href}${search.size ? `?${search}` : ''}`
         const currentPage = active ? 'page' : undefined
         const tileStyle = active ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-blue-300'
-
-        return (
-          <Link
-            key={action.href}
-            to={href}
-            onClick={() => {
-              if (mobileNavigationRef.current) mobileNavigationRef.current.open = false
-            }}
-            aria-current={currentPage}
-            className={`group flex items-center gap-3 rounded-lg border p-2 text-left transition-colors ${tileStyle}`}
-          >
+        const handleNavigation = () => {
+          if (mobileNavigationRef.current) mobileNavigationRef.current.open = false
+        }
+        const linkClassName = `group flex items-center gap-3 rounded-lg border p-2 text-left transition-colors ${tileStyle}`
+        const linkContent = (
+          <>
             <span className={`${action.color} shrink-0 rounded-lg p-2 text-white`}>
               <Icon className="h-5 w-5" aria-hidden="true" />
             </span>
@@ -45,6 +42,29 @@ export default function SectionNavigationLayout({ actions, titleKey }: SectionNa
               <span className="block text-sm font-medium text-gray-900">{translated.name}</span>
               {action.badge && <span className="text-xs font-medium text-blue-700">{action.badge}</span>}
             </span>
+          </>
+        )
+
+        return action.external ? (
+          <a
+            key={action.href}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleNavigation}
+            className={linkClassName}
+          >
+            {linkContent}
+          </a>
+        ) : (
+          <Link
+            key={action.href}
+            to={href}
+            onClick={handleNavigation}
+            aria-current={currentPage}
+            className={linkClassName}
+          >
+            {linkContent}
           </Link>
         )
   })

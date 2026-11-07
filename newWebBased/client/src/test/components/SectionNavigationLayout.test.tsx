@@ -2,19 +2,27 @@ import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import SectionNavigationLayout from '@/components/SectionNavigationLayout'
-import { eventSetupActions } from '@/pages/ManagementCenter/ManagementCenter.constants'
+import {
+  competitionDayActions,
+  eventSetupActions,
+  timePlanningActions,
+} from '@/pages/ManagementCenter/ManagementCenter.constants'
 
 const event = vi.hoisted(() => ({ selectedEvent: null as { int_eventid: number } | null }))
 
 vi.mock('@/contexts/EventContext', () => ({ useEvent: () => event }))
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
 
-function renderNavigation(path: string) {
+function renderNavigation(
+  path: string,
+  actions = eventSetupActions,
+  titleKey = 'setup'
+) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route element={<SectionNavigationLayout actions={eventSetupActions} titleKey="setup" />}>
-          {eventSetupActions.map(action => <Route key={action.href} path={action.href} element={<div>Page content</div>} />)}
+        <Route element={<SectionNavigationLayout actions={actions} titleKey={titleKey} />}>
+          {actions.filter(action => !action.external).map(action => <Route key={action.href} path={action.href} element={<div>Page content</div>} />)}
         </Route>
       </Routes>
     </MemoryRouter>
@@ -64,5 +72,31 @@ describe('SectionNavigationLayout', () => {
 
     expect(details.open).toBe(false)
     expect(within(mobileNavigation).getAllByRole('link')[3]).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('renders the time-planning links with the event ID', () => {
+    event.selectedEvent = { int_eventid: 59 }
+    renderNavigation('/time-planning/rotation?eventId=59', timePlanningActions, 'time-planning')
+
+    const navigation = screen.getAllByRole('navigation', { name: 'time-planning' })[0]
+    const links = within(navigation).getAllByRole('link')
+    expect(links).toHaveLength(4)
+    expect(links.map(link => link.getAttribute('href'))).toEqual(
+      timePlanningActions.map(action => `${action.href}?eventId=59`)
+    )
+    expect(links[1]).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('renders competition-day links and keeps the jury portal external', () => {
+    event.selectedEvent = { int_eventid: 59 }
+    renderNavigation('/score-capture?eventId=59', competitionDayActions, 'competition-day')
+
+    const navigation = screen.getAllByRole('navigation', { name: 'competition-day' })[0]
+    const links = within(navigation).getAllByRole('link')
+    expect(links).toHaveLength(9)
+    expect(links[4]).toHaveAttribute('aria-current', 'page')
+    expect(links[8]).toHaveAttribute('target', '_blank')
+    expect(links[8]).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(links[8]).toHaveAttribute('href', competitionDayActions[8].href)
   })
 })
