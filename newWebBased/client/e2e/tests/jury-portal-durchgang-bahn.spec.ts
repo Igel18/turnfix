@@ -304,13 +304,14 @@ test.describe.serial('Jury Portal: Durchgang, Bahn and context', () => {
     await pickFirstDevice(page);
     await page.getByTestId('bahn-card-1').click();
 
-    await expect(page.getByTestId('context-device')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('E2E_Disc', { timeout: 20_000 });
     await expect(page.locator('[data-testid^="rotation-device-"]')).toHaveCount(0);
+    await expect(page.getByTestId('rotation-status')).toHaveText('Keine Geräterotation geplant');
   });
 
   // ─── Context bar ─────────────────────────────────────────────────
 
-  test('the scoring view shows Durchgang, Riege, Bahn and Gerät', async ({ page }) => {
+  test('the scoring view shows Durchgang, Riege and Bahn beside the single device title', async ({ page }) => {
     test.setTimeout(60_000);
     await openEvent(page);
     await page.getByTestId('durchgang-card-2').click();
@@ -318,11 +319,12 @@ test.describe.serial('Jury Portal: Durchgang, Bahn and context', () => {
     await pickFirstDevice(page);
     await page.getByTestId('bahn-card-2').click();
 
-    await expect(page.getByTestId('context-device')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('E2E_Disc', { timeout: 20_000 });
     await expect(page.getByTestId('context-durchgang')).toContainText('2');
     await expect(page.getByTestId('context-squad')).toContainText('DG2');
     await expect(page.getByTestId('context-bahn')).toContainText('2');
-    await expect(page.getByTestId('context-device')).toContainText('E2E_Disc');
+    await expect(page.getByTestId('context-device')).toHaveCount(0);
+    await expect(page.getByText('E2E_Disc', { exact: false })).toHaveCount(1);
   });
 
   test('a score entered for the chosen Bahn is stored for the right participant', async ({ page, request }) => {
