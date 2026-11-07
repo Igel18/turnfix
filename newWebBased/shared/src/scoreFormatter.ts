@@ -113,6 +113,17 @@ export function getDecimalPlaces(calculationType?: number): number {
   return Math.max(0, Math.min(3, calculationType));
 }
 
+/** Use the greatest configured discipline precision for a competition total. */
+export function getTotalScoreDecimalPlaces(calculationTypes: Array<number | null | undefined>): number {
+  if (calculationTypes.length === 0) return 2;
+  return Math.max(...calculationTypes.map(calculationType => getDecimalPlaces(calculationType ?? undefined)));
+}
+
+/** Normalize a competition total to the same precision used for its display. */
+export function normalizeTotalScore(score: number, decimalPlaces = 2): number {
+  return Number(score.toFixed(getDecimalPlaces(decimalPlaces)));
+}
+
 // ---------------------------------------------------------------------------
 // Score formatting
 // ---------------------------------------------------------------------------
@@ -141,6 +152,11 @@ export function formatScore(
   const formatted = score.toFixed(decimals);
   const sep = getDecimalSeparator(inputMask);
   return sep === ',' ? formatted.replace('.', ',') : formatted;
+}
+
+/** Format a competition total with its shared, competition-wide precision. */
+export function formatTotalScore(score: number | null | undefined, decimalPlaces = 2): string {
+  return formatScore(score, decimalPlaces);
 }
 
 /**

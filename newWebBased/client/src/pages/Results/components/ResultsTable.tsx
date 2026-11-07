@@ -12,6 +12,7 @@ import { TrophyIcon } from '@heroicons/react/24/outline'
 import GroupedTableSection from '@/components/ui/GroupedTableSection'
 import { JuryResultsDisplay } from './JuryResultsDisplay'
 import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
+import { formatTotalScore as formatTotalScoreUtil } from '@/utils/scoreFormatter'
 import type { Participant, CompetitionGroup } from '../Results.types'
 
 interface ResultsTableProps {
@@ -24,6 +25,7 @@ interface ResultsTableProps {
   showDisciplineScores: boolean
     showJuryScores: boolean
   formatScore: (score: number) => string
+  formatTotalScore?: (score: number, decimalPlaces?: number) => string
   getMedalColor: (rank: number) => string
   getMedalEmoji: (rank: number) => string | number
 }
@@ -38,6 +40,7 @@ export const ResultsTable = ({
   showDisciplineScores,
     showJuryScores,
   formatScore,
+  formatTotalScore = formatTotalScoreUtil,
   getMedalColor,
   getMedalEmoji
 }: ResultsTableProps) => {
@@ -196,7 +199,7 @@ export const ResultsTable = ({
                   <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
                     <div className="flex flex-col items-center">
                       <span className="text-xl font-bold text-blue-900">
-                        {formatScore(participant.totalScore)}
+                        {formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)}
                       </span>
                       <span className="text-xs text-blue-600 mt-1">
                         Total
@@ -360,7 +363,7 @@ export const ResultsTable = ({
                       <td className="px-4 py-4 whitespace-nowrap text-center bg-blue-50 border-l-2 border-blue-200">
                         <div className="flex flex-col items-center">
                           <span className="text-xl font-bold text-blue-900">
-                            {formatScore(participant.totalScore)}
+                            {formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)}
                           </span>
                           <span className="text-xs text-blue-600 mt-1">
                             Total

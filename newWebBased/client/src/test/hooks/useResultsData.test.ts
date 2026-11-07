@@ -89,7 +89,8 @@ describe('useResultsData', () => {
       if (url === '/competitions/1/disciplines') {
         return {
           disciplines: [
-            { var_name: 'Boden w', var_formel: '(10 + A) - B', var_kurz1: 'BOD', var_icon: ':/icons/boden.png' },
+            { var_name: 'Boden w', var_formel: '(10 + A) - B', var_kurz1: 'BOD', var_icon: ':/icons/boden.png', int_berechnung: 1 },
+            { var_name: 'Sprung w', var_kurz1: 'SPR', var_icon: ':/icons/sprung.png', int_berechnung: 3 },
           ],
         }
       }
@@ -97,7 +98,7 @@ describe('useResultsData', () => {
       if (url === '/competitions/2/disciplines') {
         return {
           disciplines: [
-            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: ':/icons/boden.png' },
+            { var_name: 'Boden w', var_formel: '1*x', var_kurz1: 'BOD', var_icon: ':/icons/boden.png', int_berechnung: 1 },
           ],
         }
       }
@@ -134,6 +135,8 @@ describe('useResultsData', () => {
 
     expect(annaInGroup1!.totalScore).toBeCloseTo(13, 2)
     expect(annaInGroup2!.totalScore).toBeCloseTo(5, 2)
+    expect(annaInGroup1!.totalScoreDecimalPlaces).toBe(3)
+    expect(annaInGroup2!.totalScoreDecimalPlaces).toBe(1)
   })
 
   it('uses the latest loaded competitions when fetchEventRanking is called without arguments (stale closure)', async () => {

@@ -26,4 +26,11 @@ describe('mapCertificateFieldValue', () => {
   it('keeps the competition name for competition-specific fields', () => {
     expect(mapCertificateFieldValue('7', participant, 'Frühjahrswettkampf', 'Sporthalle Berlin', 'WK AK 12')).toBe('WK AK 12')
   })
+
+  it('formats certificate totals with the competition precision', () => {
+    const participantWithPrecision = { ...participant, totalScoreDecimalPlaces: 3 }
+
+    expect(mapCertificateFieldValue('6', participantWithPrecision, 'Event', 'Hall', 'WK')).toBe('15.250')
+    expect(mapCertificateFieldValue('{participant.totalScore}', participantWithPrecision, 'Event', 'Hall', 'WK')).toBe('15.250')
+  })
 })

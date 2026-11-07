@@ -19,6 +19,7 @@ export * from './effectiveScore';
 export * from './socketConfig';
 export * from './eventDateUtils';
 export * from './scoringInputMode';
+export { formatTotalScore, getTotalScoreDecimalPlaces, normalizeTotalScore } from './scoreFormatter';
 
 // React components (separate export to avoid bundler issues)
 export { BuiltInFormulaInput, type BuiltInFormulaInputProps } from './components/BuiltInFormulaInput';

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { getDisciplineIcon } from '@/utils/disciplineIcons';
+import { getTotalScoreDecimalPlaces } from '@/utils/scoreFormatter';
 import { effectiveDisciplineScore } from '@turnfix/shared';
 import type { Participant, CompetitionGroup, DisciplineInfo } from '../Results.types';
 import { rankParticipants } from '../utils/rankParticipants';
@@ -382,7 +383,8 @@ export function useResultsData(
             sortAscending: selectedCompetitionData?.sortAscending ?? false,
             dropWorstScore: selectedCompetitionData?.dropWorstScore ?? false,
             dropCount: selectedCompetitionData?.dropCount ?? 0,
-          }
+          },
+          getTotalScoreDecimalPlaces(selectedCompetitionDisciplineInfoData.map(discipline => discipline.fullData?.int_berechnung))
         );
         setRanking(ranked);
         setCompetitionGroups([]);
@@ -441,7 +443,8 @@ export function useResultsData(
               sortAscending: groupCompetition?.sortAscending ?? false,
               dropWorstScore: groupCompetition?.dropWorstScore ?? false,
               dropCount: groupCompetition?.dropCount ?? 0,
-            }
+            },
+            getTotalScoreDecimalPlaces(competitionDisciplineInfo.map(discipline => discipline.fullData?.int_berechnung))
           );
 
           groups.push({

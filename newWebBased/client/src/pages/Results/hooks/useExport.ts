@@ -30,6 +30,7 @@ import {
 import { getDisciplineShortName } from '@/utils/disciplineIcons'
 import { preloadIconsForPDF, addIconToPDF, type IconData } from '@/utils/pdfIcons'
 import { getUnifiedResultsHeaderLabels } from '@/utils/headerLabels'
+import { formatTotalScore as formatTotalScoreUtil } from '@/utils/scoreFormatter'
 import { 
   buildFieldSymbolsMap, 
   detectFormulaType,
@@ -62,6 +63,7 @@ interface UseExportProps {
   disciplineFormulas: Record<string, string>
   selectedCompetitionDisciplineInfo: DisciplineInfo[]
   formatScore: (score: number) => string
+  formatTotalScore?: (score: number, decimalPlaces?: number) => string
   /** Mirrors the UI toggle: when false, discipline columns/details are omitted from exports */
   showDisciplineScores?: boolean
 }
@@ -94,6 +96,7 @@ export const useExport = ({
   disciplineFormulas,
   selectedCompetitionDisciplineInfo,
   formatScore,
+  formatTotalScore = formatTotalScoreUtil,
   showDisciplineScores = true
 }: UseExportProps) => {
   const disciplines = useMemo(
@@ -184,7 +187,7 @@ export const useExport = ({
       participant.club,
       participant.age,
       ...disciplines.map(discipline => formatScore(participant.scores[discipline] || 0)),
-      formatScore(participant.totalScore)
+      formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)
     ])
 
     const csvContent = [headers, ...csvData]
@@ -198,7 +201,7 @@ export const useExport = ({
     a.download = `results_${eventName}_${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     window.URL.revokeObjectURL(url)
-  }, [ranking, disciplines, eventName, formatScore, t])
+  }, [ranking, disciplines, eventName, formatScore, formatTotalScore, t])
 
   /**
    * Export single competition results to PDF
@@ -288,7 +291,7 @@ export const useExport = ({
         return breakdown.join('\n')
       })
 
-      return [...baseRow, ...disciplineData, formatScore(participant.totalScore)]
+      return [...baseRow, ...disciplineData, formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)]
     })
 
     // Get unified table styles
@@ -424,7 +427,7 @@ export const useExport = ({
     }
 
     doc.save(`results_${competitionName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
-  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, selectedEvent, eventName, t])
+  }, [disciplines, disciplineFormulas, selectedCompetitionDisciplineInfo, formatScore, formatTotalScore, selectedEvent, eventName, t])
 
   /**
    * Export all competitions to PDF
@@ -535,7 +538,7 @@ export const useExport = ({
           return breakdown.join('\n')
         })
 
-        return [...baseRow, ...disciplineData, formatScore(participant.totalScore)]
+        return [...baseRow, ...disciplineData, formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)]
       })
 
       // Get unified table styles
@@ -672,7 +675,7 @@ export const useExport = ({
     }
 
     doc.save(`results_all_competitions_${eventName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
-  }, [competitionGroups, eventName, formatScore, selectedEvent, t])
+  }, [competitionGroups, eventName, formatScore, formatTotalScore, selectedEvent, t])
 
   /**
    * Main export function that chooses between single or all competitions

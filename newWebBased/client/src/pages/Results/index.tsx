@@ -89,6 +89,7 @@ const Results = () => {
   // Helpers Hook - Formatting utilities
   const {
     formatScore,
+    formatTotalScore,
     getMedalColor,
     getMedalEmoji
   } = useResultsHelpers()
@@ -179,6 +180,7 @@ const Results = () => {
     disciplineFormulas,
     selectedCompetitionDisciplineInfo,
     formatScore,
+    formatTotalScore,
     showDisciplineScores
   })
 
@@ -292,6 +294,7 @@ const Results = () => {
               showDisciplineScores={showDisciplineScores}
               showJuryScores={showJuryScores}
             formatScore={formatScore}
+            formatTotalScore={formatTotalScore}
             getMedalColor={getMedalColor}
             getMedalEmoji={getMedalEmoji}
           />

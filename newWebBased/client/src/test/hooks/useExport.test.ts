@@ -393,6 +393,7 @@ describe('useExport respects hidden discipline details', () => {
     juryResults: {},
     formulas: {},
     totalScore: 9.5,
+    totalScoreDecimalPlaces: 3,
     rank: 1,
     competitionId: 7
   };
@@ -493,6 +494,8 @@ describe('useExport respects hidden discipline details', () => {
     const header = csv.split('\n')[0].split(',');
     expect(header.includes('Boden')).toBe(expectedColumn !== null);
     expect(header[header.length - 1]).toBe('Gesamt');
+    const values = csv.split('\n')[1].split(',');
+    expect(values[values.length - 1]).toBe('9.500');
   });
 });
 

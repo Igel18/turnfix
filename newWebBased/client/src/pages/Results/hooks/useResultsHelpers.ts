@@ -5,10 +5,11 @@
  * Formatting, medals, and helper functions for Results page
  */
 
-import { formatScore as formatScoreUtil } from '@/utils/scoreFormatter';
+import { formatScore as formatScoreUtil, formatTotalScore as formatTotalScoreUtil } from '@/utils/scoreFormatter';
 
 interface UseResultsHelpersReturn {
   formatScore: (score: number, disciplineCalculationType?: number) => string;
+  formatTotalScore: (score: number, decimalPlaces?: number) => string;
   getMedalColor: (rank: number) => string;
   getMedalEmoji: (rank: number) => string;
 }
@@ -17,6 +18,10 @@ export function useResultsHelpers(): UseResultsHelpersReturn {
   
   const formatScore = (score: number, disciplineCalculationType?: number) => {
     return formatScoreUtil(score, disciplineCalculationType);
+  };
+
+  const formatTotalScore = (score: number, decimalPlaces?: number) => {
+    return formatTotalScoreUtil(score, decimalPlaces);
   };
 
   const getMedalColor = (rank: number) => {
@@ -39,6 +44,7 @@ export function useResultsHelpers(): UseResultsHelpersReturn {
 
   return {
     formatScore,
+    formatTotalScore,
     getMedalColor,
     getMedalEmoji
   };

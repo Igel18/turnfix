@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import type { Participant, CompetitionGroup } from '@/pages/Results/Results.types'
 
 const juryDisplaySpy = vi.fn(() => <div data-testid="jury-results-display" />)
@@ -179,5 +179,57 @@ describe('ResultsTable formula propagation', () => {
     )
 
     expect(juryDisplaySpy).not.toHaveBeenCalled()
+  })
+
+  it('formats the total with the competition-wide precision', () => {
+    const participant = { ...baseParticipant, totalScore: 20.125, totalScoreDecimalPlaces: 3 }
+
+    render(
+      <ResultsTable
+        isLoading={false}
+        selectedCompetition={'1'}
+        filteredRanking={[participant]}
+        filteredCompetitionGroups={[]}
+        disciplines={[]}
+        disciplineFormulas={{}}
+        showDisciplineScores={false}
+        showJuryScores={false}
+        formatScore={(score) => score.toFixed(2)}
+        formatTotalScore={(score, decimalPlaces) => score.toFixed(decimalPlaces)}
+        getMedalColor={() => 'bg-gray-100 text-gray-900'}
+        getMedalEmoji={(rank) => String(rank)}
+      />
+    )
+
+    expect(screen.getByText('20.125')).toBeInTheDocument()
+  })
+
+  it('uses the same total precision in grouped competition results', () => {
+    const participant = { ...baseParticipant, totalScore: 20.125, totalScoreDecimalPlaces: 3 }
+
+    render(
+      <ResultsTable
+        isLoading={false}
+        selectedCompetition={null}
+        filteredRanking={[]}
+        filteredCompetitionGroups={[{
+          competitionId: 1,
+          competitionName: 'Comp 1',
+          participants: [participant],
+          disciplines: [],
+          disciplineInfo: [],
+        }]}
+        disciplines={[]}
+        disciplineFormulas={{}}
+        showDisciplineScores={false}
+        showJuryScores={false}
+        formatScore={(score) => score.toFixed(2)}
+        formatTotalScore={(score, decimalPlaces) => score.toFixed(decimalPlaces)}
+        getMedalColor={() => 'bg-gray-100 text-gray-900'}
+        getMedalEmoji={(rank) => String(rank)}
+      />
+    )
+
+    expect(screen.getByText('20.125')).toBeInTheDocument()
   })
 })

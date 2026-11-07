@@ -5,7 +5,8 @@ import type { Participant } from '../Results.types'
 export function rankParticipants(
   participants: Participant[],
   scoresOf: (participant: Participant) => number[],
-  options: CompetitionRankingOptions
+  options: CompetitionRankingOptions,
+  totalScoreDecimalPlaces = 2
 ): Participant[] {
   const results = rankCompetition(
     participants.map((participant, index) => {
@@ -13,13 +14,14 @@ export function rankParticipants(
       // No score at all still counts as 0 so the participant is ranked last
       return { key: index, scores: scores.length > 0 ? scores : [0] }
     }),
-    options
+    { ...options, totalScoreDecimalPlaces }
   )
 
   return participants
     .map((participant, index) => ({
       ...participant,
       totalScore: results.get(index)?.totalScore ?? 0,
+      totalScoreDecimalPlaces,
       rank: results.get(index)?.rank ?? 0,
     }))
     .sort((a, b) => a.rank - b.rank)

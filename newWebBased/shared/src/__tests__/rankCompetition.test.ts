@@ -59,4 +59,34 @@ describe('rankCompetition', () => {
     expect(result.get(1)).toEqual({ totalScore: 30, rank: 1 });
     expect(result.get(2)?.rank).toBe(2);
   });
+
+  it('rounds totals to the visible precision before sorting and assigning places', () => {
+    const result = rankCompetition(
+      [
+        { key: 'a', scores: [10.126] },
+        { key: 'b', scores: [10.124] },
+        { key: 'c', scores: [10.11] },
+      ],
+      { totalScoreDecimalPlaces: 2 },
+    );
+
+    expect(result.get('a')).toEqual({ totalScore: 10.13, rank: 1 });
+    expect(result.get('b')).toEqual({ totalScore: 10.12, rank: 2 });
+    expect(result.get('c')).toEqual({ totalScore: 10.11, rank: 3 });
+  });
+
+  it('ties totals that format identically at the competition precision', () => {
+    const result = rankCompetition(
+      [
+        { key: 'a', scores: [10.124] },
+        { key: 'b', scores: [10.123] },
+        { key: 'c', scores: [10.11] },
+      ],
+      { totalScoreDecimalPlaces: 2 },
+    );
+
+    expect(result.get('a')).toEqual({ totalScore: 10.12, rank: 1 });
+    expect(result.get('b')).toEqual({ totalScore: 10.12, rank: 1 });
+    expect(result.get('c')).toEqual({ totalScore: 10.11, rank: 3 });
+  });
 });

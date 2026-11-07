@@ -28,6 +28,7 @@ export interface Participant {
   juryResults?: { [discipline: string]: JuryResult[] };
   formulas?: { [discipline: string]: string };
   totalScore: number;
+  totalScoreDecimalPlaces?: number;
   rank: number;
   competitionId?: number;
   competitionName?: string;

@@ -14,6 +14,7 @@ import jsPDF from 'jspdf'
 import { apiGet } from '@/utils/api'
 import { debugLog, isDebugEnabled } from '@/utils/debug'
 import { resolveImageUrl, isLocalFilePath } from '@/utils/imageUrlUtils'
+import { formatTotalScore } from '@/utils/scoreFormatter'
 import type { CertificateLayout, PaperFormat, Participant } from '../Results.types'
 
 const PAPER_FORMATS = {
@@ -49,14 +50,14 @@ export const mapCertificateFieldValue = (
       case 3: return participant.name
       case 4: return participant.club
       case 5: return `${participant.rank}.`
-      case 6: return participant.totalScore.toFixed(3)
+      case 6: return formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)
       case 7: return competitionName
       case 8: return `${competitionName} (Einzel)`
       case 9: return 'Turngau'
       case 10: return 'Turnerbund'
       case 11: return 'Deutschland'
       case 12: return participant.rank <= 3 ? 'Siegerurkunde' : 'Teilnahmeurkunde'
-      case 13: return participant.totalScore.toFixed(3)
+      case 13: return formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces)
       case 14: return participant.name
       case 15: return `WK-${participant.competitionId}`
       default: return `Feld ${fieldNum}`
@@ -68,7 +69,7 @@ export const mapCertificateFieldValue = (
     '{participant.club}': participant.club,
     '{participant.rank}': participant.rank.toString(),
     '{participant.age}': participant.age.toString(),
-    '{participant.totalScore}': participant.totalScore.toFixed(2),
+    '{participant.totalScore}': formatTotalScore(participant.totalScore, participant.totalScoreDecimalPlaces),
     '{competition.name}': competitionName,
     '{date}': new Date().toLocaleDateString('de-DE')
   }

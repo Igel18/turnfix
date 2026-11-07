@@ -1,3 +1,5 @@
+import { normalizeTotalScore } from './scoreFormatter';
+
 /**
  * Ranking Utilities (Shared)
  *
@@ -112,6 +114,7 @@ export interface CompetitionRankingOptions {
   sortAscending?: boolean;
   dropWorstScore?: boolean;
   dropCount?: number;
+  totalScoreDecimalPlaces?: number;
 }
 
 export interface CompetitionRankingEntry<K> {
@@ -135,13 +138,21 @@ export interface CompetitionRankingResult {
  */
 export function rankCompetition<K>(
   entries: CompetitionRankingEntry<K>[],
-  { sortAscending = false, dropWorstScore = false, dropCount = 0 }: CompetitionRankingOptions = {}
+  {
+    sortAscending = false,
+    dropWorstScore = false,
+    dropCount = 0,
+    totalScoreDecimalPlaces = 2,
+  }: CompetitionRankingOptions = {}
 ): Map<K, CompetitionRankingResult> {
   const withTotals = entries.map(entry => {
     const values = entry.scores.filter((s): s is number => typeof s === 'number' && !Number.isNaN(s));
-    const totalScore = entry.totalScore ?? (values.length === 0
+    const rawTotalScore = entry.totalScore ?? (values.length === 0
       ? null
       : computeTotalScore(Object.fromEntries(values.map((v, i) => [String(i), v])), dropWorstScore, dropCount));
+    const totalScore = rawTotalScore === null
+      ? null
+      : normalizeTotalScore(rawTotalScore, totalScoreDecimalPlaces);
     return { key: entry.key, totalScore, excluded: entry.excluded === true };
   });
 
