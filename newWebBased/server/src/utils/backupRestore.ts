@@ -11,6 +11,13 @@ export interface RestoreOptions {
   confirmEmptyDatabase: string;
 }
 
+export interface RestoreUrlOptions {
+  backupPath: string;
+  stagingPath: string;
+  databaseUrl: string;
+  confirmEmptyDatabase: string;
+}
+
 async function assertNoLinks(absolutePath: string): Promise<void> {
   const parsed = path.parse(absolutePath);
   let current = parsed.root;
@@ -126,16 +133,14 @@ async function restoreDatabase(dumpPath: string, databaseUrl: string): Promise<v
   throw new Error('pg_restore not found');
 }
 
-export async function restoreBackup(options: RestoreOptions): Promise<void> {
-  if (!options.confirmEmptyDatabase) throw new Error('Explicit confirmation of an empty target database is required');
-  for (const value of [options.backupPath, options.stagingPath, options.targetConfigPath]) {
+export async function validateRestoreFiles(options: { backupPath: string; stagingPath: string }, checkDump = false): Promise<{ backupPath: string; stagingPath: string; dumpPath: string; sources: string[] }> {
+  for (const value of [options.backupPath, options.stagingPath]) {
     if (!path.isAbsolute(value)) throw new Error('All paths must be absolute');
   }
   const backupPath = path.resolve(options.backupPath);
   const stagingPath = path.resolve(options.stagingPath);
-  const targetConfigPath = path.resolve(options.targetConfigPath);
-  if (contains(backupPath, stagingPath) || contains(stagingPath, backupPath) || contains(stagingPath, targetConfigPath)) {
-    throw new Error('Backup, staging and target configuration must not overlap');
+  if (contains(backupPath, stagingPath) || contains(stagingPath, backupPath)) {
+    throw new Error('Backup and staging must not overlap');
   }
   await assertNoLinks(backupPath);
   await assertNoLinks(stagingPath);
@@ -147,6 +152,16 @@ export async function restoreBackup(options: RestoreOptions): Promise<void> {
   await validateTree(manifestPath);
   await validateTree(dumpPath);
   if (!(await fs.lstat(manifestPath)).isFile() || !(await fs.lstat(dumpPath)).isFile()) throw new Error('Backup manifest and dump must be files');
+  if (checkDump) {
+    const file = await fs.open(dumpPath, 'r');
+    try {
+      const signature = Buffer.alloc(5);
+      const { bytesRead } = await file.read(signature, 0, signature.length, 0);
+      if (bytesRead !== 5 || signature.toString('ascii') !== 'PGDMP') throw new Error('Invalid PostgreSQL custom dump');
+    } finally {
+      await file.close();
+    }
+  }
   const manifest: unknown = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
   if (!manifest || typeof manifest !== 'object' || !('sources' in manifest) || !Array.isArray(manifest.sources)) throw new Error('Invalid backup manifest');
   const names = new Set<string>();
@@ -164,7 +179,13 @@ export async function restoreBackup(options: RestoreOptions): Promise<void> {
       if (error.code !== 'ENOENT') throw error;
     }
   }
-  const databaseUrl = await readRestoreTarget(targetConfigPath);
+  return { backupPath, stagingPath, dumpPath, sources };
+}
+
+export async function restoreBackupToUrl(options: RestoreUrlOptions): Promise<void> {
+  if (!options.confirmEmptyDatabase) throw new Error('Explicit confirmation of an empty target database is required');
+  const { backupPath, stagingPath, dumpPath, sources } = await validateRestoreFiles(options);
+  const databaseUrl = options.databaseUrl;
   if (options.confirmEmptyDatabase !== decodeURIComponent(new URL(databaseUrl).pathname.slice(1))) {
     throw new Error('Confirmation must match the target database name');
   }
@@ -173,4 +194,13 @@ export async function restoreBackup(options: RestoreOptions): Promise<void> {
   for (const name of sources) {
     await fs.cp(path.join(backupPath, name), path.join(stagingPath, name), { recursive: true, errorOnExist: true, force: false, dereference: false });
   }
+}
+
+export async function restoreBackup(options: RestoreOptions): Promise<void> {
+  if (!path.isAbsolute(options.targetConfigPath)) throw new Error('All paths must be absolute');
+  if (path.isAbsolute(options.stagingPath) && contains(path.resolve(options.stagingPath), path.resolve(options.targetConfigPath))) {
+    throw new Error('Backup, staging and target configuration must not overlap');
+  }
+  const databaseUrl = await readRestoreTarget(path.resolve(options.targetConfigPath));
+  await restoreBackupToUrl({ ...options, databaseUrl });
 }

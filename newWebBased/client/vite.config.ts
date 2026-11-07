@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import * as path from "path"
+import { restoreProxyGuard } from './restoreProxyGuard'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [restoreProxyGuard(), react()],
   resolve: {
     alias: {
       "@": path.resolve('./src'),

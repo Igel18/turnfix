@@ -4,8 +4,8 @@
  * and the main wizard component integration.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderHook, act } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
@@ -429,6 +429,57 @@ describe('DatabaseSetupWizard (integration)', () => {
     onUpdateDatabaseName: cbs.onUpdateDatabaseName,
     onSaveAndReconnect: cbs.onSaveAndReconnect,
     currentDbConfig: defaultDbConfig,
+  });
+
+  describe('restore wizard', () => {
+    let previousLanguage: string;
+
+    beforeEach(async () => {
+      previousLanguage = i18n.language;
+      await act(async () => { await i18n.changeLanguage('de'); });
+    });
+
+    afterEach(async () => {
+      await act(async () => { await i18n.changeLanguage(previousLanguage); });
+    });
+
+    const openRestore = async (user: ReturnType<typeof userEvent.setup>) => {
+      await user.click(screen.getByRole('button', { name: /wiederherstellung öffnen/i }));
+    };
+
+    const fillRestore = () => {
+      fireEvent.change(screen.getByLabelText(/backup-verzeichnis/i), { target: { value: "C:\\Backups\\O'Brien" } });
+      fireEvent.change(screen.getByLabelText(/staging-verzeichnis/i), { target: { value: 'D:\\Staging\\empty' } });
+      fireEvent.change(screen.getByLabelText(/neuer datenbankname/i), { target: { value: 'turnfix_restore' } });
+    };
+
+    it('opens the restore branch, returns to setup, and resets on close', async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      const { rerender } = render(<DatabaseSetupWizard {...props} />, { wrapper: i18nWrapper });
+      await openRestore(user);
+      fillRestore();
+      await user.click(screen.getByRole('button', { name: /zurück zur einrichtung/i }));
+      expect(screen.getByText('Neuer Datenbankname')).toBeInTheDocument();
+      await openRestore(user);
+      expect(screen.getByLabelText(/backup-verzeichnis/i)).toHaveValue('');
+      fillRestore();
+      rerender(<DatabaseSetupWizard {...props} isOpen={false} />);
+      rerender(<DatabaseSetupWizard {...props} isOpen />);
+      expect(screen.getByText('Neuer Datenbankname')).toBeInTheDocument();
+      await openRestore(user);
+      expect(screen.getByLabelText(/backup-verzeichnis/i)).toHaveValue('');
+    });
+
+    it('shows the restore wizard in English', async () => {
+      await act(async () => { await i18n.changeLanguage('en'); });
+      const user = userEvent.setup();
+      render(<DatabaseSetupWizard {...defaultProps()} />, { wrapper: i18nWrapper });
+      await user.click(screen.getByRole('button', { name: /open restore/i }));
+      expect(screen.getByLabelText(/backup directory/i)).toBeInTheDocument();
+      expect(screen.getByText(/stop the server, jury server/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /back to setup/i })).toBeInTheDocument();
+    });
   });
 
   it('renders nothing when closed', () => {

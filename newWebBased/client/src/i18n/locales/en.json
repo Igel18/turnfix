@@ -235,6 +235,38 @@
     }
   },
   "configuration": {
+    "restore": {
+      "open": "Open restore",
+      "title": "Restore backup",
+      "step": "Restore",
+      "prerequisites": "Choose a trusted backup and an already created, empty staging directory on the server. Files are staged only and are not overwritten. Protect the backup and staging from unauthorized access.",
+      "localOnly": "Restore is available only from a browser local to the server. The server creates a new database using its current database configuration; an existing database name cannot be used.",
+      "manualActivation": "After a successful restore, stop the server, jury server and automatic restarts, then manually activate the database and transfer the inspected files. Check and adjust configuration, .env and paths before restarting.",
+      "backupLabel": "Backup directory (absolute server path)",
+      "stagingLabel": "Staging directory (absolute server path)",
+      "databaseLabel": "New database name",
+      "validation": "Both paths must be absolute. The database name starts with a lowercase ASCII letter and may then contain lowercase ASCII letters, digits and underscores, up to 63 characters in total.",
+      "confirmation": "I understand that a new database will be created and files staged, that these must be activated manually, and that a database or incomplete files may remain after an error.",
+      "start": "Start restore",
+      "running": "Restore in progress",
+      "success": "Restore completed.",
+      "resultDatabase": "New database",
+      "resultStaging": "Staging directory",
+      "notSwitched": "The active database has not been switched.",
+      "databaseMayRemain": "A database may already have been created and may remain on the server; staging may also be incomplete. Check both before trying again.",
+      "errors": {
+        "DATABASE_EXISTS": "The database name already exists. Choose a different name.",
+        "RESTORE_IN_PROGRESS": "A restore is already in progress. Try again later.",
+        "FORBIDDEN": "Restore is only permitted from a browser local to the server.",
+        "INVALID_BACKUP_OR_STAGING": "The backup or staging directory is invalid. Check the backup and empty staging directory on the server.",
+        "DATABASE_CREATE_FAILED": "The new database could not be created. Check server configuration and permissions.",
+        "RESTORE_FAILED": "The restore failed. Check the backup and server configuration.",
+        "INVALID_REQUEST": "The request is invalid. Check all inputs.",
+        "INVALID_TARGET_DATABASE": "The database name is invalid. Choose a different name.",
+        "UNKNOWN": "An unexpected error occurred. Check the server status and inputs."
+      },
+      "back": "Back to setup"
+    },
     "sectionsHeading": "Configuration Sections",
     "gymnetPresetButton": "Initialize DB with GymNet presets",
     "gymnetPresetButtonTooltip": "Insert devices and formulas for GymNet import",

@@ -108,6 +108,7 @@ const medals_1 = __importDefault(require("./routes/medals"));
 const juryResults_1 = __importDefault(require("./routes/juryResults"));
 const wertungenDetails_1 = __importDefault(require("./routes/wertungenDetails"));
 const configuration_1 = __importDefault(require("./routes/configuration"));
+const configurationRestore_1 = __importDefault(require("./routes/configurationRestore"));
 const timePlanning_1 = __importDefault(require("./routes/timePlanning"));
 const firewall_1 = __importDefault(require("./routes/firewall"));
 const appSettings_1 = __importDefault(require("./routes/appSettings"));
@@ -159,6 +160,7 @@ app.use((0, helmet_1.default)({
 }));
 app.use((0, compression_1.default)());
 app.use((0, morgan_1.default)('combined'));
+app.use('/api/configuration', configurationRestore_1.default);
 // Rate limiting is disabled. If you want to re-enable, uncomment the app.use(limiter) line above.
 // CORS configuration - allow network access
 const corsOrigins = [

@@ -116,6 +116,7 @@ import medalRoutes from './routes/medals';
 import juryResultRoutes from './routes/juryResults';
 import wertungenDetailsRoutes from './routes/wertungenDetails';
 import configurationRoutes from './routes/configuration';
+import configurationRestoreRoutes from './routes/configurationRestore';
 import timePlanningRoutes from './routes/timePlanning';
 import firewallRoutes from './routes/firewall';
 import appSettingsRoutes from './routes/appSettings';
@@ -170,6 +171,7 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined'));
+app.use('/api/configuration', configurationRestoreRoutes);
 // Rate limiting is disabled. If you want to re-enable, uncomment the app.use(limiter) line above.
 
 // CORS configuration - allow network access

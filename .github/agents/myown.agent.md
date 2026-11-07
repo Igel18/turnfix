@@ -322,7 +322,8 @@ if (process.env.DEBUG === 'true') {
 
 ## 🧪 Testing & Quality
 ### Testing Strategy
-- Always write tests for new features and bug fixes
+- Always write tests for new features and bug fixes to ensure that the application behaves as expected.
+- On adding new features, ensure nearby existing functionality is not broken. Write tests to ensure existing functionality remains intact.
 
 ## Unit tests ##
 - Use Vitest for unit testing of client components and utilities

@@ -33,6 +33,7 @@ import {
 import type { DatabaseSetupWizardProps } from './DatabaseSetupWizard.types';
 import { useDatabaseSetupWizard } from './hooks/useDatabaseSetupWizard';
 import WizardStepItem from './components/WizardStepItem';
+import RestoreWizard from './RestoreWizard';
 
 type Phase = 'database' | 'import' | 'complete';
 
@@ -48,6 +49,7 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
   const { t } = useTranslation();
 
   const [currentPhase, setCurrentPhase] = useState<Phase>('database');
+  const [showRestore, setShowRestore] = useState(false);
 
   const {
     steps,
@@ -82,6 +84,7 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
   // Reset to first page whenever the dialog is opened.
   useEffect(() => {
     if (isOpen) setCurrentPhase('database');
+    else setShowRestore(false);
   }, [isOpen]);
 
   // Auto-advance to the completion page after a successful save.
@@ -108,6 +111,10 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
   const btnSuccess =
     'inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed';
 
+  if (showRestore && isOpen) {
+    return <RestoreWizard onBack={() => setShowRestore(false)} onClose={onClose} />;
+  }
+
   return (
     <WizardModal
       isOpen={isOpen}
@@ -123,6 +130,9 @@ export default function DatabaseSetupWizard(props: DatabaseSetupWizardProps) {
       ═══════════════════════════════════════════════════════════════════════ */}
       {currentPhase === 'database' && (
         <div className="space-y-6">
+          <button type="button" onClick={() => setShowRestore(true)} className={btnSecondary}>
+            {t('configuration.restore.open')}
+          </button>
           {/* Database Name Input */}
           <div className="bg-white border border-gray-300 rounded-lg p-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">

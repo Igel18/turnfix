@@ -235,6 +235,38 @@
     }
   },
   "configuration": {
+    "restore": {
+      "open": "Wiederherstellung öffnen",
+      "title": "Sicherung wiederherstellen",
+      "step": "Wiederherstellung",
+      "prerequisites": "Eine vertrauenswürdige Sicherung und ein bereits erstelltes, leeres Staging-Verzeichnis auf dem Server auswählen. Die Dateien werden nur im Staging bereitgestellt und nicht überschrieben. Sicherung und Staging vor unbefugtem Zugriff schützen.",
+      "localOnly": "Die Wiederherstellung ist nur über einen lokalen Browser auf dem Server möglich. Der Server erstellt eine neue Datenbank mit seiner aktuellen Datenbankkonfiguration; ein vorhandener Datenbankname kann nicht verwendet werden.",
+      "manualActivation": "Nach erfolgreicher Wiederherstellung Server, Jury-Server und automatische Neustarts stoppen, dann Datenbank und geprüfte Dateien manuell übernehmen. Konfiguration, .env und Pfade vor dem Neustart prüfen und gegebenenfalls anpassen.",
+      "backupLabel": "Backup-Verzeichnis (absoluter Serverpfad)",
+      "stagingLabel": "Staging-Verzeichnis (absoluter Serverpfad)",
+      "databaseLabel": "Neuer Datenbankname",
+      "validation": "Beide Pfade müssen absolut sein. Der Datenbankname beginnt mit einem kleinen ASCII-Buchstaben und darf danach kleine ASCII-Buchstaben, Ziffern und Unterstriche enthalten, insgesamt höchstens 63 Zeichen.",
+      "confirmation": "Ich verstehe, dass eine neue Datenbank erstellt und Dateien im Staging bereitgestellt werden, dass diese manuell aktiviert werden müssen und dass bei Fehlern eine Datenbank oder unvollständige Dateien verbleiben können.",
+      "start": "Wiederherstellung starten",
+      "running": "Wiederherstellung läuft",
+      "success": "Die Wiederherstellung wurde abgeschlossen.",
+      "resultDatabase": "Neue Datenbank",
+      "resultStaging": "Staging-Verzeichnis",
+      "notSwitched": "Die aktive Datenbank wurde nicht umgestellt.",
+      "databaseMayRemain": "Eine Datenbank kann bereits erstellt worden sein und auf dem Server verbleiben; auch das Staging kann unvollständig sein. Vor einem erneuten Versuch beides prüfen.",
+      "errors": {
+        "DATABASE_EXISTS": "Der Datenbankname existiert bereits. Bitte einen anderen Namen wählen.",
+        "RESTORE_IN_PROGRESS": "Es läuft bereits eine Wiederherstellung. Bitte später erneut versuchen.",
+        "FORBIDDEN": "Die Wiederherstellung ist nur über einen lokalen Browser auf dem Server erlaubt.",
+        "INVALID_BACKUP_OR_STAGING": "Die Sicherung oder das Staging-Verzeichnis ist ungültig. Sicherung und leeres Staging auf dem Server prüfen.",
+        "DATABASE_CREATE_FAILED": "Die neue Datenbank konnte nicht erstellt werden. Serverkonfiguration und Berechtigungen prüfen.",
+        "RESTORE_FAILED": "Die Wiederherstellung ist fehlgeschlagen. Sicherung und Serverkonfiguration prüfen.",
+        "INVALID_REQUEST": "Die Anfrage ist ungültig. Alle Eingaben prüfen.",
+        "INVALID_TARGET_DATABASE": "Der Datenbankname ist ungültig. Bitte einen anderen Namen wählen.",
+        "UNKNOWN": "Ein unerwarteter Fehler ist aufgetreten. Serverstatus und Eingaben prüfen."
+      },
+      "back": "Zurück zur Einrichtung"
+    },
     "sectionsHeading": "Konfigurationsbereiche",
     "gymnetPresetButton": "DB mit GymNet-Voreinstellungen befüllen",
     "gymnetPresetButtonTooltip": "Geräte und Formeln für GymNet-Import anlegen",

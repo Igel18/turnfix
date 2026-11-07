@@ -11,9 +11,14 @@ const MAX_CONCURRENT_REQUESTS = 3;
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+interface ApiRequestOptions extends RequestInit {
+  retryOnRateLimit?: boolean;
+}
+
 // API utility for making requests with proper base URL
-export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+export const apiRequest = async (endpoint: string, options: ApiRequestOptions = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `/api${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const { retryOnRateLimit = true, ...fetchOptions } = options;
   
   // For GET requests, check cache first
   if (!options.method || options.method === 'GET') {
@@ -45,16 +50,16 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...fetchOptions.headers,
       },
-      ...options,
+      ...fetchOptions,
     };
 
     try {
       const response = await fetch(url, defaultOptions);
       
       // Handle rate limiting with exponential backoff
-      if (response.status === 429) {
+      if (response.status === 429 && retryOnRateLimit) {
         const retryAfter = response.headers.get('Retry-After');
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(2000, 500 * Math.pow(2, 1)); // Exponential backoff starting at 1000ms
         debugLog(`Rate limited for ${url}. Waiting ${waitTime}ms before retry...`);
@@ -121,7 +126,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 export const apiGet = (endpoint: string, options: RequestInit = {}) => 
   apiRequest(endpoint, { method: 'GET', ...options });
 
-export const apiPost = (endpoint: string, data?: any, options: RequestInit = {}) => 
+export const apiPost = (endpoint: string, data?: any, options: ApiRequestOptions = {}) => 
   apiRequest(endpoint, { 
     method: 'POST', 
     body: data ? JSON.stringify(data) : undefined,

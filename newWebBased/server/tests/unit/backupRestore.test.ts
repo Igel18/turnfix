@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { spawn } from 'child_process';
-import { restoreBackup } from '../../src/utils/backupRestore';
+import { restoreBackup, validateRestoreFiles } from '../../src/utils/backupRestore';
 import { parseRestoreArguments } from '../../src/scripts/restoreBackup';
 import { postgresEnvironment } from '../../src/utils/backup';
 
@@ -105,6 +105,13 @@ describe('offline backup restore', () => {
     await fs.writeFile(path.join(stagingPath, 'existing'), 'keep');
     await expect(restoreBackup(options())).rejects.toThrow();
     await expect(restoreBackup({ ...options(), stagingPath: backupPath })).rejects.toThrow();
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('validates the custom dump signature during wizard preflight', async () => {
+    await expect(validateRestoreFiles({ backupPath, stagingPath }, true)).rejects.toThrow('Invalid PostgreSQL custom dump');
+    await fs.writeFile(path.join(backupPath, 'database.dump'), 'PGDMPdata');
+    await expect(validateRestoreFiles({ backupPath, stagingPath }, true)).resolves.toMatchObject({ backupPath, stagingPath });
     expect(query).not.toHaveBeenCalled();
   });
 

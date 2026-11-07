@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 export interface UnifiedModalProps {
   isOpen: boolean;
   onClose: () => void;
+  closeDisabled?: boolean;
   title: string;
   children: ReactNode;
   
@@ -58,6 +59,7 @@ export interface UnifiedModalProps {
 export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   isOpen,
   onClose,
+  closeDisabled = false,
   title,
   children,
   showFooter = true,
@@ -77,7 +79,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   const { t } = useTranslation();
   
   // ESC key support
-  useEscapeKey(onClose, isOpen);
+  useEscapeKey(onClose, isOpen && !closeDisabled);
   
   if (!isOpen) return null;
 
@@ -104,6 +106,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
           </h2>
           <button
             onClick={onClose}
+            disabled={closeDisabled}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded"
             aria-label="Close"
             type="button"
