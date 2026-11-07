@@ -373,6 +373,39 @@
       }
     },
     "sections": {
+      "backup": {
+        "title": "Backup",
+        "description": "Backup settings and server status. Restoration cannot be performed through this interface.",
+        "status": {
+          "title": "Server status",
+          "refresh": "Refresh status",
+          "loading": "Loading status...",
+          "state": "Current operation",
+          "running": "Backup in progress",
+          "idle": "No backup in progress",
+          "lastSuccess": "Last successful backup",
+          "lastPath": "Last backup path",
+          "notAvailable": "Not available",
+          "error": "Last backup error",
+          "loadError": "Could not load server status"
+        },
+        "enabled": {
+          "label": "Enable automatic backup",
+          "description": "Setting for automatic backups. Saving this setting does not confirm that a backup has run."
+        },
+        "interval_minutes": {
+          "label": "Interval in minutes",
+          "description": "Time between automatic backups in minutes."
+        },
+        "destination": {
+          "label": "Destination directory",
+          "description": "Use external storage where possible. Backups may contain confidential data and should be protected from unauthorized access."
+        },
+        "retention_count": {
+          "label": "Number of backups to retain",
+          "description": "Number of backups to retain."
+        }
+      },
       "database": {
         "title": "Database Configuration",
         "description": "Database connection settings and credentials",

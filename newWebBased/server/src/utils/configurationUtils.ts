@@ -10,6 +10,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import { exec } from 'child_process';
 import { reconnectPrisma, getCurrentDatabaseName } from '../lib/prisma';
+import { BackupSettings, defaultBackupSettings } from './backup';
 
 // Configuration file path
 // IMPORTANT: Use __dirname (relative to this source file) instead of process.cwd()
@@ -29,6 +30,7 @@ export const ENCRYPTION_KEY = process.env.CONFIG_ENCRYPTION_KEY || 'turnfix-conf
 
 // Configuration interface
 export interface AppConfig {
+  backup?: BackupSettings;
   database: {
     db_host: string;
     db_port: number;
@@ -218,6 +220,7 @@ export const getDefaultConfig = (): AppConfig => {
   }
 
   return {
+    backup: { ...defaultBackupSettings },
     database: dbConfig,
     application: {
       app_name: 'TurnFix',

@@ -373,6 +373,39 @@
       }
     },
     "sections": {
+      "backup": {
+        "title": "Sicherung",
+        "description": "Sicherungseinstellungen und Serverstatus. Eine Wiederherstellung kann über diese Oberfläche nicht durchgeführt werden.",
+        "status": {
+          "title": "Serverstatus",
+          "refresh": "Status aktualisieren",
+          "loading": "Status wird geladen...",
+          "state": "Aktueller Vorgang",
+          "running": "Sicherung läuft",
+          "idle": "Keine Sicherung läuft",
+          "lastSuccess": "Letzte erfolgreiche Sicherung",
+          "lastPath": "Pfad der letzten Sicherung",
+          "notAvailable": "Nicht verfügbar",
+          "error": "Letzter Sicherungsfehler",
+          "loadError": "Serverstatus konnte nicht geladen werden"
+        },
+        "enabled": {
+          "label": "Automatische Sicherung aktivieren",
+          "description": "Einstellung für automatische Sicherungen. Das Speichern der Einstellung bestätigt nicht, dass eine Sicherung ausgeführt wurde."
+        },
+        "interval_minutes": {
+          "label": "Intervall in Minuten",
+          "description": "Zeitabstand zwischen automatischen Sicherungen in Minuten."
+        },
+        "destination": {
+          "label": "Zielverzeichnis",
+          "description": "Verwenden Sie nach Möglichkeit externen Speicher. Sicherungen können vertrauliche Daten enthalten und sollten vor unbefugtem Zugriff geschützt werden."
+        },
+        "retention_count": {
+          "label": "Anzahl aufbewahrter Sicherungen",
+          "description": "Anzahl der Sicherungen, die aufbewahrt werden sollen."
+        }
+      },
       "database": {
         "title": "Datenbankkonfiguration",
         "description": "Datenbankverbindungseinstellungen und Anmeldedaten",

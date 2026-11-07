@@ -80,6 +80,7 @@ import {
   startDatabaseHealthCheck 
 } from './db/connection';
 import { ensurePortAvailable } from './utils/portChecker';
+import { backupScheduler } from './utils/backupRuntime';
 // import { notFoundHandler } from './middleware/notFoundHandler';
 
 // Prisma-based routes using SQL queries
@@ -458,6 +459,7 @@ async function startServer() {
 
     // Start server
     server.listen(PORT, () => {
+      backupScheduler.start();
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 Local API: http://localhost:${PORT}/api`);

@@ -11,12 +11,19 @@
 import express from 'express';
 import { AppConfig, loadConfig, saveConfig, getDefaultConfig } from '../utils/configurationUtils';
 import { getCurrentDatabaseName } from '../lib/prisma';
+import { backupScheduler, readBackupSettings } from '../utils/backupRuntime';
+import { validateBackupSettings } from '../utils/backup';
 
 // Import sub-routers
 import seedingRouter from './configurationSeeding';
 import databaseRouter from './configurationDatabase';
 
 const router = express.Router();
+
+router.get('/backup/status', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(backupScheduler.status);
+});
 
 // Mount sub-routers (all routes are relative to /api/configuration)
 router.use('/', seedingRouter);
@@ -69,6 +76,9 @@ router.get('/', async (req, res) => {
 router.post('/save', async (req, res) => {
   try {
     const config: AppConfig = req.body;
+
+    const backupError = validateBackupSettings(readBackupSettings(config));
+    if (backupError) return res.status(400).json({ error: backupError });
     
     // Validate required fields
     if (!config.database || !config.database.db_host || !config.database.db_name) {

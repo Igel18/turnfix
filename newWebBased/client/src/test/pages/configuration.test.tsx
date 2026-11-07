@@ -14,6 +14,7 @@ const { apiGetMock, apiPostMock, translate } = vi.hoisted(() => ({
 vi.mock('@/utils/api', () => ({
   apiGet: apiGetMock,
   apiPost: apiPostMock,
+  invalidateCache: vi.fn(),
 }))
 
 vi.mock('react-i18next', () => ({
@@ -113,6 +114,51 @@ describe('Configuration page', () => {
     })
   })
 
+  it('navigates to backup settings and displays defaults and guidance', async () => {
+    const user = userEvent.setup()
+    render(<Configuration />)
+
+    await user.click(await screen.findByRole('button', { name: 'configuration.sections.backup.title' }))
+
+    expect(screen.getByRole('heading', { name: 'configuration.sections.backup.title' })).toBeInTheDocument()
+    expect(screen.getByLabelText('configuration.sections.backup.enabled.label')).not.toBeChecked()
+    expect(screen.getByLabelText('configuration.sections.backup.interval_minutes.label')).toHaveValue(30)
+    expect(screen.getByLabelText('configuration.sections.backup.destination.label')).toHaveValue('')
+    expect(screen.getByLabelText('configuration.sections.backup.retention_count.label')).toHaveValue(20)
+    expect(screen.getByText('configuration.sections.backup.description')).toBeInTheDocument()
+    expect(screen.getByText('configuration.sections.backup.destination.description')).toBeInTheDocument()
+  })
+
+  it('loads, edits, and saves backup settings with their correct types', async () => {
+    const user = userEvent.setup()
+    apiGetMock.mockImplementation(async (path: string) => {
+      if (path === '/configuration/connected-database') return { connectedDatabase: 'turnfix' }
+      return { backup: { enabled: false, interval_minutes: 0, destination: 'existing', retention_count: 0 } }
+    })
+    render(<Configuration />)
+
+    await user.click(await screen.findByRole('button', { name: 'configuration.sections.backup.title' }))
+    const enabled = screen.getByLabelText('configuration.sections.backup.enabled.label')
+    const interval = screen.getByLabelText('configuration.sections.backup.interval_minutes.label')
+    const destination = screen.getByLabelText('configuration.sections.backup.destination.label')
+    const retention = screen.getByLabelText('configuration.sections.backup.retention_count.label')
+    expect(enabled).not.toBeChecked()
+    expect(interval).toHaveValue(0)
+    expect(destination).toHaveValue('existing')
+    expect(retention).toHaveValue(0)
+
+    await user.click(enabled)
+    fireEvent.change(interval, { target: { value: '45' } })
+    await user.clear(destination)
+    await user.type(destination, 'external-drive')
+    fireEvent.change(retention, { target: { value: '12' } })
+    await user.click(screen.getByRole('button', { name: 'configuration.saveConfiguration' }))
+
+    await waitFor(() => expect(apiPostMock).toHaveBeenCalledWith('/configuration/save', expect.objectContaining({
+      backup: { enabled: true, interval_minutes: 45, destination: 'external-drive', retention_count: 12 },
+    })))
+  })
+
   it('stores score capture settings separately from the main configuration', async () => {
     const user = userEvent.setup()
     const fetchMock = vi.mocked(fetch)
@@ -140,6 +186,7 @@ describe('Configuration page', () => {
       { name: 'configuration.sections.application.title', control: 'spinbutton' },
       { name: 'Language & Localization', control: 'combobox' },
       { name: 'configuration.sections.security.title', control: 'spinbutton' },
+      { name: 'configuration.sections.backup.title', control: 'checkbox' },
       { name: 'configuration.sections.imports.title', control: 'textarea' },
       { name: 'configuration.sections.printing.title', control: 'combobox' },
       { name: 'configuration.sections.participantLabels.title', control: 'spinbutton' },

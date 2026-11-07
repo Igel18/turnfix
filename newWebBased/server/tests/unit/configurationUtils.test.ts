@@ -138,6 +138,7 @@ describe('configurationUtils', () => {
       expect(config).toHaveProperty('imports');
       expect(config).toHaveProperty('printing');
       expect(config).toHaveProperty('logging');
+      expect(config).toHaveProperty('backup', { enabled: false, interval_minutes: 30, destination: '', retention_count: 20 });
     });
 
     it('should use defaults when no env vars set', () => {

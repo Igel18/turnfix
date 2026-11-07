@@ -6,6 +6,7 @@ import {
 } from '@heroicons/react/24/outline'
 import FirewallManagement from '@/components/FirewallManagement'
 import WifiSettings from '@/components/WifiSettings'
+import BackupStatus from './components/BackupStatus'
 import type { ConfigSection } from './Configuration.types'
 
 const DATABASE_NAMES_LIST_ID = 'configuration-database-name-options'
@@ -20,7 +21,7 @@ const CONNECTED_ICON_CLASS = 'text-green-600'
 const DISCONNECTED_ICON_CLASS = 'text-yellow-600'
 const CONNECTED_LABEL_CLASS = 'text-green-800'
 const DISCONNECTED_LABEL_CLASS = 'text-yellow-800'
-const SECTION_IDS = { database: 'database', firewall: 'firewall', wifi: 'wifi', scoreCapture: 'scoreCapture' } as const
+const SECTION_IDS = { database: 'database', firewall: 'firewall', wifi: 'wifi', scoreCapture: 'scoreCapture', backup: 'backup' } as const
 const SETTING_TYPES = { boolean: 'boolean', select: 'select', textarea: 'textarea' } as const
 const READ_ONLY_SETTING_TYPE = 'readonly'
 
@@ -106,6 +107,7 @@ const ConfigurationLayout = ({
                 <WifiSettings />
               ) : (
                 <>
+                  {activeConfigSection.id === SECTION_IDS.backup && <BackupStatus />}
                   {activeConfigSection.id === SECTION_IDS.database && (
                     <div className="mb-6 space-y-4">
                       <div className={`border rounded-lg p-4 ${

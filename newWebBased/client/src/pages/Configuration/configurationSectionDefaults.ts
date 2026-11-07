@@ -1,4 +1,5 @@
 import {
+  ArchiveBoxIcon,
   CircleStackIcon,
   ClipboardDocumentListIcon,
   ClockIcon,
@@ -121,6 +122,42 @@ export const createDefaultConfigurationSections = (
           ]
         },
         createLocalizationSection(response),
+        {
+          id: 'backup',
+          name: t('configuration.sections.backup.title'),
+          icon: ArchiveBoxIcon,
+          description: t('configuration.sections.backup.description'),
+          settings: [
+            {
+              key: 'enabled',
+              label: t('configuration.sections.backup.enabled.label'),
+              type: 'boolean',
+              value: response?.backup?.enabled ?? false,
+              description: t('configuration.sections.backup.enabled.description')
+            },
+            {
+              key: 'interval_minutes',
+              label: t('configuration.sections.backup.interval_minutes.label'),
+              type: 'number',
+              value: response?.backup?.interval_minutes ?? 30,
+              description: t('configuration.sections.backup.interval_minutes.description')
+            },
+            {
+              key: 'destination',
+              label: t('configuration.sections.backup.destination.label'),
+              type: 'text',
+              value: response?.backup?.destination ?? '',
+              description: t('configuration.sections.backup.destination.description')
+            },
+            {
+              key: 'retention_count',
+              label: t('configuration.sections.backup.retention_count.label'),
+              type: 'number',
+              value: response?.backup?.retention_count ?? 20,
+              description: t('configuration.sections.backup.retention_count.description')
+            }
+          ]
+        },
         {
           id: 'security',
           name: t('configuration.sections.security.title'),
