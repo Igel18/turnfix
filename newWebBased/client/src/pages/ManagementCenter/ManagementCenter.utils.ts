@@ -6,6 +6,7 @@
 import type { TFunction } from 'i18next'
 
 const NAME_KEY_MAP: Record<string, string> = {
+  'Event Analyzer':           'analyzer.title',
   'Manage Events':            'managementCenter.eventManagement.eventSetup.manageEvents.title',
   'View Competitions':        'managementCenter.eventManagement.eventSetup.viewCompetitions.title',
   'Event Participants':       'managementCenter.eventManagement.eventSetup.eventParticipants.title',
@@ -49,6 +50,7 @@ const NAME_KEY_MAP: Record<string, string> = {
 }
 
 const DESC_KEY_MAP: Record<string, string> = {
+  'Event Analyzer':           'analyzer.subtitle',
   'Manage Events':            'managementCenter.eventManagement.eventSetup.manageEvents.description',
   'View Competitions':        'managementCenter.eventManagement.eventSetup.viewCompetitions.description',
   'Event Participants':       'managementCenter.eventManagement.eventSetup.eventParticipants.description',

@@ -4,6 +4,8 @@ import { EventProvider } from '@/contexts/EventContext'
 import { CertificateLayoutProvider } from '@/contexts/CertificateLayoutContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import SectionNavigationLayout from '@/components/SectionNavigationLayout'
+import { eventSetupActions } from '@/pages/ManagementCenter/ManagementCenter.constants'
 import './i18n'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
@@ -63,10 +65,17 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/management" element={<ManagementCenter />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/event-management" element={<EventManagement />} />
+            <Route element={<SectionNavigationLayout actions={eventSetupActions} titleKey="managementCenter.eventManagement.eventSetup.title" />}>
+              <Route path="/analyzer" element={<Analyzer />} />
+              <Route path="/event-management" element={<EventManagement />} />
+              <Route path="/competitions" element={<Competitions />} />
+              <Route path="/event-participants" element={<EventParticipants />} />
+              <Route path="/squads" element={<SquadManagement />} />
+              <Route path="/groups" element={<Groups />} />
+              <Route path="/teams" element={<Teams />} />
+              <Route path="/meldematrix" element={<Meldematrix />} />
+            </Route>
             <Route path="/clubs" element={<ClubsUnified />} />
-            <Route path="/groups" element={<Groups />} />
-            <Route path="/teams" element={<Teams />} />
             <Route path="/regions" element={<Regions />} />
             <Route path="/countries" element={<Countries />} />
             <Route path="/associations" element={<Associations />} />
@@ -76,8 +85,6 @@ function App() {
             <Route path="/score-capture-v2" element={<ScoreCaptureV2 />} />
             <Route path="/group-scoring" element={<GroupScoreCapture />} />
             <Route path="/team-scoring" element={<TeamScoreCapture />} />
-            <Route path="/competitions" element={<Competitions />} />
-            <Route path="/squads" element={<SquadManagement />} />
             <Route path="/time-planning" element={<TimePlanningRounds />} />
             <Route path="/time-planning/rounds" element={<TimePlanningRounds />} />
             <Route path="/time-planning/rotation" element={<TimePlanningRotationPage />} />
@@ -87,8 +94,6 @@ function App() {
             <Route path="/participant-status" element={<ParticipantStatusManagement />} />
             <Route path="/competition-status" element={<CompetitionStatusManagement />} />
             <Route path="/live-scores" element={<LiveScoresPage />} />
-            <Route path="/event-participants" element={<EventParticipants />} />
-            <Route path="/meldematrix" element={<Meldematrix />} />
             <Route path="/medallienspiegel" element={<Medallienspiegel />} />
             <Route path="/areas" element={<Areas />} />
             <Route path="/disciplines" element={<DisciplinesUnified />} />
@@ -103,7 +108,6 @@ function App() {
             <Route path="/status-management" element={<StatusUnified />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/configuration" element={<Configuration />} />
-            <Route path="/analyzer" element={<Analyzer />} />
           </Routes>
         </div>
         </CertificateLayoutProvider>
