@@ -11,10 +11,12 @@ eingetragene PostgreSQL-Datenbank. Die Sicherung wird vor dem Stoppen des
 TurnFix-Dienstes erstellt. Schlaegt die Sicherung fehl, wird das Update
 abgebrochen und der Dienst nicht vom Setup gestoppt.
 
-Bei einer Neuinstallation wird eine bereits vorhandene, ausgewaehlte Datenbank bei aktivierter Sicherung
-vor dem Schema-Abgleich gesichert. Schlaegt diese Sicherung fehl, findet kein
-Schema-Abgleich statt. Eine neu erstellte Datenbank braucht keine vorherige
-Sicherung.
+Bei einer Neuinstallation erstellt das Setup keine Datenbank und fuehrt keinen
+Schema-Abgleich aus. Eine neue Datenbank wird anschliessend in den Einstellungen
+mit dem Datenbank-Setup-Assistenten angelegt. Der Assistent ist fuer neue,
+leere Datenbanken vorgesehen. Bei einer bestehenden Datenbank muss vor einer
+manuellen Schemaaenderung eine eigene Sicherung erstellt werden; die
+Setup-Sicherung schuetzt nur bestehende TurnFix-Installationen beim Update.
 
 Das Setup verwendet das konfigurierte Ziel der zyklischen Sicherung und legt
 seine Sicherungen darin im Unterordner `setup` ab. Ist kein Ziel konfiguriert,

@@ -7,8 +7,13 @@ $installerScript = Get-Content -LiteralPath (Join-Path $installerDir 'turnfix-se
 if ($installerScript -notmatch 'BackupPage\.Values\[0\] := True;' -or
     $installerScript -notmatch "CompareText\(ParamStr\(ParamIndex\), '/NOBACKUP'\)" -or
     $installerScript -notmatch "if not BackupPage\.Values\[0\] then\s+begin\s+Log\('Pre-upgrade backup skipped" -or
-    $installerScript -notmatch "if not BackupPage\.Values\[0\] then\s+BackupArguments := ' -SkipBackup';") {
-    throw 'Installer backup selection is not connected to both installation paths.'
+    $installerScript -match 'setup-database\.ps1') {
+    throw 'Installer must preserve the optional upgrade backup and delegate database creation to the wizard.'
+}
+if ($installerScript.IndexOf("function PrepareToInstall") -lt 0 -or
+    $installerScript.IndexOf("function PrepareToInstall") -ge $installerScript.IndexOf("'stop TurnFixServer'") -or
+    $installerScript -notmatch 'if not ExistingInstallation then\s+CreateEnvFile\(\);') {
+    throw 'The upgrade backup must run before service shutdown and preserve the existing configuration.'
 }
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ('turnfix-installer-test-' + [guid]::NewGuid().ToString('N'))
 $staging = Join-Path $root 'staging'

@@ -100,17 +100,16 @@ german.ConfiguringDatabase=Datenbank wird eingerichtet...
 german.CreatingBackup=Die bestehende Datenbank wird gesichert...
 german.BackupComplete=Die Sicherung wurde erstellt unter:
 german.BackupPageTitle=Datenbanksicherung
-german.BackupPageDescription=Sicherung vor Datenbankänderungen
-german.BackupPageWarning=Ohne Sicherung können bestehende Daten bei einer Datenbankänderung verloren gehen.
-german.BackupOption=Bestehende Datenbank vor der Installation sichern (empfohlen)
+german.BackupPageDescription=Sicherung vor der Aktualisierung einer bestehenden Installation
+german.BackupPageWarning=Bei einer Neuinstallation wird keine bestehende Datenbank gesichert. Ohne Sicherung können bei späteren Änderungen Daten verloren gehen.
+german.BackupOption=Bestehende TurnFix-Datenbank vor einem Update sichern (empfohlen)
 german.BackupFailed=Die Sicherung konnte nicht erstellt werden. Die Installation wurde vor dem Stoppen des Dienstes abgebrochen.
-german.DatabaseSetupFailed=Die Datenbankeinrichtung ist fehlgeschlagen. Bitte prüfen Sie das Installationsprotokoll.
 german.ExistingConfigMissing=Eine bestehende Serverinstallation wurde gefunden, aber ihre Datenbankkonfiguration fehlt. Die Installation wurde abgebrochen.
 german.InstallingApplication=TurnFix wird installiert...
 german.ConfiguringService=Windows-Dienst wird eingerichtet...
 german.ConfiguringFirewall=Firewall-Regeln werden erstellt...
 german.InstallationComplete=Installation abgeschlossen!
-german.OpenBrowser=TurnFix im Browser öffnen
+german.OpenBrowser=Datenbank-Wizard in den Einstellungen öffnen
 german.OpenManager=TurnFix Manager öffnen
 german.OpenDocumentation=Dokumentation öffnen
 german.ServerPort=Server Port:
@@ -118,7 +117,7 @@ german.JuryPort=Kampfrichter-Portal Port:
 german.WelcomeLabel=Willkommen beim TurnFix Setup-Assistenten
 german.WelcomeDescription=Dieses Setup installiert TurnFix auf Ihrem Computer.%n%nTurnFix ist ein modernes Verwaltungssystem für Turnwettkämpfe.%n%nFolgende Komponenten werden installiert:%n  • TurnFix Anwendung (Server + Web-Frontend)%n  • Node.js Runtime (eingebettet)%n  • PostgreSQL Datenbank (optional)%n  • Windows-Dienst für Autostart
 german.DbWizardWarningTitle=Wichtiger Hinweis zum Datenbank-Setup
-german.DbWizardWarning=Wenn Sie eine bestehende Datenbank verwenden und den Datenbank-Setup-Assistenten nicht durchlaufen, beachten Sie bitte:%n%n1. Der GymNet-Import kann das Mapping der Geräte nicht korrekt durchführen%n     (fehlende Geräte-IDs und Formeln)%n%n2. Geschlechter können als "unbekannt" gekennzeichnet sein%n     (fehlende Bereiche/Gender-Zuordnungen)%n%n3. Infolgedessen können einige Funktionen nicht korrekt arbeiten:%n     • Statistiken%n     • Zuweisungen von Geräten%n     • Automatische Riegeneinteilung%n     • Disziplingruppen-Filter%n%nEmpfehlung: Öffnen Sie nach der Installation die Konfigurationsseite%nim Browser (http://localhost:3001/configuration) und führen Sie den%nDatenbank-Setup-Assistenten aus.
+german.DbWizardWarning=Das Setup erstellt keine Datenbank und ändert kein Datenbankschema.%n%nÖffnen Sie nach der Installation die Einstellungen im Browser unter:%n%1%n%nErstellen Sie dort eine neue Datenbank mit dem Datenbank-Setup-Assistenten. Der Assistent richtet auch das Schema ein und bietet weitere Datenimporte an.%n%nFür eine bestehende Datenbank prüfen Sie die Verbindung in den Einstellungen. Der Assistent ist für neue, leere Datenbanken vorgesehen.
 
 ; English
 english.InstallPostgreSQL=Install PostgreSQL 16 (Database Server)
@@ -139,17 +138,16 @@ english.ConfiguringDatabase=Setting up database...
 english.CreatingBackup=Backing up the existing database...
 english.BackupComplete=The backup was created at:
 english.BackupPageTitle=Database backup
-english.BackupPageDescription=Backup before database changes
-english.BackupPageWarning=Without a backup, existing data may be lost when the database is changed.
-english.BackupOption=Back up the existing database before installation (recommended)
+english.BackupPageDescription=Backup before updating an existing installation
+english.BackupPageWarning=On a new installation, an existing database is not backed up. Without a backup, data may be lost during later changes.
+english.BackupOption=Back up the existing TurnFix database before an update (recommended)
 english.BackupFailed=The backup could not be created. Installation was stopped before the service was stopped.
-english.DatabaseSetupFailed=Database setup failed. Please check the installation log.
 english.ExistingConfigMissing=An existing server installation was found, but its database configuration is missing. Installation was stopped.
 english.InstallingApplication=Installing TurnFix...
 english.ConfiguringService=Configuring Windows Service...
 english.ConfiguringFirewall=Creating firewall rules...
 english.InstallationComplete=Installation complete!
-english.OpenBrowser=Open TurnFix in browser
+english.OpenBrowser=Open database wizard in settings
 english.OpenManager=Open TurnFix Manager
 english.OpenDocumentation=Open Documentation
 english.ServerPort=Server Port:
@@ -157,7 +155,7 @@ english.JuryPort=Jury Portal Port:
 english.WelcomeLabel=Welcome to TurnFix Setup
 english.WelcomeDescription=This setup will install TurnFix on your computer.%n%nTurnFix is a modern gymnastics competition management system.%n%nThe following components will be installed:%n  • TurnFix Application (Server + Web Frontend)%n  • Node.js Runtime (embedded)%n  • PostgreSQL Database (optional)%n  • Windows Service for auto-start
 english.DbWizardWarningTitle=Important Note About Database Setup
-english.DbWizardWarning=If you are using an existing database and do not run the Database Setup Wizard, please note:%n%n1. GymNet import cannot correctly map apparatus/disciplines%n     (missing device IDs and formulas)%n%n2. Genders may be marked as "unknown"%n     (missing area/gender assignments)%n%n3. As a result, some features may not work correctly:%n     • Statistics%n     • Apparatus assignments%n     • Automatic squad assignment%n     • Discipline group filters%n%nRecommendation: After installation, open the configuration page%nin your browser (http://localhost:3001/configuration) and run the%nDatabase Setup Wizard.
+english.DbWizardWarning=Setup does not create a database or change its schema.%n%nAfter installation, open settings in your browser at:%n%1%n%nUse the database setup wizard to create a new database. The wizard also creates the schema and offers additional data imports.%n%nFor an existing database, check the connection in settings. The wizard is intended for new, empty databases.
 
 [Types]
 Name: "full"; Description: "Vollständige Installation / Full Installation"
@@ -241,7 +239,7 @@ Name: "autostarttray"; Description: "TurnFix Tray-Icon bei Windows-Anmeldung sta
 
 [Run]
 ; Post-installation: open browser
-Filename: "http://localhost:3001/configuration"; Description: "{cm:OpenBrowser}"; Flags: postinstall shellexec skipifsilent unchecked
+Filename: "{code:GetConfigurationUrl}"; Description: "{cm:OpenBrowser}"; Flags: postinstall shellexec skipifsilent unchecked
 Filename: "{app}\TurnFix-Manager.bat"; Description: "{cm:OpenManager}"; Flags: postinstall skipifsilent nowait
 Filename: "{app}\docs\TurnFix-Dokumentation.html"; Description: "{cm:OpenDocumentation}"; Flags: postinstall shellexec skipifsilent unchecked nowait
 
@@ -265,6 +263,12 @@ var
   JuryPort: String;
   PowerShellPath: String;
   ExistingInstallation: Boolean;
+
+function GetConfigurationUrl(Param: String): String;
+begin
+  if ServerPort = '' then ServerPort := '3001';
+  Result := 'http://localhost:' + ServerPort + '/configuration';
+end;
 
 // Find PowerShell executable - checks PATH and known system locations
 function FindPowerShell: String;
@@ -623,8 +627,6 @@ var
   NssmPath: String;
   AppPath: String;
   PgInstaller: String;
-  BackupArguments: String;
-  BackupLines: TArrayOfString;
 begin
   // === Stop running services before file copy (upgrade scenario) ===
   // Files in server/dist/ are locked while node.exe runs the service.
@@ -692,43 +694,6 @@ begin
       CreateEnvFile();
     CreateEcosystemConfig();
     
-    // === Setup Database ===
-    WizardForm.StatusLabel.Caption := CustomMessage('ConfiguringDatabase');
-    if ExistingInstallation then
-      Log('Skipping database setup for existing installation; configuration is preserved.')
-    else if PowerShellPath <> '' then
-    begin
-      DeleteFile(ExpandConstant('{tmp}\turnfix-database-backup-result.txt'));
-      BackupArguments := '';
-      if not BackupPage.Values[0] then
-        BackupArguments := ' -SkipBackup';
-      if not Exec(PowerShellPath,
-        '-NoProfile -ExecutionPolicy Bypass -File "' + AppPath + '\scripts\setup-database.ps1"' +
-        ' -InstallDir "' + AppPath + '"' +
-        ' -DbName "' + DbName + '"' +
-        ' -DbPassword "' + DbPassword + '"' +
-        ' -NodePath "' + NodePath + '"' +
-        ' -BackupResultFile "' + ExpandConstant('{tmp}\turnfix-database-backup-result.txt') + '"' +
-        BackupArguments,
-        AppPath, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
-        Log('ERROR: Failed to run setup-database.ps1')
-      else if ResultCode <> 0 then
-      begin
-        Log('ERROR: setup-database.ps1 exited with code ' + IntToStr(ResultCode));
-        MsgBox(CustomMessage('DatabaseSetupFailed'), mbError, MB_OK);
-      end
-      else if FileExists(ExpandConstant('{tmp}\turnfix-database-backup-result.txt')) then
-      begin
-        if LoadStringsFromFile(ExpandConstant('{tmp}\turnfix-database-backup-result.txt'), BackupLines) and (GetArrayLength(BackupLines) > 0) then
-        begin
-          Log('Existing database backup created: ' + BackupLines[0]);
-          MsgBox(CustomMessage('BackupComplete') + #13#10 + #13#10 + BackupLines[0], mbInformation, MB_OK);
-        end;
-      end;
-    end
-    else
-      Log('SKIP: setup-database.ps1 - PowerShell not available');
-    
     // === Install Windows Service (if selected) ===
     if IsComponentSelected('service') then
     begin
@@ -773,7 +738,8 @@ begin
     end;
     
     // === Show DB Wizard warning ===
-    MsgBox(CustomMessage('DbWizardWarning'), mbInformation, MB_OK);
+    if not ExistingInstallation then
+      SuppressibleMsgBox(FmtMessage(CustomMessage('DbWizardWarning'), [GetConfigurationUrl('')]), mbInformation, MB_OK, IDOK);
     
     WizardForm.StatusLabel.Caption := CustomMessage('InstallationComplete');
   end;

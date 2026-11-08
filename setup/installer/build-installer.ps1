@@ -489,7 +489,6 @@ New-Item -Path $scriptsStaging -ItemType Directory -Force | Out-Null
 $scriptFiles = @(
     "post-install.ps1",
     "install-postgresql.ps1",
-    "setup-database.ps1",
     "pre-upgrade-backup.js",
     "configure-service.ps1",
     "configure-firewall.ps1",
