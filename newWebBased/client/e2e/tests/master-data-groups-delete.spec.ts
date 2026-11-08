@@ -52,7 +52,7 @@ test.describe.serial('Groups: Delete Confirm Modal', () => {
     await setEventContext(page, state.eventId, state.eventName);
     await navigateTo(page, '/groups');
     await waitForLoadingToFinish(page);
-    await expect(page.locator('h1, h2').first()).toContainText(/Gruppe|Group/i);
+    await expect(page.getByRole('heading', { level: 1, name: /Gruppe|Group/i })).toBeVisible();
   });
 
   test('test group is visible in the list', async ({ page }) => {

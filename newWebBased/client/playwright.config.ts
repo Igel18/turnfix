@@ -83,6 +83,7 @@ export default defineConfig({
     {
       name: 'independent',
       testMatch: /tests\/(navigation|master-data[\w-]*|event-management|configuration|jury-server-access|formula-crossview)\.spec\.ts/,
+      testIgnore: /tests\/master-data-groups-delete\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
 
@@ -90,7 +91,7 @@ export default defineConfig({
     {
       name: 'tests',
       dependencies: ['setup'],
-      testMatch: /tests\/(score-entry|score-capture-v2|results|competition|import-verification|placement|statistical|jury-portal|jury-portal-durchgang-bahn|status|pdf-export|load-test|team-competition|time-planning|group-scoring|team-scoring|squad-auto-assign|squad-status|squad-status-realtime|live-scores|medallienspiegel|delete-critical-flows)\.spec\.ts/,
+      testMatch: /tests\/(score-entry|score-capture-v2|results|competition|import-verification|placement|statistical|jury-portal|jury-portal-durchgang-bahn|status|pdf-export|load-test|team-competition|time-planning|group-scoring|team-scoring|squad-auto-assign|squad-status|squad-status-realtime|live-scores|medallienspiegel|delete-critical-flows|master-data-groups-delete)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
       timeout: 60_000, // Load tests need more time
     },
