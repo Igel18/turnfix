@@ -490,6 +490,7 @@ $scriptFiles = @(
     "post-install.ps1",
     "install-postgresql.ps1",
     "setup-database.ps1",
+    "pre-upgrade-backup.js",
     "configure-service.ps1",
     "configure-firewall.ps1",
     "uninstall-service.ps1",

@@ -15,7 +15,11 @@ param(
     [int]$DbPort = 5432,
     
     [Parameter(Mandatory=$true)]
-    [string]$NodePath
+    [string]$NodePath,
+
+    [switch]$SkipBackup,
+    [string]$BackupDestination = (Join-Path $env:ProgramData 'TurnFix\Backups'),
+    [string]$BackupResultFile = (Join-Path $env:TEMP 'turnfix-setup-backup-result.txt')
 )
 
 $ErrorActionPreference = "Stop"
@@ -71,8 +75,27 @@ $env:PGPASSWORD = $DbPassword
 # Check if database already exists
 try {
     $dbExists = & psql -h $DbHost -p $DbPort -U postgres -tc "SELECT 1 FROM pg_database WHERE datname='$DbName'" 2>&1
-    if ($dbExists -match "1") {
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not determine whether the database exists.'
+    }
+    if (($dbExists | Out-String).Trim() -eq '1') {
         Write-Host "  ✓ Database '$DbName' already exists" -ForegroundColor Green
+        Remove-Item -LiteralPath $BackupResultFile -Force -ErrorAction SilentlyContinue
+        if ($SkipBackup) {
+            Write-Host '  Database backup skipped by user choice.' -ForegroundColor Yellow
+        } else {
+            $backupScript = Join-Path $InstallDir 'scripts\pre-upgrade-backup.js'
+            $backupModule = Join-Path $ServerDir 'dist\utils\backup.js'
+            & $NodePath $backupScript $InstallDir $BackupDestination $backupModule $BackupResultFile
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $BackupResultFile)) {
+                throw 'Backup failed; the database schema will not be changed.'
+            }
+            $backupPath = Get-Content -LiteralPath $BackupResultFile -Raw -Encoding UTF8
+            if ([string]::IsNullOrWhiteSpace($backupPath)) {
+                throw 'Backup did not return a location; the database schema will not be changed.'
+            }
+            Write-Host "  Database backup: $backupPath" -ForegroundColor Green
+        }
     } else {
         & psql -h $DbHost -p $DbPort -U postgres -c "CREATE DATABASE `"$DbName`" ENCODING 'UTF8' LC_COLLATE 'German_Germany.1252' LC_CTYPE 'German_Germany.1252' TEMPLATE template0;" 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -83,13 +106,13 @@ try {
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "  ✓ Database '$DbName' created (default locale)" -ForegroundColor Green
             } else {
-                Write-Host "  ⚠ Could not create database. It may need to be created manually." -ForegroundColor Yellow
+                throw 'Could not create database.'
             }
         }
     }
 } catch {
-    Write-Host "  ⚠ psql not found in PATH. Database will be created via the web UI." -ForegroundColor Yellow
-    Write-Host "    Open http://localhost:3001/configuration after installation." -ForegroundColor Yellow
+    Write-Host "  Database setup stopped: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
 
 # === Run Prisma DB Push ===

@@ -97,6 +97,15 @@ german.TrayIconDescription=Zeigt den Server-Status im Windows-Infobereich an
 german.InstallingNodeJS=Node.js Runtime wird installiert...
 german.InstallingPostgreSQL=PostgreSQL wird installiert...
 german.ConfiguringDatabase=Datenbank wird eingerichtet...
+german.CreatingBackup=Die bestehende Datenbank wird gesichert...
+german.BackupComplete=Die Sicherung wurde erstellt unter:
+german.BackupPageTitle=Datenbanksicherung
+german.BackupPageDescription=Sicherung vor Datenbankänderungen
+german.BackupPageWarning=Ohne Sicherung können bestehende Daten bei einer Datenbankänderung verloren gehen.
+german.BackupOption=Bestehende Datenbank vor der Installation sichern (empfohlen)
+german.BackupFailed=Die Sicherung konnte nicht erstellt werden. Die Installation wurde vor dem Stoppen des Dienstes abgebrochen.
+german.DatabaseSetupFailed=Die Datenbankeinrichtung ist fehlgeschlagen. Bitte prüfen Sie das Installationsprotokoll.
+german.ExistingConfigMissing=Eine bestehende Serverinstallation wurde gefunden, aber ihre Datenbankkonfiguration fehlt. Die Installation wurde abgebrochen.
 german.InstallingApplication=TurnFix wird installiert...
 german.ConfiguringService=Windows-Dienst wird eingerichtet...
 german.ConfiguringFirewall=Firewall-Regeln werden erstellt...
@@ -127,6 +136,15 @@ english.TrayIconDescription=Shows server status in the Windows system tray
 english.InstallingNodeJS=Installing Node.js Runtime...
 english.InstallingPostgreSQL=Installing PostgreSQL...
 english.ConfiguringDatabase=Setting up database...
+english.CreatingBackup=Backing up the existing database...
+english.BackupComplete=The backup was created at:
+english.BackupPageTitle=Database backup
+english.BackupPageDescription=Backup before database changes
+english.BackupPageWarning=Without a backup, existing data may be lost when the database is changed.
+english.BackupOption=Back up the existing database before installation (recommended)
+english.BackupFailed=The backup could not be created. Installation was stopped before the service was stopped.
+english.DatabaseSetupFailed=Database setup failed. Please check the installation log.
+english.ExistingConfigMissing=An existing server installation was found, but its database configuration is missing. Installation was stopped.
 english.InstallingApplication=Installing TurnFix...
 english.ConfiguringService=Configuring Windows Service...
 english.ConfiguringFirewall=Creating firewall rules...
@@ -155,6 +173,9 @@ Name: "firewall"; Description: "{cm:ConfigureFirewall}"; Types: full custom
 Name: "trayicon"; Description: "{cm:InstallTrayIcon}"; Types: full custom
 
 [Files]
+Source: "{#MyStagingDir}\nodejs\node.exe"; Flags: dontcopy
+Source: "{#MyStagingDir}\server\dist\utils\backup.js"; Flags: dontcopy
+Source: "{#MyStagingDir}\scripts\pre-upgrade-backup.js"; Flags: dontcopy
 ; Node.js embedded runtime
 Source: "{#MyStagingDir}\nodejs\*"; DestDir: "{app}\nodejs"; Flags: ignoreversion recursesubdirs; Components: nodejs
 
@@ -237,11 +258,13 @@ Type: filesandordirs; Name: "{app}\data"
 var
   DatabasePage: TInputQueryWizardPage;
   PortPage: TInputQueryWizardPage;
+  BackupPage: TInputOptionWizardPage;
   DbName: String;
   DbPassword: String;
   ServerPort: String;
   JuryPort: String;
   PowerShellPath: String;
+  ExistingInstallation: Boolean;
 
 // Find PowerShell executable - checks PATH and known system locations
 function FindPowerShell: String;
@@ -347,6 +370,8 @@ begin
 end;
 
 procedure InitializeWizard();
+var
+  ParamIndex: Integer;
 begin
   // Database configuration page
   DatabasePage := CreateInputQueryPage(wpSelectComponents,
@@ -367,6 +392,15 @@ begin
   PortPage.Add(CustomMessage('JuryPort'), False);
   PortPage.Values[0] := '3001';
   PortPage.Values[1] := '3002';
+
+  BackupPage := CreateInputOptionPage(PortPage.ID,
+    CustomMessage('BackupPageTitle'), CustomMessage('BackupPageDescription'),
+    CustomMessage('BackupPageWarning'), False, False);
+  BackupPage.Add(CustomMessage('BackupOption'));
+  BackupPage.Values[0] := True;
+  for ParamIndex := 1 to ParamCount do
+    if CompareText(ParamStr(ParamIndex), '/NOBACKUP') = 0 then
+      BackupPage.Values[0] := False;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -513,6 +547,11 @@ end;
 
 // Check PowerShell availability before installation begins
 function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+  BackupLines: TArrayOfString;
+  BackupResult: String;
+  BackupResultFile: String;
 begin
   Result := '';
   NeedsRestart := False;
@@ -532,6 +571,49 @@ begin
   end
   else
     Log('PowerShell found at: ' + PowerShellPath);
+
+  if Result <> '' then Exit;
+  ExistingInstallation := FileExists(ExpandConstant('{app}\server\.env'));
+  if not ExistingInstallation then
+  begin
+    if DirExists(ExpandConstant('{app}\server')) then
+      Result := CustomMessage('ExistingConfigMissing');
+    Exit;
+  end;
+
+  if not BackupPage.Values[0] then
+  begin
+    Log('Pre-upgrade backup skipped by user choice.');
+    Exit;
+  end;
+
+  WizardForm.StatusLabel.Caption := CustomMessage('CreatingBackup');
+  ExtractTemporaryFile('node.exe');
+  ExtractTemporaryFile('backup.js');
+  ExtractTemporaryFile('pre-upgrade-backup.js');
+  BackupResultFile := ExpandConstant('{tmp}\turnfix-backup-result.txt');
+  DeleteFile(BackupResultFile);
+  if not Exec(ExpandConstant('{tmp}\node.exe'),
+    '"' + ExpandConstant('{tmp}\pre-upgrade-backup.js') + '"' +
+    ' "' + ExpandConstant('{app}') + '"' +
+    ' "' + ExpandConstant('{commonappdata}\TurnFix\Backups') + '"' +
+    ' "' + ExpandConstant('{tmp}\backup.js') + '"' +
+    ' "' + BackupResultFile + '"',
+    ExpandConstant('{app}\server'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    Result := CustomMessage('BackupFailed');
+    Exit;
+  end;
+  BackupResult := '';
+  if LoadStringsFromFile(BackupResultFile, BackupLines) and (GetArrayLength(BackupLines) > 0) then
+    BackupResult := BackupLines[0];
+  if (ResultCode <> 0) or (BackupResult = '') then
+  begin
+    Result := CustomMessage('BackupFailed') + #13#10 + #13#10 + BackupResult;
+    Exit;
+  end;
+  Log('Pre-upgrade backup created: ' + BackupResult);
+  MsgBox(CustomMessage('BackupComplete') + #13#10 + #13#10 + BackupResult, mbInformation, MB_OK);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -541,6 +623,8 @@ var
   NssmPath: String;
   AppPath: String;
   PgInstaller: String;
+  BackupArguments: String;
+  BackupLines: TArrayOfString;
 begin
   // === Stop running services before file copy (upgrade scenario) ===
   // Files in server/dist/ are locked while node.exe runs the service.
@@ -604,23 +688,43 @@ begin
     
     // === Create .env file ===
     WizardForm.StatusLabel.Caption := CustomMessage('InstallingApplication');
-    CreateEnvFile();
+    if not ExistingInstallation then
+      CreateEnvFile();
     CreateEcosystemConfig();
     
     // === Setup Database ===
     WizardForm.StatusLabel.Caption := CustomMessage('ConfiguringDatabase');
-    if PowerShellPath <> '' then
+    if ExistingInstallation then
+      Log('Skipping database setup for existing installation; configuration is preserved.')
+    else if PowerShellPath <> '' then
     begin
+      DeleteFile(ExpandConstant('{tmp}\turnfix-database-backup-result.txt'));
+      BackupArguments := '';
+      if not BackupPage.Values[0] then
+        BackupArguments := ' -SkipBackup';
       if not Exec(PowerShellPath,
         '-NoProfile -ExecutionPolicy Bypass -File "' + AppPath + '\scripts\setup-database.ps1"' +
         ' -InstallDir "' + AppPath + '"' +
         ' -DbName "' + DbName + '"' +
         ' -DbPassword "' + DbPassword + '"' +
-        ' -NodePath "' + NodePath + '"',
+        ' -NodePath "' + NodePath + '"' +
+        ' -BackupResultFile "' + ExpandConstant('{tmp}\turnfix-database-backup-result.txt') + '"' +
+        BackupArguments,
         AppPath, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
         Log('ERROR: Failed to run setup-database.ps1')
       else if ResultCode <> 0 then
-        Log('WARNING: setup-database.ps1 exited with code ' + IntToStr(ResultCode));
+      begin
+        Log('ERROR: setup-database.ps1 exited with code ' + IntToStr(ResultCode));
+        MsgBox(CustomMessage('DatabaseSetupFailed'), mbError, MB_OK);
+      end
+      else if FileExists(ExpandConstant('{tmp}\turnfix-database-backup-result.txt')) then
+      begin
+        if LoadStringsFromFile(ExpandConstant('{tmp}\turnfix-database-backup-result.txt'), BackupLines) and (GetArrayLength(BackupLines) > 0) then
+        begin
+          Log('Existing database backup created: ' + BackupLines[0]);
+          MsgBox(CustomMessage('BackupComplete') + #13#10 + #13#10 + BackupLines[0], mbInformation, MB_OK);
+        end;
+      end;
     end
     else
       Log('SKIP: setup-database.ps1 - PowerShell not available');
