@@ -12,9 +12,7 @@ TurnFix is a comprehensive gymnastics competition management system designed for
 
 **Want to install TurnFix quickly?**
 
-➡️ **[Download ZIP](https://github.com/Igel18/turnfix/archive/refs/heads/WebInterface.zip)** → Extract → Run `setup\windows\INSTALL.bat` as Administrator → Done! ✨
-
-*Everything (Node.js, PostgreSQL, database) is installed automatically. See [detailed setup instructions](#-quick-start) below.*
+Download and run the Windows installer from the project's releases. Select the Windows service and tray components if needed, then open http://localhost:3001 after the server is running. See [detailed setup instructions](#-quick-start) below.
 
 ---
 
@@ -22,13 +20,13 @@ TurnFix is a comprehensive gymnastics competition management system designed for
 
 **Nach der Installation:**
 
-1️⃣ **Doppelklick** auf `TurnFix-Manager.bat`  
-2️⃣ **Drücke [1]** zum Starten  
-3️⃣ **Drücke [7]** um Browser zu öffnen  
+1. Bei der Installation die optionalen Komponenten für Windows-Dienste und gegebenenfalls das Tray auswählen.
+2. Die installierten Dienste über das Tray oder die Windows-Diensteverwaltung prüfen und bei Bedarf starten.
+3. Im Browser http://localhost:3001 öffnen; das Jury-Portal ist bei laufendem Jury-Dienst unter http://localhost:3002 erreichbar.
 
-✨ **Fertig!** TurnFix läuft! 
+Ohne ausgewählte Dienst-Komponente werden keine TurnFix-Dienste eingerichtet; das Tray ist ebenfalls optional. Der [Entwicklerstart](#-manual-installation-for-developers) ist davon getrennt.
 
-📖 **[Vollständige Anleitung → SCHNELLSTART.md](SCHNELLSTART.md)**
+📖 **[Vollständige Anleitung](documentation/newWebbased/getting-started/installation.md)**
 
 ---
 
@@ -110,18 +108,9 @@ TurnFix is a comprehensive gymnastics competition management system designed for
 
 ### **Web Application (Recommended)**
 
-#### **🚀 Automated One-Click Installation (Windows)**
+#### **Windows Installer**
 
-**Easiest way for new users:**
-
-1. **Download**: [**📥 Download TurnFix ZIP**](https://github.com/Igel18/turnfix/archive/refs/heads/WebInterface.zip)
-2. **Extract** the ZIP file
-3. **Navigate** to `turnfix-WebInterface\setup\windows\`
-4. **Right-click** on `INSTALL.bat` → **"Run as administrator"**
-5. **Wait** for automatic installation (Node.js, PostgreSQL, database, app)
-6. **Done!** Access at http://localhost:5173
-
-**Everything is installed automatically:** Node.js, PostgreSQL, all dependencies, database setup, and TurnFix! ✨
+Download the Windows installer from the project's releases and run it. PostgreSQL, Windows services, firewall rules and the tray shortcut are optional components. Choose the service component for installed Windows services and the tray component for the optional service controls. Once the main service is running, open http://localhost:3001; the jury service uses http://localhost:3002. The development server at port 5173 is separate.
 
 **For detailed setup instructions:**
 - 🇩🇪 **German**: See [`setup/windows/SETUP-GUIDE-DE.md`](setup/windows/SETUP-GUIDE-DE.md) *(Comprehensive guide)*

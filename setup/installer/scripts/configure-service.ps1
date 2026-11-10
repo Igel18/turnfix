@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # TurnFix - Windows Service Configuration Script
 # ============================================================================
 # Uses NSSM to install TurnFix as a Windows Service
@@ -40,7 +40,7 @@ if (-not (Test-Path $NodePath)) {
 if (-not (Test-Path $NssmPath)) {
     Write-Host "⚠ NSSM not found at: $NssmPath" -ForegroundColor Yellow
     Write-Host "  Windows-Dienst kann nicht installiert werden." -ForegroundColor Yellow
-    Write-Host "  TurnFix kann stattdessen über TurnFix-Manager.bat gestartet werden." -ForegroundColor Yellow
+    Write-Host "  Die Dienste können nach der NSSM-Installation über die TurnFix Tray-App verwaltet werden." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  Um NSSM nachträglich zu installieren:" -ForegroundColor Cyan
     Write-Host "    1. Herunterladen von https://nssm.cc/release/nssm-2.24.zip" -ForegroundColor White
@@ -271,7 +271,7 @@ Write-Host "    • $juryDisplayName (Port $JuryPort) - Autostart" -ForegroundCo
 Write-Host ""
 Write-Host "  Verwaltung über:" -ForegroundColor DarkGray
 Write-Host "    services.msc (Windows-Dienstverwaltung)" -ForegroundColor DarkGray
-Write-Host "    oder TurnFix-Manager.bat" -ForegroundColor DarkGray
+Write-Host "    oder die TurnFix Tray-App" -ForegroundColor DarkGray
 Write-Host ""
 
 # Service installation was successful, exit 0 even if start failed

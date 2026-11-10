@@ -59,18 +59,19 @@ cd setup\installer
 |---|---------|-------------|
 | 1 | **Admin-Rechte** | Werden automatisch angefordert |
 | 2 | **Installationspfad** | Standard: `C:\TurnFix` |
-| 3 | **Komponenten wählen** | App, Node.js, PostgreSQL, Service, Firewall |
+| 3 | **Komponenten wählen** | App und Node.js; optional PostgreSQL, Dienste, Firewall und Tray |
 | 4 | **Datenbank konfigurieren** | DB-Name und PostgreSQL-Passwort |
 | 5 | **Ports konfigurieren** | Server (3001), Jury Portal (3002) |
 | 6 | **PostgreSQL installieren** | Silent-Install (wenn gewählt) |
 | 7 | **TurnFix installieren** | Server, Client, Jury Portal |
 | 8 | **Datenbank einrichten** | DB erstellen, Prisma Schema Push |
-| 9 | **Windows-Dienst** | NSSM-basierter Service (Autostart) |
-| 10 | **Firewall** | Ports 3001/3002 öffnen |
-| 11 | **Verknüpfungen** | Desktop + Startmenü |
+| 9 | **Windows-Dienste** | Wenn ausgewählt: NSSM-basierte Dienste mit Autostart |
+| 10 | **Firewall** | Wenn ausgewählt: konfigurierte Ports öffnen |
+| 11 | **Verknüpfungen** | Browser im Startmenü, optional Desktop und Tray |
 
 ### Tray-App und Administratorrechte
 
+- Die Tray-Komponente ist optional und unabhängig von der Dienst-Komponente auswählbar. Der Tray-Autostart ist eine separate Option.
 - Die Tray-App TurnFixTray.exe wird beim Build mit einem Windows-Manifest (requireAdministrator) kompiliert.
 - Dadurch startet die Tray-App immer erhöht und kann Windows-Dienste zuverlässig starten/stoppen.
 - Das gilt auch für den Autostart-Eintrag nach der Installation.
@@ -99,25 +100,25 @@ C:\TurnFix\
 │   └── public\          # Static Assets
 ├── jury-portal\         # Kampfrichter Portal
 │   └── dist\
-├── scripts\             # Setup/Service Scripts
-├── TurnFix-Manager.bat  # Management Tool
-└── turnfix-manager.ps1
+└── scripts\             # Setup/Service Scripts und Tray-Programm
 ```
 
-### Windows-Dienste:
+### Windows-Dienste (nur bei ausgewählter Dienst-Komponente):
 
 | Service | Name | Port | Autostart |
 |---------|------|------|-----------|
 | TurnFix Server | `TurnFixServer` | 3001 | ✅ Ja |
-| TurnFix Jury | `TurnFixJuryServer` | 3002 | ❌ Manuell |
+| TurnFix Jury | `TurnFixJuryServer` | 3002 | ✅ Ja |
+
+Der Jury-Dienst wird nur eingerichtet, wenn die Jury-Server-Dateien vorhanden sind. Bei laufenden Diensten öffnen Sie die Anwendung unter `http://localhost:3001` und das Jury-Portal unter `http://localhost:3002`. Ohne Tray lassen sich installierte Dienste in der Windows-Diensteverwaltung steuern. Ohne Dienst-Komponente werden keine TurnFix-Dienste eingerichtet.
 
 ## 🔧 Installationstypen
 
-| Typ | PostgreSQL | Service | Firewall |
-|-----|-----------|---------|----------|
-| **Vollständig** | ✅ | ✅ | ✅ |
-| **Kompakt** | ❌ | ❌ | ❌ |
-| **Benutzerdefiniert** | Wählbar | Wählbar | Wählbar |
+| Typ | PostgreSQL | Dienste | Firewall | Tray |
+|-----|-----------|---------|----------|------|
+| **Vollständig** | ✅ | ✅ | ✅ | ✅ |
+| **Kompakt** | ❌ | ❌ | ❌ | ❌ |
+| **Benutzerdefiniert** | Wählbar | Wählbar | Wählbar | Wählbar |
 
 ## 🗑️ Deinstallation
 

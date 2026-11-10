@@ -232,9 +232,9 @@ Modifying Windows Firewall rules requires elevated privileges for security reaso
 **Action**: Use the IP that matches your target network
 
 ## Alternative: Manual Configuration
-If the GUI doesn't work, you can still use the PowerShell script:
+If the GUI doesn't work, run the PowerShell script as administrator from the repository root:
 ```powershell
-.\setup-network.ps1
+.\newWebBased\scripts\setup-network.ps1
 ```
 
 Or configure manually (requires admin PowerShell):

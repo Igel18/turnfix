@@ -507,14 +507,6 @@ if (Test-Path $trayIco) {
 }
 Write-Host "  ✓ Installer scripts copied" -ForegroundColor Green
 
-# -- Copy TurnFix Manager --
-Write-Host "  📦 Copying TurnFix Manager..." -ForegroundColor Cyan
-$managerBat = Join-Path $RepoRoot "TurnFix-Manager.bat"
-$managerPs1 = Join-Path $RepoRoot "turnfix-manager.ps1"
-if (Test-Path $managerBat) { Copy-Item $managerBat -Destination $StagingDir }
-if (Test-Path $managerPs1) { Copy-Item $managerPs1 -Destination $StagingDir }
-Write-Host "  ✓ TurnFix Manager copied" -ForegroundColor Green
-
 # -- Copy LICENSE file --
 Write-Host "  📦 Copying LICENSE..." -ForegroundColor Cyan
 $licenseFile = Join-Path $RepoRoot "LICENSE"

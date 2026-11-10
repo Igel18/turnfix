@@ -62,14 +62,14 @@ if ($frontendRule) {
     Write-Host "   ✅ Frontend firewall rule: EXISTS" -ForegroundColor Green
 } else {
     Write-Host "   ❌ Frontend firewall rule: MISSING" -ForegroundColor Red
-    Write-Host "      Run setup-network.ps1 as Administrator to create firewall rules" -ForegroundColor Yellow
+    Write-Host "      Run newWebBased\scripts\setup-network.ps1 as Administrator to create firewall rules" -ForegroundColor Yellow
 }
 
 if ($backendRule) {
     Write-Host "   ✅ Backend firewall rule: EXISTS" -ForegroundColor Green
 } else {
     Write-Host "   ❌ Backend firewall rule: MISSING" -ForegroundColor Red
-    Write-Host "      Run setup-network.ps1 as Administrator to create firewall rules" -ForegroundColor Yellow
+    Write-Host "      Run newWebBased\scripts\setup-network.ps1 as Administrator to create firewall rules" -ForegroundColor Yellow
 }
 
 # Generate access URLs
@@ -90,7 +90,7 @@ if ($frontendListener -and $backendListener -and $frontendRule -and $backendRule
     Write-Host "   ⚠️  TurnFix network configuration needs attention:" -ForegroundColor Yellow
     if (-not $frontendListener) { Write-Host "      - Start the frontend server" -ForegroundColor White }
     if (-not $backendListener) { Write-Host "      - Start the backend server" -ForegroundColor White }
-    if (-not $frontendRule -or -not $backendRule) { Write-Host "      - Run setup-network.ps1 as Administrator" -ForegroundColor White }
+    if (-not $frontendRule -or -not $backendRule) { Write-Host "      - Run newWebBased\scripts\setup-network.ps1 as Administrator" -ForegroundColor White }
 }
 
 Write-Host "`nPress any key to exit..."

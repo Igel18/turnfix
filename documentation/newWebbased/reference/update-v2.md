@@ -23,7 +23,7 @@ Port 3002: Kampfrichter-Portal
 2. **Keine CORS-Probleme**: Frontend und Backend auf gleichem Port
 3. **Bessere Performance**: Statische Dateien mit Caching
 4. **Weniger Ports**: Einfachere Firewall-Konfiguration
-5. **Ein-Klick-Start**: TurnFix-Manager macht alles automatisch
+5. **Windows-Betrieb**: Optional installierte Dienste und Tray zur Dienstverwaltung
 
 ## 📦 Was wurde geändert?
 
@@ -43,14 +43,20 @@ if (process.env.NODE_ENV === 'production') {
 "build:all": "npm run build && cd ../client && npm run build"
 ```
 
-### 3. **TurnFix-Manager (turnfix-manager.ps1)**
-- Baut automatisch Backend + Frontend
-- Zeigt Netzwerk-URLs an
-- Prüft alle Komponenten
+### 3. **Windows-Installer**
+- Windows-Dienste und Tray sind getrennte optionale Komponenten.
+- Installierte Dienste können im optionalen Tray oder in der Windows-Diensteverwaltung geprüft und gestartet werden.
+- Ohne Dienst-Komponente werden keine TurnFix-Dienste eingerichtet.
 
 ## 🔧 Migration / Upgrade
 
-### Für bestehende Installationen:
+### Für Windows-Installer-Installationen:
+
+Den aktuellen Installer ausführen und die benötigten optionalen Komponenten auswählen. Nach dem Update den Status der installierten Dienste im optionalen Tray oder in der Windows-Diensteverwaltung prüfen und die Anwendung im Browser öffnen. Die Tray-Autostart-Option ist separat auswählbar.
+
+### Für bestehende Quellcode-/PM2-Deployments:
+
+Die folgenden Schritte gelten für einen Checkout, nicht für die Windows-Installer-Installation. PM2 und Windows-Dienste dürfen nicht gleichzeitig dieselben Ports belegen.
 
 1. **Code aktualisieren** (Git Pull)
    ```bash
@@ -77,16 +83,6 @@ if (process.env.NODE_ENV === 'production') {
    npm run pm2:start:prod
    ```
 
-### ODER: Einfach mit TurnFix-Manager:
-
-```batch
-TurnFix-Manager.bat
-→ Option 8: Erweiterte Optionen
-→ Option 3: Build neu erstellen
-→ Zurück zum Hauptmenü
-→ Option 3: TurnFix NEU STARTEN
-```
-
 ## 🌐 Zugriff nach dem Update
 
 ### Lokal:
@@ -97,7 +93,7 @@ TurnFix-Manager.bat
 - **Hauptanwendung**: http://192.168.1.108:3001 ✅
 - **Kampfrichter**: http://192.168.1.108:3002 ✅
 
-*(IP-Adresse kann variieren - siehe TurnFix-Manager Option 8 → 4)*
+*(Die lokale IPv4-Adresse kann unter Windows mit `ipconfig` ermittelt werden.)*
 
 ## ⚠️ Breaking Changes
 
@@ -116,9 +112,9 @@ npm run dev:client  # Port 5173
 
 ### Für Anwender:
 
-**Keine Änderungen nötig!** TurnFix-Manager macht alles automatisch.
+Bei einer Installer-Installation den Dienststatus prüfen und die Anwendung im Browser öffnen. Tray und Dienste sind optional und müssen bei Bedarf im Installer ausgewählt werden.
 
-## 📝 Checkliste
+## 📝 Checkliste für Quellcode-/PM2-Deployments
 
 - [ ] Git Pull durchgeführt
 - [ ] Dependencies installiert (`npm install`)
@@ -128,7 +124,7 @@ npm run dev:client  # Port 5173
 - [ ] http://localhost:3002 funktioniert
 - [ ] Firewall-Regeln aktiviert (für Netzwerk-Zugriff)
 
-## 🐛 Troubleshooting
+## 🐛 Troubleshooting für Quellcode-/PM2-Deployments
 
 ### Problem: "Cannot GET /"
 **Lösung**: Frontend nicht gebaut

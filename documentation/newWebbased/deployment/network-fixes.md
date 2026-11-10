@@ -147,7 +147,7 @@ http://192.168.1.108:3002     → Jury-Portal (von jedem Gerät im Netzwerk)
 | 5173 | Vite Dev Server | Localhost only | Development (optional) |
 | 5174 | ~~Jury Dev~~ | ❌ Nicht mehr verwendet | Ersetzt durch 3002 |
 
-## Deployment
+## Deployment aus dem Quellcode
 
 Nach diesen Fixes:
 
@@ -163,11 +163,7 @@ pm2 list
 pm2 logs
 ```
 
-Oder mit TurnFix-Manager:
-```bash
-.\TurnFix-Manager.bat
-# Option 2: Build and start servers
-```
+Bei einer Windows-Installer-Installation stattdessen die optional installierten TurnFix-Dienste über das optionale Tray oder die Windows-Diensteverwaltung starten und die Anwendung im Browser auf Port 3001 öffnen. Tray und Dienste müssen bei der Installation jeweils ausgewählt worden sein; ohne Dienst-Komponente werden keine Dienste eingerichtet.
 
 ## Sicherheitshinweise
 

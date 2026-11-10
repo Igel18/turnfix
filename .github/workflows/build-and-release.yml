@@ -271,9 +271,10 @@ jobs:
         Copy-Item "newWebBased/GETTING_STARTED.md" "setup-package/"
         
         # Copy setup scripts
-        Copy-Item "start-servers-network.ps1" "setup-package/" -ErrorAction SilentlyContinue
-        Copy-Item "start-with-jury.ps1" "setup-package/" -ErrorAction SilentlyContinue
-        Copy-Item "setup-network.ps1" "setup-package/" -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Force -Path "setup-package/scripts"
+        Copy-Item "newWebBased/scripts/start-servers-network.ps1" "setup-package/scripts/"
+        Copy-Item "newWebBased/scripts/start-with-jury.ps1" "setup-package/scripts/"
+        Copy-Item "newWebBased/scripts/setup-network.ps1" "setup-package/scripts/"
 
     - name: Create setup script
       run: |
@@ -330,9 +331,9 @@ jobs:
         Start-Sleep -Seconds 3
         
         # Start jury portal (if available)
-        if (Test-Path "start-with-jury.ps1") {
+        if (Test-Path "$PSScriptRoot\scripts\start-with-jury.ps1") {
             Write-Host "Starting jury portal..." -ForegroundColor Yellow
-            & ".\start-with-jury.ps1"
+            & "$PSScriptRoot\scripts\start-with-jury.ps1"
         } else {
             Write-Host "Jury portal not available in this setup." -ForegroundColor Yellow
         }

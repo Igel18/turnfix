@@ -19,9 +19,9 @@
 
 ### **Setup Instructions**
 
-1. **Start All Services**:
+1. **Start All Services** from the repository root:
    ```powershell
-   .\start-with-jury.ps1
+   .\newWebBased\scripts\start-with-jury.ps1
    ```
    This starts:
    - Main Server (API): http://localhost:3001
@@ -126,7 +126,7 @@ curl http://localhost:5174/api/health
 ## Competition Day Checklist
 
 ### **Before Competition**
-- [ ] Start all services with `start-with-jury.ps1`
+- [ ] Start all services with `newWebBased\scripts\start-with-jury.ps1`
 - [ ] Test jury portal access locally
 - [ ] Test jury portal from mobile device
 - [ ] Share network URL with jury members

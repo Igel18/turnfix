@@ -1,16 +1,16 @@
 # TurnFix with Jury Portal Startup Script
 Write-Host "Starting TurnFix with Jury Portal..." -ForegroundColor Green
 
-# Get the script directory and change to the repository root
+# Get the script directory and change to the application root
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $scriptDir
+Set-Location (Split-Path -Parent $scriptDir)
 $currentDir = Get-Location
 Write-Host "Working directory: $currentDir" -ForegroundColor Cyan
 
 # Define paths relative to current directory
-$serverPath = Join-Path $currentDir "newWebBased\server"
-$clientPath = Join-Path $currentDir "newWebBased\client"
-$juryPortalPath = Join-Path $currentDir "newWebBased\jury-portal"
+$serverPath = Join-Path $currentDir "server"
+$clientPath = Join-Path $currentDir "client"
+$juryPortalPath = Join-Path $currentDir "jury-portal"
 
 # Verify paths exist
 if (-not (Test-Path $serverPath)) {

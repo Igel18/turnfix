@@ -154,7 +154,7 @@ npm run dev
 
 ### Option 3: Mit Jury Portal
 ```powershell
-C:\TurnFix\start-with-jury.ps1
+C:\TurnFix\newWebBased\scripts\start-with-jury.ps1
 ```
 
 Dies startet:

@@ -1,7 +1,7 @@
 {
-  "gitHash": "a279bc4f2",
-  "gitBranch": "c++-cleanup",
-  "gitCommitDate": "2026-11-08 10:47:12 +0100",
-  "buildTimestamp": "2026-11-08T09:47:20.212Z",
-  "buildDate": "08.11.2026, 10:47:20"
+  "gitHash": "ea9df7ddc",
+  "gitBranch": "No-db-creation-in-installation",
+  "gitCommitDate": "2026-11-08 11:19:34 +0100",
+  "buildTimestamp": "2026-11-10T17:50:55.019Z",
+  "buildDate": "10.11.2026, 18:50:55"
 }

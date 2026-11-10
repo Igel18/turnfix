@@ -39,26 +39,13 @@ if (process.env.NODE_ENV === 'production') {
 "build:all": "npm run build && cd ../client && npm run build"
 ```
 
-### 3. **turnfix-manager.ps1** - Automatischer Build
-- Prüft ob Backend UND Frontend gebaut sind
-- Baut beide automatisch falls nötig
-- Zeigt Netzwerk-URLs an
-
 ## 🚀 Verwendung
 
-### Mit TurnFix-Manager (empfohlen):
-```batch
-TurnFix-Manager.bat
-→ Option 1: TurnFix STARTEN
-```
+### Windows-Installer
 
-Das Script macht automatisch:
-1. ✅ npm install (falls nötig)
-2. ✅ Backend kompilieren (TypeScript → JavaScript)
-3. ✅ Frontend bauen (React → statische Dateien)
-4. ✅ PM2 starten (beide Server)
+Windows-Dienste und Tray sind getrennte optionale Installer-Komponenten. Sind die Dienste installiert, starten oder prüfen Sie sie über das optionale Tray oder die Windows-Diensteverwaltung und öffnen `http://localhost:3001` im Browser. Ohne Dienst-Komponente werden keine TurnFix-Dienste eingerichtet.
 
-### Manuell:
+### Quellcode / Entwicklerbetrieb:
 ```bash
 cd newWebBased/server
 npm run build:all          # Baut Backend + Frontend
@@ -75,7 +62,7 @@ npm run pm2:start:prod     # Startet PM2 im Production-Modus
 - http://192.168.1.108:3001 → Hauptanwendung
 - http://192.168.1.108:3002 → Kampfrichter-Portal
 
-*(IP-Adresse mit TurnFix-Manager → Option 8 → 4 anzeigen)*
+*(Die lokale IPv4-Adresse kann unter Windows mit `ipconfig` ermittelt werden.)*
 
 ## ✨ Vorteile
 

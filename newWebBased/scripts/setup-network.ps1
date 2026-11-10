@@ -26,7 +26,7 @@ foreach ($ip in $ipInfo) {
 }
 
 Write-Host "`n📋 Next Steps:" -ForegroundColor Yellow
-Write-Host "1. Start TurnFix servers using the start-servers.ps1 script" -ForegroundColor White
+Write-Host "1. Start TurnFix servers using $PSScriptRoot\start-servers-network.ps1" -ForegroundColor White
 Write-Host "2. Other PCs can access TurnFix at: http://YOUR_IP:5173" -ForegroundColor White
 Write-Host "3. Replace YOUR_IP with one of the IP addresses shown above" -ForegroundColor White
 

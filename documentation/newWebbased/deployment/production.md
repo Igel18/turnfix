@@ -9,7 +9,7 @@ Jury-Portal (Vite):  http://localhost:5174
 Backend API:         http://localhost:3001
 ```
 
-### Production-Modus (PM2 / TurnFix-Manager) ✅
+### Production-Modus (Windows-Dienste oder separates PM2-Deployment) ✅
 ```
 Hauptanwendung:      http://localhost:3001  (Backend + Frontend integriert)
 Kampfrichter-Portal: http://localhost:3002
@@ -70,43 +70,23 @@ Kampfrichter:   http://192.168.1.108:3002
 ```
 *(IP-Adresse variiert je nach Netzwerk)*
 
-## 📦 Deployment mit TurnFix-Manager
+## 📦 Windows-Installer-Betrieb
 
-### Erster Start:
-```batch
-TurnFix-Manager.bat
-→ Option 1: TurnFix STARTEN
-```
+Windows-Dienste und Tray sind getrennte optionale Komponenten des Installers. Bei Auswahl der Dienst-Komponente werden `TurnFixServer` und, wenn die Jury-Server-Dateien vorhanden sind, `TurnFixJuryServer` eingerichtet und auf Autostart gesetzt. Den Status prüfen und installierte Dienste bei Bedarf über das optionale Tray oder die Windows-Diensteverwaltung starten. Anschließend die Hauptanwendung unter `http://localhost:3001` und das Jury-Portal unter `http://localhost:3002` öffnen.
 
-Das Script:
-1. ✅ Prüft ob `node_modules` installiert sind
-2. ✅ Prüft ob Backend kompiliert ist
-3. ✅ Prüft ob Frontend gebaut ist
-4. ✅ Baut fehlende Komponenten automatisch
-5. ✅ Startet PM2 mit beiden Servern
-
-### Build neu erstellen:
-```batch
-TurnFix-Manager.bat
-→ Option 8: Erweiterte Optionen
-→ Option 3: Build neu erstellen
-```
+Ohne Dienst-Komponente werden keine TurnFix-Dienste eingerichtet. Der Tray-Autostart ist zusätzlich auswählbar. Für Builds und PM2-Befehle aus dem Quellcode siehe unten; sie sind vom Installer-Betrieb getrennt und dürfen nicht gleichzeitig dieselben Ports belegen.
 
 ## 🔥 Firewall-Konfiguration
 
 Für Netzwerk-Zugriff müssen Windows Firewall-Regeln aktiviert werden:
 
-```batch
-TurnFix-Manager.bat
-→ Option 8: Erweiterte Optionen
-→ (wird in einem separaten Menü verwaltet)
-```
+Die Firewall-Komponente kann im Installer ausgewählt werden. Andernfalls die benötigten Regeln in der Windows-Firewall entsprechend der lokalen Netzwerkkonfiguration einrichten.
 
 ### Benötigte Ports:
 - **3001**: Hauptanwendung (Backend + Frontend)
 - **3002**: Kampfrichter-Portal
 
-## 🛠️ Manuelle Befehle
+## 🛠️ Manuelle Befehle für Quellcode-Deployments
 
 ### Backend + Frontend bauen:
 ```bash
@@ -176,7 +156,7 @@ newWebBased/
 | **Deployment** | 2 separate Prozesse | 1 Prozess für Haupt-App |
 | **CORS-Probleme** | Möglich | Keine (gleicher Port) |
 | **Caching** | Schwierig | Einfach (static files) |
-| **Setup** | Komplex | Einfach (TurnFix-Manager) |
+| **Setup** | Separate Frontend-Instanz | Installer mit optionalen Windows-Diensten |
 
 ## 🎓 Für Entwickler
 
@@ -207,8 +187,8 @@ npm run pm2:start:prod
 ## 📞 Support
 
 Bei Problemen:
-1. TurnFix-Manager → Option 5: Live-Logs anzeigen
-2. TurnFix-Manager → Option 4: Status anzeigen
+1. Status der installierten Dienste im Tray oder in der Windows-Diensteverwaltung prüfen.
+2. Dienst-Logs im Installationsverzeichnis unter `server/logs/` prüfen; für Quellcode-Deployments die PM2-Logs verwenden.
 3. GitHub Issues: https://github.com/Igel18/turnfix/issues
 
 ---

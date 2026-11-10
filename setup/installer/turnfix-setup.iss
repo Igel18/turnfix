@@ -20,7 +20,6 @@
 #define MyAppVersion "2.0"
 #define MyAppPublisher "TurnFix"
 #define MyAppURL "https://github.com/Igel18/turnfix"
-#define MyAppExeName "TurnFix-Manager.bat"
 
 ; Allow build script to pass staging dir
 #ifndef MyStagingDir
@@ -110,7 +109,6 @@ german.ConfiguringService=Windows-Dienst wird eingerichtet...
 german.ConfiguringFirewall=Firewall-Regeln werden erstellt...
 german.InstallationComplete=Installation abgeschlossen!
 german.OpenBrowser=Datenbank-Wizard in den Einstellungen öffnen
-german.OpenManager=TurnFix Manager öffnen
 german.OpenDocumentation=Dokumentation öffnen
 german.ServerPort=Server Port:
 german.JuryPort=Kampfrichter-Portal Port:
@@ -148,7 +146,6 @@ english.ConfiguringService=Configuring Windows Service...
 english.ConfiguringFirewall=Creating firewall rules...
 english.InstallationComplete=Installation complete!
 english.OpenBrowser=Open database wizard in settings
-english.OpenManager=Open TurnFix Manager
 english.OpenDocumentation=Open Documentation
 english.ServerPort=Server Port:
 english.JuryPort=Jury Portal Port:
@@ -210,10 +207,6 @@ Source: "{#MyStagingDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion re
 ; Installer scripts (including tray icon)
 Source: "{#MyStagingDir}\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion; Components: app
 
-; TurnFix Manager
-Source: "{#MyStagingDir}\TurnFix-Manager.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
-Source: "{#MyStagingDir}\turnfix-manager.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: app
-
 ; License
 Source: "{#MyStagingDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion; Components: app
 
@@ -224,11 +217,10 @@ Name: "{app}\data"
 Name: "{app}\docs"
 
 [Icons]
-Name: "{group}\TurnFix Manager"; Filename: "{app}\TurnFix-Manager.bat"; WorkingDir: "{app}"; Comment: "TurnFix Verwaltung starten"
+Name: "{group}\TurnFix Tray"; Filename: "{app}\scripts\TurnFixTray.exe"; WorkingDir: "{app}"; Comment: "TurnFix Status und Dienste"; Components: trayicon
 Name: "{group}\TurnFix im Browser"; Filename: "http://localhost:3001"; Comment: "TurnFix Web-Interface"
 Name: "{group}\TurnFix Dokumentation"; Filename: "{app}\docs\TurnFix-Dokumentation.html"; Comment: "TurnFix Handbuch & Dokumentation"
 Name: "{group}\TurnFix deinstallieren"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\TurnFix"; Filename: "{app}\TurnFix-Manager.bat"; WorkingDir: "{app}"; Comment: "TurnFix Verwaltung"; Tasks: desktopicon
 Name: "{commondesktop}\TurnFix Web"; Filename: "http://localhost:3001"; Comment: "TurnFix im Browser öffnen"; Tasks: desktopicon
 ; Tray icon autostart
 Name: "{commonstartup}\TurnFix Tray"; Filename: "{app}\scripts\TurnFixTray.exe"; WorkingDir: "{app}"; Comment: "TurnFix Status-Anzeige"; Components: trayicon; Tasks: autostarttray
@@ -240,7 +232,6 @@ Name: "autostarttray"; Description: "TurnFix Tray-Icon bei Windows-Anmeldung sta
 [Run]
 ; Post-installation: open browser
 Filename: "{code:GetConfigurationUrl}"; Description: "{cm:OpenBrowser}"; Flags: postinstall shellexec skipifsilent unchecked
-Filename: "{app}\TurnFix-Manager.bat"; Description: "{cm:OpenManager}"; Flags: postinstall skipifsilent nowait
 Filename: "{app}\docs\TurnFix-Dokumentation.html"; Description: "{cm:OpenDocumentation}"; Flags: postinstall shellexec skipifsilent unchecked nowait
 
 [UninstallRun]
