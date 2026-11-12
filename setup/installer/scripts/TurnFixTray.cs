@@ -66,6 +66,7 @@ namespace TurnFixTray
         private ToolStripMenuItem miRestart;
         private ToolStripMenuItem miOpenApp;
         private ToolStripMenuItem miOpenJury;
+        private Process networkProfileProcess;
 
         // ── Constructor ────────────────────────────────────────────────
 
@@ -149,6 +150,10 @@ namespace TurnFixTray
             miOpenJury = new ToolStripMenuItem("Jury-Portal oeffnen", null,
                 (s, e) => OpenUrl("http://localhost:" + juryPort));
             menu.Items.Add(miOpenJury);
+
+            var miNetworkProfiles = new ToolStripMenuItem("Netzwerkprofile verwalten...", null,
+                (s, e) => OpenNetworkProfiles(false));
+            menu.Items.Add(miNetworkProfiles);
 
             menu.Items.Add(new ToolStripSeparator());
 
@@ -378,6 +383,8 @@ namespace TurnFixTray
                 // Log only on status change
                 if (firstCheck || serverRunning != lastServerRunning || juryRunning != lastJuryRunning)
                 {
+                    if (serverRunning && (firstCheck || !lastServerRunning))
+                        OpenNetworkProfiles(true);
                     Log("Status: server=" + serverRunning + ", jury=" + juryRunning);
                     lastServerRunning = serverRunning;
                     lastJuryRunning = juryRunning;
@@ -425,6 +432,33 @@ namespace TurnFixTray
             catch (Exception ex)
             {
                 Log("UpdateStatus error: " + ex.ToString());
+            }
+        }
+
+        private void OpenNetworkProfiles(bool warnOnly)
+        {
+            try
+            {
+                if (networkProfileProcess != null && !networkProfileProcess.HasExited)
+                    return;
+                string script = Path.Combine(installDir, "scripts", "network-profiles.ps1");
+                if (!File.Exists(script))
+                    throw new FileNotFoundException("Netzwerkdialog nicht gefunden", script);
+                var start = new ProcessStartInfo();
+                start.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
+                    @"WindowsPowerShell\v1.0\powershell.exe");
+                start.Arguments = "-NoProfile -ExecutionPolicy Bypass -STA -File \"" + script + "\"" +
+                    (warnOnly ? " -WarnIfPublic" : "");
+                start.UseShellExecute = false;
+                start.CreateNoWindow = true;
+                networkProfileProcess = Process.Start(start);
+            }
+            catch (Exception ex)
+            {
+                Log("Network profile check failed: " + ex.Message);
+                if (!warnOnly)
+                    MessageBox.Show("Die Netzwerkprofile konnten nicht geoeffnet werden: " + ex.Message,
+                        "TurnFix", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

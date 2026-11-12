@@ -492,6 +492,7 @@ $scriptFiles = @(
     "pre-upgrade-backup.js",
     "configure-service.ps1",
     "configure-firewall.ps1",
+    "network-profiles.ps1",
     "uninstall-service.ps1",
     "TurnFixTray.exe"
 )

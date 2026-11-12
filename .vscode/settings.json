@@ -1,9 +1,6 @@
 {
-    "files.associations": {
-        "cmath": "cpp"
-    },
-    "cmake.sourceDirectory": "C:/Users/Dominik Prudlo/Documents/GitHub/turnfix/libs/QtPropertyBrowser",
     "chat.tools.terminal.autoApprove": {
         "npm --prefix newWebBased/shared": true
-    }
+    },
+    "python.terminal.useEnvFile": true
 }

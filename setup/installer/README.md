@@ -75,6 +75,10 @@ cd setup\installer
 - Die Tray-App TurnFixTray.exe wird beim Build mit einem Windows-Manifest (requireAdministrator) kompiliert.
 - Dadurch startet die Tray-App immer erhöht und kann Windows-Dienste zuverlässig starten/stoppen.
 - Das gilt auch für den Autostart-Eintrag nach der Installation.
+- Beim Serverstart prüft der Server aktive Windows-Netzwerkprofile und protokolliert öffentliche Verbindungen. Das laufende Tray zeigt dazu beim erkannten Serverstart einen Hinweis an.
+- Über das Tray-Menü **Netzwerkprofile verwalten** kann eine einzelne Verbindung nach Bestätigung zwischen Öffentlich und Privat umgestellt werden. Privat nur für vertrauenswürdige Netzwerke wählen: Die Änderung betrifft den gesamten Rechner. Domänenprofile können nicht umgestellt werden.
+- Für den sichtbaren Hinweis muss das optionale Tray gestartet sein; für automatische Hinweise nach der Windows-Anmeldung muss zusätzlich der Tray-Autostart gewählt werden. Ohne Tray stehen Hinweise im Serverprotokoll und die Windows-Netzwerkeinstellungen zur Verfügung. Beim Wechsel des Netzwerks nach dem Serverstart kann der Dialog jederzeit über das Tray-Menü geöffnet werden.
+- Windows-Richtlinien können die Änderung verhindern oder ein Netzwerk später erneut als öffentlich erkennen. Der Status wird nicht automatisch geändert; Firewall-Regeln müssen weiterhin eingerichtet sein.
 
 ### Installierte Komponenten:
 
