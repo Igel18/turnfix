@@ -74,6 +74,7 @@ const shutdown_1 = require("./utils/shutdown");
 const connection_1 = require("./db/connection");
 const portChecker_1 = require("./utils/portChecker");
 const backupRuntime_1 = require("./utils/backupRuntime");
+const networkProfile_1 = require("./utils/networkProfile");
 // import { notFoundHandler } from './middleware/notFoundHandler';
 // Prisma-based routes using SQL queries
 const disciplines_1 = __importDefault(require("./routes/disciplines"));
@@ -417,6 +418,7 @@ async function startServer() {
         // Start server
         server.listen(PORT, () => {
             backupRuntime_1.backupScheduler.start();
+            (0, networkProfile_1.warnAboutPublicNetworkProfiles)();
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log(`🔗 Local API: http://localhost:${PORT}/api`);
