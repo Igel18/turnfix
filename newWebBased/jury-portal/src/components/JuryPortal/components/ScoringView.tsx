@@ -7,14 +7,15 @@
  */
 
 import React from 'react';
-import { Users, Trophy } from 'lucide-react';
-import { MISSING_ICON_EMOJI, getMissingIconUrl } from '../../../utils/iconUtils';
+import { Users, Trophy, Check, Hourglass } from 'lucide-react';
+import { MISSING_ICON_EMOJI } from '../../../utils/iconUtils';
 // TODO (Tech Debt): StatusBadge removed from participant sidebar because the participant status
 // in tfx_wertungen is NOT device-specific — one participant has one status across all disciplines.
 // Once the DB is extended to store per-device/per-discipline statuses, StatusBadge from
 // @turnfix/shared can be re-added here with the device-scoped status value.
 // import { StatusBadge } from '@turnfix/shared';
 import { normalizeScoreInput, getScorePlaceholder, formatScore } from '../../../utils/scoreFormatter';
+import { getRotationSections } from '../../../utils/rotationHelpers';
 import { 
   applyBuiltInFormula, 
   detectFormulaType, 
@@ -47,6 +48,7 @@ interface ScoringViewProps {
   bahnNumber?: number | null;
   /** Devices of the squad in rotation order, shown with done/current/next state */
   rotation?: RotationDevice[];
+  completedDisciplineIds?: number[];
 
   // Handlers
   onParticipantSelect: (index: number) => void;
@@ -74,6 +76,7 @@ const ScoringView: React.FC<ScoringViewProps> = ({
   durchgangNumber = null,
   bahnNumber = null,
   rotation = [],
+  completedDisciplineIds = [],
   onParticipantSelect,
   onScoreChange,
   onCalculationComplete,
@@ -90,13 +93,14 @@ const ScoringView: React.FC<ScoringViewProps> = ({
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
       <ScoringHeader
-        selectedDevice={selectedDevice}
         onBack={onBack}
         onDeviceComplete={onDeviceComplete}
         rotation={rotation}
+        completedDisciplineIds={completedDisciplineIds}
         durchgang={durchgangNumber}
         squadName={selectedSquad?.name}
         bahn={bahnNumber}
+        currentDevice={selectedDevice}
         currentDisciplineId={selectedDevice?.disciplineId ?? null}
       />
 
@@ -139,79 +143,147 @@ const ScoringView: React.FC<ScoringViewProps> = ({
 // ─── Sub-Components ────────────────────────────────────────────────────────────
 
 interface ScoringHeaderProps {
-  selectedDevice: Device | null;
   onBack: () => void;
   onDeviceComplete: () => void;
   durchgang: number | null;
   squadName: string | undefined;
   bahn: number | null;
   rotation: RotationDevice[];
+  completedDisciplineIds: number[];
+  currentDevice: Device | null;
   currentDisciplineId: number | null;
 }
 
 const ScoringHeader: React.FC<ScoringHeaderProps> = ({
-  selectedDevice,
   onBack,
   onDeviceComplete,
   durchgang,
   squadName,
   bahn,
   rotation,
+  completedDisciplineIds,
+  currentDevice,
   currentDisciplineId,
 }) => (
-  <div className="bg-blue-600 text-white px-2 py-2 sm:px-4 sm:py-3 flex-shrink-0">
-    <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-4">
+  <div className="bg-blue-600 text-white px-3 py-3 sm:px-6 sm:py-4 flex-shrink-0">
+    <div className="max-w-7xl mx-auto">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={onBack}
-          className="text-blue-100 hover:text-white text-sm sm:text-base"
+          className="shrink-0 text-blue-100 hover:text-white text-sm sm:text-base"
         >
           ← Zurück
         </button>
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          {selectedDevice?.iconPath ? (
-            <img
-              src={selectedDevice.iconPath}
-              alt={`${selectedDevice.name} icon`}
-              className="w-6 h-6 sm:w-10 sm:h-10 object-contain bg-white bg-opacity-20 rounded-lg p-1"
-              onError={(e) => {
-                const missingUrl = getMissingIconUrl();
-                if (e.currentTarget.src !== missingUrl) {
-                  e.currentTarget.src = missingUrl;
-                } else {
-                  e.currentTarget.style.display = 'none';
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    parent.innerHTML = `<div class="text-xl sm:text-3xl">${MISSING_ICON_EMOJI}</div>`;
-                  }
-                }
-              }}
-            />
-          ) : selectedDevice?.icon ? (
-            <div className="text-xl sm:text-3xl">{selectedDevice.icon}</div>
-          ) : (
-            <div className="text-xl sm:text-3xl">{MISSING_ICON_EMOJI}</div>
-          )}
-          <div>
-            <h1 className="text-sm sm:text-xl font-bold">{selectedDevice?.name}</h1>
-          </div>
-        </div>
-        <ScoringContextBar
-          durchgang={durchgang}
-          squadName={squadName}
-          bahn={bahn}
-          rotation={rotation}
-          currentDisciplineId={currentDisciplineId}
-        />
+        <ScoringContextBar durchgang={durchgang} squadName={squadName} bahn={bahn} />
       </div>
-      <button
-        onClick={onDeviceComplete}
-        className="bg-green-600 hover:bg-green-700 px-2 py-1 sm:px-4 sm:py-2 rounded text-white font-medium text-xs sm:text-base"
-      >
-        Gerät abschließen
-      </button>
+      <DeviceRotationProgress
+        rotation={rotation}
+        completedDisciplineIds={completedDisciplineIds}
+        currentDevice={currentDevice}
+        currentDisciplineId={currentDisciplineId}
+      />
+      <div className="mt-3 flex justify-end">
+        <button
+          onClick={onDeviceComplete}
+          className="bg-green-600 hover:bg-green-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded text-white font-medium text-xs sm:text-base"
+        >
+          Gerät abschließen
+        </button>
+      </div>
     </div>
   </div>
+);
+
+interface DeviceRotationProgressProps {
+  rotation: RotationDevice[];
+  completedDisciplineIds: number[];
+  currentDevice: Device | null;
+  currentDisciplineId: number | null;
+}
+
+export const DeviceRotationProgress: React.FC<DeviceRotationProgressProps> = ({
+  rotation,
+  completedDisciplineIds,
+  currentDevice,
+  currentDisciplineId,
+}) => {
+  const { completed, current, upcoming } = getRotationSections(
+    rotation,
+    currentDisciplineId,
+    completedDisciplineIds
+  );
+  const currentName = currentDevice?.name ?? current?.name;
+
+  return (
+    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3" data-testid="rotation-status">
+      <RotationSection label="Abgeschlossen" emptyText="Noch keine Geräte abgeschlossen">
+        {completed.map(device => (
+          <span
+            key={device.disciplineId}
+            data-testid={`rotation-device-${device.disciplineId}`}
+            data-state="done"
+            className="inline-flex items-center gap-1.5 rounded-full bg-blue-800/60 px-3 py-1 text-xs text-blue-100 line-through decoration-blue-200"
+          >
+            <Check aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+            {device.name}
+          </span>
+        ))}
+      </RotationSection>
+
+      <RotationSection label="Aktuelles Gerät">
+        {currentName ? (
+          <div
+            data-testid={currentDisciplineId !== null ? `rotation-device-${currentDisciplineId}` : undefined}
+            data-state="current"
+            aria-current="step"
+            className="flex min-h-14 items-center justify-center gap-3 rounded-xl border-2 border-yellow-300 bg-white px-4 py-2 text-blue-900 shadow-lg sm:min-h-20"
+          >
+            {currentDevice?.iconPath ? (
+              <img src={currentDevice.iconPath} alt={`${currentName} icon`} className="h-10 w-10 object-contain sm:h-14 sm:w-14" />
+            ) : (
+              <span aria-hidden="true" className="text-3xl sm:text-4xl">{MISSING_ICON_EMOJI}</span>
+            )}
+            <h1 className="text-base font-bold sm:text-xl">{currentName}</h1>
+          </div>
+        ) : (
+          <p className="rounded-lg bg-blue-500/60 px-3 py-2 text-center text-xs text-blue-100">
+            Kein Gerät ausgewählt
+          </p>
+        )}
+      </RotationSection>
+
+      <RotationSection label="Nächste Geräte" emptyText="Keine weiteren Geräte">
+        {upcoming.map(device => (
+          <span
+            key={device.disciplineId}
+            data-testid={`rotation-device-${device.disciplineId}`}
+            data-state="upcoming"
+            className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/70 px-3 py-1 text-xs text-blue-50"
+          >
+            <Hourglass aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+            {device.name}
+          </span>
+        ))}
+      </RotationSection>
+    </div>
+  );
+};
+
+interface RotationSectionProps {
+  label: string;
+  emptyText?: string;
+  children?: React.ReactNode;
+}
+
+const RotationSection: React.FC<RotationSectionProps> = ({ label, emptyText, children }) => (
+  <section className="min-w-0 rounded-lg bg-blue-700/40 p-2 sm:p-3">
+    <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-blue-100 sm:text-xs">{label}</h2>
+    <div className="flex min-h-9 flex-wrap items-center gap-1.5">
+      {React.Children.count(children) > 0
+        ? children
+        : <span className="text-xs text-blue-200">{emptyText}</span>}
+    </div>
+  </section>
 );
 
 interface ParticipantSidebarProps {

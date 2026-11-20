@@ -33,7 +33,7 @@ import { useDurchgaenge } from './hooks/useDurchgaenge';
 import { useBahnen } from './hooks/useBahnen';
 import { useSquadRotation } from './hooks/useSquadRotation';
 import { buildBahnOptions, needsBahnSelection } from '../../utils/bahnHelpers';
-import { getNextDevice } from '../../utils/rotationHelpers';
+import { filterRotationToAvailableDevices, getNextDevice } from '../../utils/rotationHelpers';
 import EventSelection from './components/EventSelection';
 import DurchgangSelection from './components/DurchgangSelection';
 import SquadSelection from './components/SquadSelection';
@@ -158,12 +158,18 @@ const JuryPortal: React.FC = () => {
   const { bahnen, loading: bahnenLoading } = useBahnen(data.selectedEvent);
 
   // Rotation of the chosen squad: shown while scoring and used to suggest the next device
-  const { rotation } = useSquadRotation(data.selectedEvent, data.selectedSquad?.name);
-  const nextDeviceId = getNextDevice(rotation, completedDeviceId)?.disciplineId ?? null;
+  const {
+    rotation,
+    completedDisciplineIds,
+    refresh: refreshRotation,
+  } = useSquadRotation(data.selectedEvent, data.selectedSquad?.name);
+  const availableRotation = filterRotationToAvailableDevices(rotation, data.devices);
+  const nextDeviceId = getNextDevice(availableRotation, completedDeviceId)?.disciplineId ?? null;
 
   const handleDeviceCompleteAndRemember = async () => {
     setCompletedDeviceId(data.selectedDevice?.disciplineId ?? null);
     await handleDeviceComplete();
+    refreshRotation();
   };
   const bahnOptions = data.selectedSquad && data.selectedDevice
     ? buildBahnOptions(bahnen, {
@@ -304,7 +310,8 @@ const JuryPortal: React.FC = () => {
       squadStatusId={squadStatusId}
       durchgangNumber={displayedDurchgang}
       bahnNumber={data.selectedBahn?.bahn ?? null}
-      rotation={rotation}
+      rotation={availableRotation}
+      completedDisciplineIds={completedDisciplineIds}
       onParticipantSelect={(index) => {
         data.setCurrentParticipantIndex(index);
         // Score is set by the useEffect in useJuryData that watches currentParticipantIndex

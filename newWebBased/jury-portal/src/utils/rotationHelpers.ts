@@ -1,30 +1,35 @@
-import type { RotationDevice } from '../components/JuryPortal/JuryPortal.types';
+import type { Device, RotationDevice } from '../components/JuryPortal/JuryPortal.types';
 
-export type RotationState = 'done' | 'current' | 'next' | 'upcoming';
-
-export interface RotationProgressItem {
-  device: RotationDevice;
-  state: RotationState;
+export interface RotationSections {
+  completed: RotationDevice[];
+  current: RotationDevice | null;
+  upcoming: RotationDevice[];
 }
 
-/** Marks each device of the squad's rotation as done, current, next or upcoming. */
-export function getRotationProgress(
+/** Keeps the header rotation limited to devices available in the selection step. */
+export function filterRotationToAvailableDevices(
   rotation: RotationDevice[],
-  currentDisciplineId: number | null
-): RotationProgressItem[] {
-  const currentIndex = currentDisciplineId === null
-    ? -1
-    : rotation.findIndex(d => d.disciplineId === currentDisciplineId);
+  availableDevices: Device[]
+): RotationDevice[] {
+  const availableIds = new Set(availableDevices.map(device => Number(device.disciplineId)));
+  return rotation.filter(device => availableIds.has(Number(device.disciplineId)));
+}
 
-  return rotation.map((device, index) => {
-    let state: RotationState = 'upcoming';
-    if (currentIndex !== -1) {
-      if (index < currentIndex) state = 'done';
-      else if (index === currentIndex) state = 'current';
-      else if (index === currentIndex + 1) state = 'next';
-    }
-    return { device, state };
-  });
+export function getRotationSections(
+  rotation: RotationDevice[],
+  currentDisciplineId: number | null,
+  completedDisciplineIds: number[]
+): RotationSections {
+  const completedIds = new Set(completedDisciplineIds);
+  const current = rotation.find(device => device.disciplineId === currentDisciplineId) ?? null;
+  const completed = rotation.filter(device =>
+    device.disciplineId !== currentDisciplineId && completedIds.has(device.disciplineId)
+  );
+  const upcoming = rotation.filter(device =>
+    device.disciplineId !== currentDisciplineId && !completedIds.has(device.disciplineId)
+  );
+
+  return { completed, current, upcoming };
 }
 
 export function getNextDevice(rotation: RotationDevice[], disciplineId: number | null): RotationDevice | null {

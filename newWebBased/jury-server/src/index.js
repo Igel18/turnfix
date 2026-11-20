@@ -61,6 +61,7 @@ app.get('/api/health', (req, res) => {
 const ALLOWED_API_PATTERNS = [
   { method: 'GET',  pattern: /^\/api\/events(\?.*)?$/ },
   { method: 'GET',  pattern: /^\/api\/squad-management(\?.*)?$/ },
+  { method: 'GET',  pattern: /^\/api\/squad-disciplines(\?.*)?$/ },
   { method: 'POST', pattern: /^\/api\/squad-management\/complete$/ },
   { method: 'GET',  pattern: /^\/api\/competitions(\?.*)?$/ },
   { method: 'GET',  pattern: /^\/api\/competitions\/\d+\/disciplines(\?.*)?$/ },

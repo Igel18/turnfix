@@ -22,14 +22,28 @@ const squadManagement = {
 
 function mockApi(rotation: unknown[]) {
   const calls: Array<{ url: string; method: string; body: any }> = [];
+  const completedDisciplineIds = new Set<number>();
   vi.stubGlobal('fetch', vi.fn(async (input: any, init?: RequestInit) => {
     const url = String(input);
     const method = (init?.method ?? 'GET').toUpperCase();
-    calls.push({ url, method, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    const requestBody = init?.body ? JSON.parse(String(init.body)) : undefined;
+    calls.push({ url, method, body: requestBody });
     const reply = (payload: unknown) => ({ ok: true, json: async () => payload }) as Response;
 
+    if (method === 'POST' && url.includes('/squad-management/complete')) {
+      completedDisciplineIds.add(requestBody.disciplineId);
+      return reply({ success: true });
+    }
     if (method === 'POST') return reply({ success: true, wertungenId: 55 });
     if (url.includes('/time-planning/squad-rotation')) return reply({ devices: rotation });
+    if (url.includes('/squad-disciplines?')) {
+      return reply({
+        squadDisciplines: [...completedDisciplineIds].map(disciplineId => ({
+          disciplineId,
+          status: { name: 'Leistungen erfasst' },
+        })),
+      });
+    }
     if (url.includes('/time-planning/bahn-details')) return reply({ bahnen: [] });
     if (url.includes('/time-planning/durchgaenge')) return reply({ durchgaenge: [] });
     if (url.includes('/time-planning/active-squads')) return reply({ currentTime: '', squadInfos: [] });
@@ -75,32 +89,31 @@ describe('Jury Portal — device rotation of the squad', () => {
     localStorage.clear();
   });
 
-  it('shows done, current and next device while scoring', async () => {
+  it('shows the selected device and remaining devices while scoring', async () => {
     mockApi(rotationOf([100, 200, 300]));
     await openDeviceList();
     pickDevice('Pferd');
 
     await screen.findByTestId('rotation-device-200');
-    expect([stateOf(100), stateOf(200), stateOf(300)]).toEqual(['done', 'current', 'next']);
-    expect(screen.getByTestId('rotation-next')).toHaveTextContent('Nächstes Gerät: Ringe');
+    expect([stateOf(100), stateOf(200), stateOf(300)]).toEqual(['upcoming', 'current', 'upcoming']);
   });
 
-  it('shows the first device without anything done', async () => {
+  it('shows the first device as current and later devices as upcoming', async () => {
     mockApi(rotationOf([100, 200, 300]));
     await openDeviceList();
     pickDevice('Boden');
 
     await screen.findByTestId('rotation-device-100');
-    expect([stateOf(100), stateOf(200), stateOf(300)]).toEqual(['current', 'next', 'upcoming']);
+    expect([stateOf(100), stateOf(200), stateOf(300)]).toEqual(['current', 'upcoming', 'upcoming']);
   });
 
-  it('announces the last device of the squad', async () => {
+  it('keeps earlier devices upcoming until they are explicitly completed', async () => {
     mockApi(rotationOf([100, 200, 300]));
     await openDeviceList();
     pickDevice('Ringe');
 
-    expect(await screen.findByTestId('rotation-last')).toHaveTextContent('Letztes Gerät der Riege');
-    expect(screen.queryByTestId('rotation-next')).not.toBeInTheDocument();
+    expect(await screen.findByTestId('rotation-device-300')).toHaveAttribute('data-state', 'current');
+    expect([stateOf(100), stateOf(200)]).toEqual(['upcoming', 'upcoming']);
   });
 
   it('follows the rotation order of the squad, not the order of the device list', async () => {
@@ -110,8 +123,20 @@ describe('Jury Portal — device rotation of the squad', () => {
 
     await screen.findByTestId('rotation-device-100');
     const order = screen.getAllByTestId(/^rotation-device-/).map(el => el.getAttribute('data-testid'));
-    expect(order).toEqual(['rotation-device-300', 'rotation-device-100', 'rotation-device-200']);
-    expect(screen.getByTestId('rotation-next')).toHaveTextContent('Pferd');
+    expect(order).toEqual(['rotation-device-100', 'rotation-device-300', 'rotation-device-200']);
+    expect(stateOf(300)).toBe('upcoming');
+  });
+
+  it('hides rotation devices that are not available in the device selection', async () => {
+    mockApi([
+      ...rotationOf([100, 200, 300]),
+      { round: 4, disciplineId: 999, name: 'Nicht zugeordnet', shortName: 'N', icon: null },
+    ]);
+    await openDeviceList();
+    pickDevice('Boden');
+
+    await screen.findByTestId('rotation-device-100');
+    expect(screen.queryByText('Nicht zugeordnet')).not.toBeInTheDocument();
   });
 
   it('suggests the next device after completing a device', async () => {
@@ -140,6 +165,7 @@ describe('Jury Portal — device rotation of the squad', () => {
     pickDevice('Pferd');
     await screen.findByTestId('rotation-device-200');
     expect(stateOf(200)).toBe('current');
+    await waitFor(() => expect(stateOf(100)).toBe('done'));
 
     fireEvent.click(screen.getByRole('button', { name: 'Gerät abschließen' }));
     await screen.findByRole('heading', { name: 'Gerät auswählen' });
@@ -175,19 +201,19 @@ describe('Jury Portal — device rotation of the squad', () => {
     pickDevice('Boden');
 
     await screen.findByRole('heading', { name: 'Boden' });
-    expect(screen.queryAllByTestId(/^rotation-device-/)).toHaveLength(0);
+    expect(screen.getByTestId('rotation-device-100')).toHaveAttribute('data-state', 'current');
 
     fireEvent.click(screen.getByRole('button', { name: 'Gerät abschließen' }));
     await screen.findByRole('heading', { name: 'Gerät auswählen' });
     expect(screen.queryByText('Als Nächstes')).not.toBeInTheDocument();
   });
 
-  it('shows no rotation row when the scored device is not part of the planned rotation', async () => {
+  it('shows the selected device even when it is not part of the planned rotation', async () => {
     mockApi(rotationOf([100, 200]));
     await openDeviceList();
     pickDevice('Ringe');
 
     await screen.findByRole('heading', { name: 'Ringe' });
-    expect(screen.queryAllByTestId(/^rotation-device-/)).toHaveLength(0);
+    expect(screen.getByTestId('rotation-device-300')).toHaveAttribute('data-state', 'current');
   });
 });

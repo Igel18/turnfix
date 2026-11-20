@@ -264,28 +264,30 @@ test.describe.serial('Jury Portal: Durchgang, Bahn and context', () => {
     await card.first().click();
   }
 
-  test('shows done, current and next device while scoring', async ({ page }) => {
+  test('shows completed, current and upcoming device sections while scoring', async ({ page }) => {
     test.setTimeout(60_000);
     await openDg1Device(page, `E2E_DiscDGDY_${TS}`);
 
     const [first, second] = disciplineIds;
     await expect(page.getByTestId(`rotation-device-${second}`)).toHaveAttribute('data-state', 'current', { timeout: 20_000 });
-    await expect(page.getByTestId(`rotation-device-${first}`)).toHaveAttribute('data-state', 'done');
-    await expect(page.getByTestId('rotation-last')).toContainText('Letztes Gerät der Riege');
+    await expect(page.getByTestId(`rotation-device-${first}`)).toHaveAttribute('data-state', 'upcoming');
+    await expect(page.getByRole('heading', { name: 'Abgeschlossen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Aktuelles Gerät' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Nächste Geräte' })).toBeVisible();
   });
 
-  test('names the next device while scoring the first one', async ({ page }) => {
+  test('lists the other device as upcoming while scoring the first one', async ({ page }) => {
     test.setTimeout(60_000);
     await openDg1Device(page, `E2E_DiscDGDX_${TS}`);
 
-    await expect(page.getByTestId('rotation-next')).toContainText(`E2E_DiscDGDY_${TS}`, { timeout: 20_000 });
-    await expect(page.getByTestId(`rotation-device-${disciplineIds[1]}`)).toHaveAttribute('data-state', 'next');
+    await expect(page.getByTestId(`rotation-device-${disciplineIds[1]}`)).toContainText(`E2E_DiscDGDY_${TS}`, { timeout: 20_000 });
+    await expect(page.getByTestId(`rotation-device-${disciplineIds[1]}`)).toHaveAttribute('data-state', 'upcoming');
   });
 
   test('suggests the next device after completing a device', async ({ page }) => {
     test.setTimeout(60_000);
     await openDg1Device(page, `E2E_DiscDGDX_${TS}`);
-    await expect(page.getByTestId('rotation-next')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(`E2E_DiscDGDY_${TS}`)).toBeVisible({ timeout: 20_000 });
 
     await page.getByRole('button', { name: 'Gerät abschließen' }).click();
     await expect(page.getByRole('heading', { name: 'Gerät auswählen' })).toBeVisible({ timeout: 15_000 });
@@ -296,7 +298,7 @@ test.describe.serial('Jury Portal: Durchgang, Bahn and context', () => {
     await expect(marked).toContainText('Als Nächstes');
   });
 
-  test('shows no rotation row for a squad without planned rotation', async ({ page }) => {
+  test('shows the current device but no upcoming devices for a squad without planned rotation', async ({ page }) => {
     test.setTimeout(60_000);
     await openEvent(page);
     await page.getByTestId('durchgang-card-2').click();
@@ -305,8 +307,8 @@ test.describe.serial('Jury Portal: Durchgang, Bahn and context', () => {
     await page.getByTestId('bahn-card-1').click();
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText('E2E_Disc', { timeout: 20_000 });
-    await expect(page.locator('[data-testid^="rotation-device-"]')).toHaveCount(0);
-    await expect(page.getByTestId('rotation-status')).toHaveText('Keine Geräterotation geplant');
+    await expect(page.locator('[data-state="current"][data-testid^="rotation-device-"]')).toHaveCount(1);
+    await expect(page.getByText('Keine weiteren Geräte')).toBeVisible();
   });
 
   // ─── Context bar ─────────────────────────────────────────────────

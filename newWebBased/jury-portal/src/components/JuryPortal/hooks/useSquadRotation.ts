@@ -1,26 +1,34 @@
 /**
- * useSquadRotation — loads the devices of the chosen squad in rotation order
- * so the scoring view can show what is done, current and next.
+ * useSquadRotation — loads the chosen squad's device order and completion statuses.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { RotationDevice } from '../JuryPortal.types';
 import { API_BASE_URL } from '../JuryPortal.types';
 
 interface UseSquadRotationReturn {
   rotation: RotationDevice[];
+  completedDisciplineIds: number[];
   loading: boolean;
+  refresh: () => () => void;
+}
+
+interface SquadDisciplineStatus {
+  disciplineId?: number;
+  status?: { name?: string | null } | null;
 }
 
 export function useSquadRotation(eventId: number | null, squadName: string | undefined): UseSquadRotationReturn {
   const [rotation, setRotation] = useState<RotationDevice[]>([]);
+  const [completedDisciplineIds, setCompletedDisciplineIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     if (!eventId || !squadName) {
       setRotation([]);
+      setCompletedDisciplineIds([]);
       setLoading(false);
-      return;
+      return () => {};
     }
 
     let cancelled = false;
@@ -28,13 +36,42 @@ export function useSquadRotation(eventId: number | null, squadName: string | und
 
     (async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/time-planning/squad-rotation?eventId=${eventId}&squad=${encodeURIComponent(squadName)}`
-        );
-        const data = response.ok ? await response.json() : null;
-        if (!cancelled) setRotation(Array.isArray(data?.devices) ? data.devices : []);
-      } catch {
-        if (!cancelled) setRotation([]);
+        const [rotationResponse, statusResponse] = await Promise.all([
+          fetch(
+            `${API_BASE_URL}/time-planning/squad-rotation?eventId=${eventId}&squad=${encodeURIComponent(squadName)}`
+          ),
+          fetch(
+            `${API_BASE_URL}/squad-disciplines?eventId=${eventId}&squadName=${encodeURIComponent(squadName)}`
+          ),
+        ]);
+        if (!rotationResponse || !statusResponse || !rotationResponse.ok || !statusResponse.ok) {
+          throw new Error(
+            `Failed to load squad rotation or status (${rotationResponse?.status ?? 'no response'}, ${statusResponse?.status ?? 'no response'})`
+          );
+        }
+
+        const [rotationData, statusData] = await Promise.all([
+          rotationResponse.json(),
+          statusResponse.json(),
+        ]);
+        if (cancelled) return;
+
+        setRotation(Array.isArray(rotationData?.devices) ? rotationData.devices : []);
+        const completedIds = Array.isArray(statusData?.squadDisciplines)
+          ? statusData.squadDisciplines
+              .filter((item: SquadDisciplineStatus) =>
+                item?.status?.name?.trim()?.toLowerCase() === 'leistungen erfasst'
+              )
+              .map((item: any) => Number(item.disciplineId))
+              .filter((id: number) => Number.isFinite(id))
+          : [];
+        setCompletedDisciplineIds([...new Set<number>(completedIds)]);
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load squad rotation and completion status:', error);
+          setRotation([]);
+          setCompletedDisciplineIds([]);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -43,5 +80,9 @@ export function useSquadRotation(eventId: number | null, squadName: string | und
     return () => { cancelled = true; };
   }, [eventId, squadName]);
 
-  return { rotation, loading };
+  useEffect(() => {
+    return refresh();
+  }, [refresh]);
+
+  return { rotation, completedDisciplineIds, loading, refresh };
 }
