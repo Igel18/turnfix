@@ -44,7 +44,7 @@ describe('Squad Management API', () => {
 
     it('should support filtering by event', async () => {
       const response = await request(app)
-        .get(`/api/squad-management?eventId=${testEvent.int_eventid}`)
+        .get(`/api/squad-management?eventId=${testEvent.int_veranstaltungenid}`)
         .expect(200);
 
       expect(response.body).toBeDefined();

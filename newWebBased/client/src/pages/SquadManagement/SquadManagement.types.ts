@@ -22,6 +22,7 @@ export interface Participant {
   competitionCount?: number;
   competitionNames?: string;
   startNumber?: number | string; // Added for search functionality
+  teamOnly?: boolean;
 }
 
 /**

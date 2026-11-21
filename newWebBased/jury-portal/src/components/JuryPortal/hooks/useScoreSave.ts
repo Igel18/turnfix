@@ -62,6 +62,7 @@ export function useScoreSave({
    */
   const findCompetitionId = (): number | null => {
     if (!selectedDevice) return null;
+    if (currentParticipant?.evaluationCompetitionId) return currentParticipant.evaluationCompetitionId;
 
     // Priority 1: participant's assigned competition that includes this discipline.
     // This avoids accidentally picking a competition the participant doesn't belong to
@@ -267,6 +268,7 @@ export function useScoreSave({
         body: JSON.stringify({
           competitionId: actualCompetitionId,
           participantId: currentParticipant.participantId,
+          wertungenId,
           disciplineId: selectedDevice.disciplineId,
           score: finalScore
         })
@@ -304,6 +306,10 @@ export function useScoreSave({
    */
   const handleScoreSubmit = useCallback(async () => {
     if (!currentParticipant || score.trim() === '' || !selectedDevice) return;
+    if (currentParticipant.evaluationIssue) {
+      alert('Die Wertung ist für diese Riege und dieses Gerät nicht eindeutig zugeordnet. Bitte die Wettkampf- und Riegenzuordnung prüfen.');
+      return;
+    }
 
     try {
       setLoading(true);
@@ -335,6 +341,7 @@ export function useScoreSave({
       const scoreData = {
         competitionId: actualCompetitionId,
         participantId: currentParticipant.participantId,
+        wertungenId: currentParticipant.wertungenId,
         disciplineId: selectedDevice.disciplineId,
         score: parseFloat(score)
       };

@@ -13,6 +13,51 @@ router.use('/', mutationsRouter);
 // Mount auto-assign sub-router (generate proposals, apply proposal)
 router.use('/', autoAssignRouter);
 
+router.get('/teams', authenticateToken, async (req: AuthRequest, res) => {
+  const eventId = Number(req.query.eventId);
+  if (!Number.isInteger(eventId) || eventId <= 0) {
+    return res.status(400).json({ message: 'Valid event ID is required' });
+  }
+  try {
+    const teams = await prisma.tfx_mannschaften.findMany({
+      where: { tfx_wettkaempfe: { int_veranstaltungenid: eventId } },
+      include: {
+        tfx_vereine: { select: { var_name: true } },
+        tfx_wettkaempfe: { select: { var_name: true, var_nummer: true, tfx_veranstaltungen: { select: { int_runde: true } } } },
+        tfx_wertungen: { select: { int_teilnehmerid: true, int_runde: true, var_riege: true, int_wettkaempfeid: true } },
+        tfx_man_x_teilnehmer: {
+          include: { tfx_teilnehmer: { select: { int_teilnehmerid: true, var_vorname: true, var_nachname: true } } }
+        }
+      },
+      orderBy: { int_mannschaftenid: 'asc' }
+    });
+    return res.json({
+      teams: teams.map(team => ({
+        id: team.int_mannschaftenid,
+        number: team.int_nummer,
+        club: team.tfx_vereine.var_name,
+        competition: team.tfx_wettkaempfe.var_name,
+        competitionNumber: team.tfx_wettkaempfe.var_nummer,
+        squadName: team.var_riege,
+        needsSync: team.tfx_wertungen.some(score => score.var_riege !== team.var_riege) ||
+          team.tfx_man_x_teilnehmer.some(member => !team.tfx_wertungen.some(score =>
+            score.int_teilnehmerid === member.int_teilnehmerid &&
+            score.int_wettkaempfeid === team.int_wettkaempfeid &&
+            (score.int_runde ?? 1) === (member.int_runde ?? team.tfx_wettkaempfe.tfx_veranstaltungen.int_runde ?? 1)
+          )),
+        members: team.tfx_man_x_teilnehmer.map(member => ({
+          id: member.tfx_teilnehmer.int_teilnehmerid,
+          firstname: member.tfx_teilnehmer.var_vorname,
+          lastname: member.tfx_teilnehmer.var_nachname
+        }))
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching teams for squad management:', error);
+    return res.status(500).json({ message: 'Failed to fetch teams' });
+  }
+});
+
 // Get all squads for an event with participants
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -20,8 +65,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     
     console.log(`Squad Management API: eventId=${eventId}`);
     
-    if (!eventId) {
-      return res.status(400).json({ message: 'Event ID is required' });
+    if (!eventId || !/^\d+$/.test(eventId) || Number(eventId) <= 0) {
+      return res.status(400).json({ message: 'Valid event ID is required' });
     }
 
     // DEBUG: First check what squads exist in database
@@ -89,9 +134,17 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             t.int_geschlecht,
             t.dat_geburtstag,
             t.int_startpassnummer,
-            w.int_startnummer,
+            MIN(w.int_startnummer) AS int_startnummer,
             v.var_name as verein_name,
             w.var_riege,
+            BOOL_AND(w.int_mannschaftenid IS NOT NULL) AS team_only,
+            JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+              'id', w.int_wertungenid,
+              'competitionId', w.int_wettkaempfeid,
+              'teamId', w.int_mannschaftenid,
+              'squadName', w.var_riege,
+              'round', w.int_runde
+            )) AS evaluations,
             CASE 
               WHEN t.int_geschlecht = 1 THEN 'male'
               WHEN t.int_geschlecht = 2 THEN 'female'
@@ -110,8 +163,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           WHERE wk.int_veranstaltungenid = $1 AND COALESCE(w.bol_startet_nicht, false) = false AND w.var_riege = $2
           GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
                    t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, 
-                   w.int_startnummer, v.var_name, w.var_riege
-          ORDER BY w.int_startnummer ASC, t.var_nachname ASC, t.var_vorname ASC
+                   v.var_name, w.var_riege
+          ORDER BY MIN(w.int_startnummer) ASC, t.var_nachname ASC, t.var_vorname ASC
         `;
 
         const participants = await prisma.$queryRawUnsafe(
@@ -126,6 +179,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           eventId: parseInt(eventId),
           participant_count: Number(squad.participant_count), // snake_case for frontend compatibility
           participantCount: Number(squad.participant_count), // Keep camelCase for backward compatibility
+          isVirtual: false,
           competitions: squad.competition_names ? squad.competition_names.split(', ') : [],
           participants: (participants as any[]).map(p => ({
             id: Number(p.int_teilnehmerid),
@@ -138,6 +192,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             startNumber: p.int_startnummer ? Number(p.int_startnummer) : null,
             squadId: squad.squad_name,
             squadName: squad.squad_name,
+            teamOnly: p.team_only,
+            evaluations: p.evaluations,
             // Transform competition strings to objects with id, name, number
             competitions: p.assigned_competitions 
               ? p.assigned_competitions.split(', ').map((comp: string) => {
@@ -157,6 +213,28 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         };
       })
     );
+
+    const teamSquads = await prisma.tfx_mannschaften.findMany({
+      where: {
+        tfx_wettkaempfe: { int_veranstaltungenid: parseInt(eventId) },
+        var_riege: { not: null }
+      },
+      select: { var_riege: true }
+    });
+    for (const team of teamSquads) {
+      if (team.var_riege && !squads.some(s => s.name === team.var_riege)) {
+        squads.push({
+          id: team.var_riege,
+          name: team.var_riege,
+          eventId: parseInt(eventId),
+          participant_count: 0,
+          participantCount: 0,
+          competitions: [],
+          participants: [],
+          isVirtual: false
+        });
+      }
+    }
 
     // Add virtual squads for this event (created but with no participants)
     const virtualSquadsForEvent = Array.from(virtualSquads.values())
@@ -285,7 +363,7 @@ router.get('/available-participants', authenticateToken, async (req: AuthRequest
         INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
         INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
         LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-        WHERE ${buildAvailableParticipantsWhereClause()}
+        WHERE w.int_mannschaftenid IS NULL AND ${buildAvailableParticipantsWhereClause()}
         GROUP BY t.int_teilnehmerid, t.var_vorname, t.var_nachname, t.int_vereineid, 
                  t.int_geschlecht, t.dat_geburtstag, t.int_startpassnummer, v.var_name
         ORDER BY t.var_nachname ASC, t.var_vorname ASC

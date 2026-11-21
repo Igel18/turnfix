@@ -19,6 +19,46 @@ describe('useScoreActions', () => {
     vi.clearAllMocks();
   });
 
+  it('saves the evaluation for the selected squad instead of another evaluation of the same participant', async () => {
+    const { apiPost } = await import('@/utils/api');
+    vi.mocked(apiPost).mockResolvedValue({ success: true, wertungenId: 55 });
+    const { result } = renderHook(() => useScoreActions({
+      competitionId: '100',
+      competitions: [{ id: 100, name: 'WK', disciplines: [{ int_disziplinid: 5 }] } as any],
+      participants: [{ id: 11, evaluations: [
+        { id: 44, competitionId: 100, squadName: 'I1', teamId: null },
+        { id: 55, competitionId: 100, squadName: 'T1', teamId: 7 }
+      ] } as any],
+      disciplines: [{ int_disziplinid: 5, var_name: 'Boden', attempts: 1 }],
+      displayDisciplines: [], scoreMatrix: {}, selectedEvent: { int_eventid: 1 },
+      selectedCompetition: { id: 100 }, activeSquad: 'T1', evaluateFormula: () => 0
+    }));
+    await result.current.saveScore(11, 5, '8.5');
+    await result.current.saveFieldScore(11, { id: 101, name: 'A', disciplineId: 5 } as any, '4');
+    expect(apiPost).toHaveBeenCalledWith('/scores/save-value', expect.objectContaining({ wertungenId: 55, competitionId: 100 }));
+    expect(apiPost).toHaveBeenCalledWith('/jury-results/save-field-score', expect.objectContaining({ wertungenId: 55, competitionId: 100 }));
+  });
+
+  it('refuses to write when the same squad contains multiple evaluations for the same competition', async () => {
+    const { apiPost } = await import('@/utils/api');
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const { result } = renderHook(() => useScoreActions({
+      competitionId: '100',
+      competitions: [{ id: 100, name: 'WK', disciplines: [{ int_disziplinid: 5 }] } as any],
+      participants: [{ id: 11, evaluations: [
+        { id: 44, competitionId: 100, squadName: 'T1', teamId: null },
+        { id: 55, competitionId: 100, squadName: 'T1', teamId: 7 }
+      ] } as any],
+      disciplines: [{ int_disziplinid: 5, var_name: 'Boden', attempts: 1 }],
+      displayDisciplines: [], scoreMatrix: {}, selectedEvent: { int_eventid: 1 },
+      selectedCompetition: { id: 100 }, activeSquad: 'T1', evaluateFormula: () => 0
+    }));
+    await result.current.saveScore(11, 5, '8.5');
+    expect(apiPost).not.toHaveBeenCalled();
+    expect(alert).toHaveBeenCalled();
+    alert.mockRestore();
+  });
+
   it('saves override score "0" as numeric 0', async () => {
     const { apiPost } = await import('@/utils/api');
     vi.mocked(apiPost).mockResolvedValue({ success: true } as any);

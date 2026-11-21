@@ -24,6 +24,7 @@ import { useSquadAssignment } from './hooks/useSquadAssignment';
 import { CreateSquadModal } from './components/CreateSquadModal';
 import { AutoAssignDialog } from './components/AutoAssignDialog';
 import { SquadWizardModal } from './components/SquadWizardModal';
+import { TeamSquadAssignments } from './components/TeamSquadAssignments';
 
 // Utils
 import { exportSquadsPDF } from './utils/squadPdfExport';
@@ -450,6 +451,15 @@ const SquadManagementUnified: React.FC = () => {
             }}
             selectedMaster={selectedSquadId ? squads.find(s => s.id === selectedSquadId) || null : null}
             onSelectMaster={squad => setSelectedSquadId(squad ? squad.id : null)}
+          />
+
+          <TeamSquadAssignments
+            eventId={eventId}
+            squads={squads}
+            onChanged={async () => {
+              await forceLoadSquads();
+              await forceLoadAvailableParticipants();
+            }}
           />
 
           {/* Create Squad Modal */}

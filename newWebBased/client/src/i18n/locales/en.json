@@ -1391,6 +1391,7 @@
       "noMembers": "No members assigned",
       "assignError": "Error assigning participant",
       "removeError": "Error removing participant",
+      "removeHasScores": "The member cannot be removed while scoring data exists.",
       "updateError": "Error updating member flags",
       "confirmRemove": "Are you sure you want to remove this member?",
       "ak": "Out of Competition",
@@ -1417,7 +1418,9 @@
       "startNumberPlaceholder": "Enter start number (optional)",
       "selectClubAndCompetition": "Please select club and competition",
       "noClubsAvailable": "No clubs available. Please create clubs first.",
-      "noCompetitionsAvailable": "No competitions available. Please create competitions first.",
+      "noCompetitionsAvailable": "No team competitions available. Create a team competition or check the competition type.",
+      "notTeamCompetition": "not a team competition",
+      "assignSquadInManagement": "Assign the squad afterwards in squad management.",
       "save": "Save",
       "cancel": "Cancel"
     },
@@ -2889,6 +2892,8 @@
     "calculateAndSave": "Calculate & Save Both",
     "showJuryScores": "Capture Jury Scores",
     "noParticipants": "No participants found for this selection",
+    "evaluationAmbiguous": "Evaluation is ambiguous. Check the competition and squad assignments.",
+    "evaluationMissing": "No evaluation for this apparatus in this squad.",
     "filters": {
       "squad": "Squad",
       "allSquads": "All Squads",
@@ -3434,6 +3439,14 @@
     }
   },
   "squadManagement": {
+    "teams": {
+      "title": "Teams",
+      "description": "Assign teams and their members to a squad together.",
+      "selectSquad": "Squad for team",
+      "unassigned": "No squad",
+      "synchronize": "Synchronize team scores",
+      "error": "Could not load or save team assignments."
+    },
     "title": "Squad Management",
     "subtitle": "Create squads and assign participants to competitions",
     "searchPlaceholder": "Search participants, clubs, competitions...",

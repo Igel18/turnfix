@@ -19,6 +19,7 @@ import { EventManagementTemplate } from '@/components/templates/EventManagementT
 import { BlueInfoBox } from '@/components/InfoBoxes';
 import { SquadDisciplineSelector } from '@/components/scoreCapture/SquadDisciplineSelector';
 import { normalizeScoreByDecimalPlaces } from '@/utils/inputMaskUtils';
+import { participantInSquad } from './utils/evaluation';
 import { resolveScoringInputMode } from '@turnfix/shared';
 
 // All 8 hooks
@@ -99,6 +100,7 @@ export default function ScoreCapture() {
     disciplines,
     disciplineFields,
     existingScores,
+    competitions,
     getDisciplineFields: (disciplineId) => {
       return disciplineFields
         .filter(field => field.disciplineId === disciplineId && field.enabled)
@@ -143,7 +145,9 @@ export default function ScoreCapture() {
 
   // Hook 5: Actions (Save/Update)
   const { saveScore, saveFieldScore } = useScoreActions({
+    eventId,
     competitionId: competitionId || undefined,
+    activeSquad,
     competitions,
     participants,
     disciplines,
@@ -233,7 +237,7 @@ export default function ScoreCapture() {
       });
       initializeScoreMatrix(participants, disciplines, existingScores);
     }
-  }, [participants.length, disciplines.length, existingScores.length, isInitializing, activeSquad, activeDiscipline]);
+  }, [participants, disciplines, existingScores, competitions, isInitializing, activeSquad, activeDiscipline, competitionId]);
 
   // Helper: Get discipline fields
   const getDisciplineFields = (disciplineId: number | string) => {
@@ -258,7 +262,7 @@ export default function ScoreCapture() {
     console.log('🔍 getFilteredDisciplines: All participants:', participants.length);
     
     // Get participants in the selected squad
-    const squadParticipants = participants.filter(p => p.squad_name === activeSquad);
+    const squadParticipants = participants.filter(p => participantInSquad(p, activeSquad));
     
     console.log('🔍 getFilteredDisciplines: Squad participants:', squadParticipants.length);
     console.log('🔍 getFilteredDisciplines: First participant:', squadParticipants[0]);
@@ -271,7 +275,10 @@ export default function ScoreCapture() {
     // Get all competition IDs from squad participants
     const participantCompetitionIds = new Set<number>();
     squadParticipants.forEach(participant => {
-      if (participant.assignedCompetitions && Array.isArray(participant.assignedCompetitions)) {
+      if (participant.evaluations) {
+        participant.evaluations.filter(e => e.squadName === activeSquad && !e.startetNicht)
+          .forEach(e => participantCompetitionIds.add(e.competitionId));
+      } else if (participant.assignedCompetitions && Array.isArray(participant.assignedCompetitions)) {
         participant.assignedCompetitions.forEach((competitionId: number) => {
           participantCompetitionIds.add(competitionId);
         });
@@ -492,6 +499,9 @@ export default function ScoreCapture() {
       ) : (
         <ScoreTable
           eventId={eventId}
+          competitionId={competitionId || undefined}
+          activeSquad={activeSquad}
+          competitions={competitions}
           filteredParticipants={filteredParticipants}
           displayDisciplines={displayDisciplines}
           disciplineFields={disciplineFields}

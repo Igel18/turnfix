@@ -1,6 +1,7 @@
 // ScoreCapture Type Definitions
 
 import type { GenderValue } from '@/utils/genderHelpers';
+import type { EvaluationReference } from '@turnfix/shared';
 
 export interface Participant {
   id: number;
@@ -18,10 +19,13 @@ export interface Participant {
   startet_nicht?: boolean;
   int_statusid?: number;
   startNumber?: number | null;
+  wertungenId?: number | null;
+  evaluations?: (EvaluationReference & { startetNicht?: boolean })[];
 }
 
 export interface Discipline {
   int_disziplinid: number;
+  disciplineId?: number;
   var_name: string;
   var_shortname?: string;
   apparatus?: string;

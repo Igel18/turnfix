@@ -5,15 +5,17 @@
  * Manages the score matrix state and initialization for all participants/disciplines
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { apiGet } from '@/utils/api';
 import { normalizeScoreInput } from '@/utils/scoreFormatter';
 import { fieldScoreKey } from '../utils/scoreKeys';
+import { evaluationForDiscipline, participantInSquad } from '../utils/evaluation';
 import type {
   Participant,
   Discipline,
   DisciplineField,
-  Score
+  Score,
+  Competition
 } from '@/types/ScoreCapture.types';
 
 interface UseScoreMatrixProps {
@@ -25,6 +27,7 @@ interface UseScoreMatrixProps {
   disciplines: Discipline[];
   disciplineFields: DisciplineField[];
   existingScores: Score[];
+  competitions?: Competition[];
   getDisciplineFields: (disciplineId: number | string) => DisciplineField[];
   getFilteredDisciplines: () => Discipline[];
 }
@@ -42,6 +45,7 @@ export function useScoreMatrix({
   competitionId,
   activeSquad,
   activeDiscipline,
+  competitions = [],
   disciplineFields,
   getDisciplineFields,
   getFilteredDisciplines
@@ -49,12 +53,14 @@ export function useScoreMatrix({
   
   const [scoreMatrix, setScoreMatrix] = useState<{[key: string]: string}>({});
   const [pendingEndwerts, setPendingEndwerts] = useState<{[key: string]: string}>({});
+  const initializationId = useRef(0);
 
   const initializeScoreMatrix = async (
     participants: Participant[], 
     disciplines: Discipline[], 
     existingScores: Score[]
   ) => {
+    const requestId = ++initializationId.current;
     console.log('initializeScoreMatrix called with:');
     console.log('participants:', participants, 'type:', typeof participants, 'isArray:', Array.isArray(participants));
     console.log('disciplines:', disciplines, 'type:', typeof disciplines, 'isArray:', Array.isArray(disciplines));
@@ -81,7 +87,7 @@ export function useScoreMatrix({
     // Filter participants by active squad if set
     const filteredParticipants = !activeSquad 
       ? safeParticipants 
-      : safeParticipants.filter(participant => participant.squad_name === activeSquad);
+      : safeParticipants.filter(participant => participantInSquad(participant, activeSquad));
     
     console.log(`Processing ${filteredParticipants.length} participants (filtered from ${safeParticipants.length} total):`);
     filteredParticipants.forEach(p => {
@@ -96,6 +102,7 @@ export function useScoreMatrix({
     filteredParticipants.forEach(participant => {
       safeDisciplines.forEach((discipline, index) => {
         const disciplineId = discipline.int_disziplinid || `${discipline.var_name}-${index}` || index;
+        const selectedEvaluation = evaluationForDiscipline(participant, activeSquad, disciplineId, competitions, competitionId);
         console.log(`Processing ${participant.firstname} ${participant.lastname} (ID: ${participant.id}) - ${discipline.var_name} (DisciplineID: ${disciplineId}, int_disziplinid: ${discipline.int_disziplinid})`);
         
         const enabledFields = getDisciplineFields(disciplineId);
@@ -120,7 +127,8 @@ export function useScoreMatrix({
               if (matchesParticipant && matchesDiscipline) {
                 console.log(`✅ Found existing score for ${participant.firstname} ${participant.lastname} - ${discipline.var_name}: ${s.score}`);
               }
-              return matchesParticipant && matchesDiscipline;
+              return matchesParticipant && matchesDiscipline &&
+                (!selectedEvaluation || (selectedEvaluation.kind === 'found' && s.id === selectedEvaluation.evaluation.id));
             });
             const scoreStr = existingScore ? existingScore.score.toString() : '';
             matrix[key] = scoreStr ? normalizeScoreInput(scoreStr, discipline.int_berechnung || 2) : '';
@@ -146,7 +154,8 @@ export function useScoreMatrix({
             if (matchesParticipant && matchesDiscipline) {
               console.log(`✅ Found existing score for ${participant.firstname} ${participant.lastname} - ${discipline.var_name}: ${s.score}`);
             }
-            return matchesParticipant && matchesDiscipline;
+            return matchesParticipant && matchesDiscipline &&
+              (!selectedEvaluation || (selectedEvaluation.kind === 'found' && s.id === selectedEvaluation.evaluation.id));
           });
           
           if (pendingEndwerts[key] !== undefined) {
@@ -183,6 +192,8 @@ export function useScoreMatrix({
       });
     });
 
+    setScoreMatrix({ ...matrix });
+
     // Load existing jury results for field-specific scores
     if (eventId && filteredParticipants.length > 0) {
       try {
@@ -209,7 +220,10 @@ export function useScoreMatrix({
         
         if (juryResults.results) {
           juryResults.results.forEach((result: any) => {
-            const isForFilteredParticipant = filteredParticipants.some(p => p.id === result.participantId);
+            const participant = filteredParticipants.find(p => p.id === result.participantId);
+            const selectedEvaluation = evaluationForDiscipline(participant, activeSquad, result.disciplineId, competitions, competitionId);
+            const isForFilteredParticipant = participant &&
+              (!selectedEvaluation || (selectedEvaluation.kind === 'found' && result.wertungenId === selectedEvaluation.evaluation.id));
             if (isForFilteredParticipant) {
               const fieldKey = fieldScoreKey(result.participantId, result.disciplineFieldId);
               const performanceStr = result.performance?.toString() || '';
@@ -224,7 +238,7 @@ export function useScoreMatrix({
     }
     
     console.log('Final score matrix:', matrix);
-    setScoreMatrix(matrix);
+    if (initializationId.current === requestId) setScoreMatrix(matrix);
   };
 
   return {

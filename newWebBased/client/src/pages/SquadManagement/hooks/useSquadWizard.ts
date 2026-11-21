@@ -14,7 +14,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apiGet, apiPost, apiDelete } from '@/utils/api';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/utils/api';
 import type { Participant, Squad } from '../SquadManagement.types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -103,9 +103,10 @@ export function useSquadWizard({
         // Merge current squad members into the list so they are visible and
         // can be deselected (= removed from the squad) by the user.
         const availableIds = new Set(available.map((p) => p.id));
-        const currentMembers = squad.participants.filter((p) => !availableIds.has(p.id));
+        const individualMembers = squad.participants.filter((p) => !p.teamOnly);
+        const currentMembers = individualMembers.filter((p) => !availableIds.has(p.id));
         const merged = [...currentMembers, ...available];
-        const memberIdSet = new Set(squad.participants.map((p) => p.id));
+        const memberIdSet = new Set(individualMembers.map((p) => p.id));
         setCurrentMemberIds(memberIdSet);
         setAllParticipants(merged);
         setSelectedIds(new Set(memberIdSet));
@@ -223,13 +224,13 @@ export function useSquadWizard({
         }
       } else if (mode === 'edit' && squad) {
         if (trimmedName !== squad.name) {
-          await apiPost('/squad-management/update', {
+          await apiPut('/squad-management/update', {
             eventId: eventIdInt,
-            oldName: squad.name,
-            newName: trimmedName,
+            oldSquadName: squad.name,
+            newSquadName: trimmedName,
           });
         }
-        const previousIds = new Set(squad.participants.map((p) => p.id));
+        const previousIds = new Set(squad.participants.filter((p) => !p.teamOnly).map((p) => p.id));
         for (const id of [...selectedIds].filter((id) => !previousIds.has(id))) {
           await apiPost('/squad-management/assign', {
             participantId: id,

@@ -13,6 +13,7 @@ import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
 import { fetchFormulaFieldRows } from '../utils/formulaFieldRows';
 import { getEventScoringModeByCompetitionId, shouldUseFormulaCalculation } from '../utils/eventScoringMode';
+import { resolveEvaluation } from '../utils/resolveEvaluation';
 
 
 const router = Router();
@@ -23,7 +24,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
     console.log('🎯 ======= SAVE-VALUE ENDPOINT CALLED =======');
     console.log('🎯 Request body:', req.body);
     
-    const { competitionId, participantId, disciplineId, score } = req.body;
+    const { competitionId, participantId, disciplineId, score, wertungenId: requestedWertungenId } = req.body;
     
     // Validate required fields
     if (!participantId || !disciplineId || score === undefined || score === null) {
@@ -80,25 +81,29 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
       const lockKey = actualCompetitionId * 1000000 + participantId;
       await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
       
-      const existing = await tx.$queryRawUnsafe(
+      const existing = await tx.$queryRawUnsafe<{ int_wertungenid: number }[]>(
         `SELECT int_wertungenid FROM tfx_wertungen WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2`,
         actualCompetitionId, participantId
-      ) as any[];
+      );
+      const resolution = resolveEvaluation(existing, requestedWertungenId);
+      if (resolution.kind === 'ambiguous' || resolution.kind === 'invalid') return resolution;
       
-      if (existing.length === 0) {
+      if (resolution.kind === 'missing') {
         const created = await tx.$queryRawUnsafe(
           `INSERT INTO tfx_wertungen (int_wettkaempfeid, int_teilnehmerid, int_statusid) VALUES ($1, $2, $3) RETURNING int_wertungenid`,
           actualCompetitionId, participantId, 1
         ) as any[];
         console.log('Created new wertungen record with ID:', created[0].int_wertungenid);
-        return created[0].int_wertungenid;
+        return { kind: 'found' as const, id: created[0].int_wertungenid };
       } else {
-        console.log('Using existing wertungen record with ID:', existing[0].int_wertungenid);
-        return existing[0].int_wertungenid;
+        console.log('Using existing wertungen record with ID:', resolution.id);
+        return resolution;
       }
     });
-    
-    wertungenId = wertungenResult;
+
+    if (wertungenResult.kind === 'ambiguous') return res.status(409).json({ error: 'Multiple evaluations found; select an evaluation explicitly' });
+    if (wertungenResult.kind === 'invalid') return res.status(400).json({ error: 'Evaluation does not match participant and competition' });
+    wertungenId = wertungenResult.id;
 
     // Use ScoreSynchronizer to update the score and ensure consistency
     await ScoreSynchronizer.updateWertungsDetailsScore(
@@ -275,7 +280,7 @@ router.post('/save-value', authenticateToken, async (req: AuthRequest, res: Resp
  */
 router.post('/create-wertung', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { competitionId, participantId, disciplineId } = req.body;
+    const { competitionId, participantId, disciplineId, wertungenId: requestedWertungenId } = req.body;
     
     if (!competitionId || !participantId || !disciplineId) {
       return res.status(400).json({ 
@@ -290,14 +295,16 @@ router.post('/create-wertung', authenticateToken, async (req: AuthRequest, res: 
       const lockKey = competitionId * 1000000 + participantId;
       await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
       
-      const existing = await tx.$queryRawUnsafe(
-        `SELECT int_wertungenid FROM tfx_wertungen WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2 LIMIT 1`,
+      const existing = await tx.$queryRawUnsafe<{ int_wertungenid: number }[]>(
+        `SELECT int_wertungenid FROM tfx_wertungen WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2`,
         competitionId, participantId
-      ) as any[];
+      );
+      const resolution = resolveEvaluation(existing, requestedWertungenId);
+      if (resolution.kind === 'ambiguous' || resolution.kind === 'invalid') return resolution;
       
-      if (existing && existing.length > 0) {
-        console.log('✅ Wertungen entry already exists:', existing[0].int_wertungenid);
-        return { wertungenId: existing[0].int_wertungenid, created: false };
+      if (resolution.kind === 'found') {
+        console.log('✅ Wertungen entry already exists:', resolution.id);
+        return { kind: 'found' as const, wertungenId: resolution.id, created: false };
       }
       
       const inserted = await tx.$queryRawUnsafe(
@@ -307,11 +314,13 @@ router.post('/create-wertung', authenticateToken, async (req: AuthRequest, res: 
       
       if (inserted && inserted.length > 0) {
         console.log('✅ Created new wertungen entry:', inserted[0].int_wertungenid);
-        return { wertungenId: inserted[0].int_wertungenid, created: true };
+        return { kind: 'found' as const, wertungenId: inserted[0].int_wertungenid, created: true };
       }
       throw new Error('Failed to create wertungen entry');
     });
     
+    if (result.kind === 'ambiguous') return res.status(409).json({ error: 'Multiple evaluations found; select an evaluation explicitly' });
+    if (result.kind === 'invalid') return res.status(400).json({ error: 'Evaluation does not match participant and competition' });
     res.json({
       success: true,
       wertungenId: result.wertungenId,
@@ -334,7 +343,7 @@ router.post('/create-wertung', authenticateToken, async (req: AuthRequest, res: 
  */
 router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { competitionId, participantId, disciplineId } = req.body;
+    const { competitionId, participantId, disciplineId, wertungenId: requestedWertungenId } = req.body;
     
     if (!competitionId || !participantId || !disciplineId) {
       return res.status(400).json({ 
@@ -349,16 +358,17 @@ router.post('/calculate-final', authenticateToken, async (req: AuthRequest, res:
       SELECT int_wertungenid 
       FROM tfx_wertungen 
       WHERE int_wettkaempfeid = $1 AND int_teilnehmerid = $2
-      LIMIT 1
     `;
     
-    const wertungenResult = await prisma.$queryRawUnsafe(wertungenQuery, competitionId, participantId) as any[];
-    
-    if (!wertungenResult || wertungenResult.length === 0) {
+    const wertungenResult = await prisma.$queryRawUnsafe<{ int_wertungenid: number }[]>(wertungenQuery, competitionId, participantId);
+    const resolution = resolveEvaluation(wertungenResult, requestedWertungenId);
+    if (resolution.kind === 'ambiguous') return res.status(409).json({ error: 'Multiple evaluations found; select an evaluation explicitly' });
+    if (resolution.kind === 'invalid') return res.status(400).json({ error: 'Evaluation does not match participant and competition' });
+    if (resolution.kind === 'missing') {
       return res.status(404).json({ error: 'No wertungen entry found' });
     }
     
-    const wertungenId = wertungenResult[0].int_wertungenid;
+    const wertungenId = resolution.id;
     console.log('✅ Found wertungenId:', wertungenId);
 
     const scoringMode = await getEventScoringModeByCompetitionId(competitionId);

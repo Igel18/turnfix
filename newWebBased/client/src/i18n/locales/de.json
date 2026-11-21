@@ -1391,6 +1391,7 @@
       "noMembers": "Keine Mitglieder zugewiesen",
       "assignError": "Fehler beim Zuweisen des Teilnehmers",
       "removeError": "Fehler beim Entfernen des Teilnehmers",
+      "removeHasScores": "Das Mitglied kann nicht entfernt werden, solange Wertungsdaten vorhanden sind.",
       "updateError": "Fehler beim Aktualisieren der Teilnehmer-Flags",
       "confirmRemove": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten?",
       "ak": "Außer Konkurrenz",
@@ -1417,7 +1418,9 @@
       "startNumberPlaceholder": "Startnummer eingeben (optional)",
       "selectClubAndCompetition": "Bitte Verein und Wettkampf auswählen",
       "noClubsAvailable": "Keine Vereine verfügbar. Bitte zuerst Vereine erstellen.",
-      "noCompetitionsAvailable": "Keine Wettkämpfe verfügbar. Bitte zuerst Wettkämpfe erstellen.",
+      "noCompetitionsAvailable": "Keine Mannschaftswettkämpfe verfügbar. Bitte einen Wettkampf mit dem Typ Mannschaft erstellen oder den Wettkampftyp prüfen.",
+      "notTeamCompetition": "kein Mannschaftswettkampf",
+      "assignSquadInManagement": "Die Riege wird anschließend in der Riegenverwaltung zugewiesen.",
       "save": "Speichern",
       "cancel": "Abbrechen"
     },
@@ -2923,6 +2926,8 @@
     "calculateAndSave": "Berechnen & beide speichern",
     "showJuryScores": "Jury-Wertungen erfassen",
     "noParticipants": "Keine Teilnehmer gefunden für diese Auswahl",
+    "evaluationAmbiguous": "Wertung nicht eindeutig. Wettkampf- und Riegenzuordnung prüfen.",
+    "evaluationMissing": "Keine Wertung für dieses Gerät in dieser Riege.",
     "filters": {
       "squad": "Riege",
       "allSquads": "Alle Riegen",
@@ -3471,6 +3476,14 @@
     }
   },
   "squadManagement": {
+    "teams": {
+      "title": "Mannschaften",
+      "description": "Mannschaften und ihre Mitglieder gemeinsam einer Riege zuweisen.",
+      "selectSquad": "Riege für Mannschaft",
+      "unassigned": "Keine Riege",
+      "synchronize": "Mannschaftswertungen synchronisieren",
+      "error": "Mannschaftszuordnung konnte nicht geladen oder gespeichert werden."
+    },
     "title": "Riegenverwaltung",
     "subtitle": "Erstelle Riegen und weise Teilnehmer Wettkämpfen zu",
     "searchPlaceholder": "Teilnehmer, Vereine, Wettkämpfe suchen...",

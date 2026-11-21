@@ -39,10 +39,11 @@ export function useLiveScoreUpdates({
 
         setParticipants(prevParticipants => {
           return prevParticipants.map(participant => {
-            const matchesById = participant.participantId === data.participantId;
-            const matchesByWertungenId = participant.wertungenId && participant.wertungenId === data.wertungenId;
+            const matchesEvaluation = participant.wertungenId
+              ? participant.wertungenId === (data.wertungenId ?? data.scoreId)
+              : !participant.evaluationIssue && participant.participantId === data.participantId;
 
-            if (matchesById || matchesByWertungenId) {
+            if (matchesEvaluation) {
               console.log(`✅ JURY: Updating participant ${participant.name} with new score: ${data.score}`);
               return {
                 ...participant,

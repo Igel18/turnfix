@@ -121,6 +121,7 @@ async function fetchExistingSquadAssignments(eventId: number): Promise<{
     FROM tfx_wertungen w
     INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
     WHERE wk.int_veranstaltungenid = $1
+      AND w.int_mannschaftenid IS NULL
       AND w.var_riege IS NOT NULL
       AND w.var_riege != ''
       AND w.int_teilnehmerid IS NOT NULL
@@ -165,7 +166,7 @@ async function fetchEventParticipants(
     INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
     INNER JOIN tfx_teilnehmer t ON w.int_teilnehmerid = t.int_teilnehmerid
     LEFT JOIN tfx_vereine v ON t.int_vereineid = v.int_vereineid
-    WHERE wk.int_veranstaltungenid = $1
+    WHERE wk.int_veranstaltungenid = $1 AND w.int_mannschaftenid IS NULL
     ORDER BY t.int_teilnehmerid
   `, eventId);
 
@@ -566,7 +567,7 @@ router.post('/auto-assign/apply', authenticateToken, async (req: AuthRequest, re
       await prisma.$queryRawUnsafe(`
         UPDATE tfx_wertungen
         SET var_riege = NULL
-        WHERE int_wettkaempfeid IN (
+        WHERE int_mannschaftenid IS NULL AND int_wettkaempfeid IN (
           SELECT int_wettkaempfeid
           FROM tfx_wettkaempfe
           WHERE int_veranstaltungenid = $1
@@ -585,6 +586,7 @@ router.post('/auto-assign/apply', authenticateToken, async (req: AuthRequest, re
           UPDATE tfx_wertungen
           SET var_riege = $3
           WHERE int_teilnehmerid = $1
+            AND int_mannschaftenid IS NULL
             AND int_wettkaempfeid IN (
               SELECT int_wettkaempfeid
               FROM tfx_wettkaempfe

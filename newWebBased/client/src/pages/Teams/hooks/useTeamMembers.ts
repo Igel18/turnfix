@@ -219,6 +219,10 @@ export const useTeamMembers = (
       );
 
       if (!response.ok) {
+        if (response.status === 409) {
+          alert(t('teams.messages.removeHasScores'));
+          return;
+        }
         throw new Error('Failed to remove participant');
       }
 

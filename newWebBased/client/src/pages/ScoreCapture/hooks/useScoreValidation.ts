@@ -6,6 +6,7 @@
  */
 
 import { useMemo } from 'react';
+import { participantInSquad } from '../utils/evaluation';
 import type {
   Participant,
   Discipline,
@@ -59,7 +60,7 @@ export function useScoreValidation({
   const filteredParticipants = useMemo(() => {
     return Array.isArray(participants) 
       ? participants.filter(participant => {
-          if (participant.startet_nicht) {
+          if (!participant.evaluations && participant.startet_nicht) {
             return false;
           }
 
@@ -70,7 +71,7 @@ export function useScoreValidation({
             participant.club?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (participant.startNumber && participant.startNumber.toString().includes(searchTerm));
           
-          const matchesSquad = !activeSquad || participant.squad_name === activeSquad;
+          const matchesSquad = !activeSquad || participantInSquad(participant, activeSquad);
 
           return matchesSearch && matchesSquad;
         })

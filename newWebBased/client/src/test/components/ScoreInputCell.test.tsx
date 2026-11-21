@@ -8,10 +8,11 @@ vi.mock('@turnfix/shared', () => ({
 }))
 
 vi.mock('@/components/FormulaInput', () => ({
-  FormulaInput: ({ onFieldChange }: any) => (
+  FormulaInput: ({ onFieldChange, initialValues }: any) => (
     <button
       type="button"
       data-testid="mock-field-change"
+      data-initial-values={JSON.stringify(initialValues)}
       onClick={() => onFieldChange(101, '4,50')}
     >
       Change Field
@@ -34,6 +35,33 @@ describe('ScoreInputCell', () => {
         json: async () => ({})
       } as Response
     }))
+  })
+
+  it('loads formula values by evaluation ID rather than participant ID', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ results: [
+        { participantId: 5, wertungenId: 44, disciplineFieldId: 101, performance: 3 },
+        { participantId: 5, wertungenId: 55, disciplineFieldId: 101, performance: 8 }
+      ] })
+    })))
+    render(
+      <ScoreInputCell
+        participantId={5}
+        eventId="987"
+        discipline={{ int_disziplinid: 1, var_name: 'Boden' } as any}
+        disciplineFields={[{ id: 101, disciplineId: 1, name: 'Wertung', enabled: true } as any]}
+        scoreValue=""
+        wertungenId={55}
+        onScoreChange={vi.fn()}
+        onSave={vi.fn(async () => {})}
+        onFieldSave={vi.fn(async () => {})}
+        normalizeScoreInput={(value: string) => value}
+        getScorePlaceholder={() => '0.00'}
+        validation={{ isValid: true }}
+      />
+    )
+    expect(await screen.findByTestId('mock-field-change')).toHaveAttribute('data-initial-values', '{"101":"8"}')
   })
 
   it('TDD: forwards linked-formula field input value to onFieldSave for persistence', async () => {

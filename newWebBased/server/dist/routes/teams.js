@@ -7,6 +7,7 @@ const express_1 = require("express");
 const zod_1 = require("zod");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const teamMembers_1 = __importDefault(require("./teamMembers"));
+const teamLock_1 = require("../utils/teamLock");
 const router = (0, express_1.Router)();
 // Mount team members sub-router
 router.use('/', teamMembers_1.default);
@@ -15,10 +16,12 @@ const createTeamSchema = zod_1.z.object({
     clubId: zod_1.z.number().int().positive(),
     competitionId: zod_1.z.number().int().positive(),
     number: zod_1.z.number().int().positive().optional().default(1),
-    riege: zod_1.z.string().nullable().optional(),
+    riege: zod_1.z.string().max(5).nullable().optional(),
     startNumber: zod_1.z.number().int().positive().nullable().optional(),
 });
-const updateTeamSchema = createTeamSchema.partial();
+const updateTeamSchema = createTeamSchema.partial().extend({
+    number: zod_1.z.number().int().positive().optional()
+});
 // Get all teams
 router.get('/', async (req, res) => {
     try {
@@ -328,24 +331,46 @@ router.put('/:id', async (req, res) => {
         if (validatedData.startNumber !== undefined)
             dbData.int_startnummer = validatedData.startNumber;
         console.log('🗄️ Database data:', dbData);
-        const team = await prisma_1.default.tfx_mannschaften.update({
-            where: { int_mannschaftenid: id },
-            data: dbData,
-            include: {
-                tfx_vereine: {
-                    select: {
-                        var_name: true,
-                        var_website: true
-                    }
-                },
-                tfx_wettkaempfe: {
-                    select: {
-                        var_name: true,
-                        var_nummer: true
-                    }
+        const team = await prisma_1.default.$transaction(async (tx) => {
+            await (0, teamLock_1.lockTeam)(tx, id);
+            if (validatedData.competitionId !== undefined) {
+                const existing = await tx.tfx_mannschaften.findUnique({
+                    where: { int_mannschaftenid: id },
+                    select: { int_wettkaempfeid: true, _count: { select: { tfx_wertungen: true } } }
+                });
+                if (existing && existing.int_wettkaempfeid !== validatedData.competitionId && existing._count.tfx_wertungen > 0) {
+                    return null;
                 }
             }
+            const updated = await tx.tfx_mannschaften.update({
+                where: { int_mannschaftenid: id },
+                data: dbData,
+                include: {
+                    tfx_vereine: {
+                        select: {
+                            var_name: true,
+                            var_website: true
+                        }
+                    },
+                    tfx_wettkaempfe: {
+                        select: {
+                            var_name: true,
+                            var_nummer: true
+                        }
+                    }
+                }
+            });
+            if (validatedData.riege !== undefined) {
+                await tx.tfx_wertungen.updateMany({
+                    where: { int_mannschaftenid: id },
+                    data: { var_riege: validatedData.riege }
+                });
+            }
+            return updated;
         });
+        if (!team) {
+            return res.status(409).json({ error: 'Cannot change competition while team scores exist' });
+        }
         res.json(team);
     }
     catch (error) {

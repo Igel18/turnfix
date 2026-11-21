@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import prisma from '../lib/prisma';
 import { findStatusByName } from '../utils/squadStatusUtils';
+import { lockTeam } from '../utils/teamLock';
 
 const router = Router();
 
@@ -28,6 +29,86 @@ const updateSquadSchema = z.object({
   newSquadName: z.string().min(1).max(5, 'Squad name must be 5 characters or less (database constraint)'),
 });
 
+const assignTeamSchema = z.object({
+  eventId: z.number().int().positive(),
+  teamId: z.number().int().positive(),
+  squadName: z.string().trim().min(1).max(5).nullable()
+});
+
+router.put('/team', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { eventId, teamId, squadName } = assignTeamSchema.parse(req.body);
+    const virtualKey = squadName === null ? null : `${eventId}-${squadName}`;
+    const result = await prisma.$transaction(async tx => {
+      await lockTeam(tx, teamId);
+      const team = await tx.tfx_mannschaften.findFirst({
+        where: { int_mannschaftenid: teamId, tfx_wettkaempfe: { int_veranstaltungenid: eventId } },
+        include: {
+          tfx_man_x_teilnehmer: true,
+          tfx_wettkaempfe: { include: { tfx_veranstaltungen: true } }
+        }
+      });
+      if (!team) return 'team-not-found' as const;
+      if (squadName !== null && !virtualSquads.has(virtualKey!)) {
+        const [score, assignedTeam] = await Promise.all([
+          tx.tfx_wertungen.findFirst({
+            where: { var_riege: squadName, tfx_wettkaempfe: { int_veranstaltungenid: eventId } },
+            select: { int_wertungenid: true }
+          }),
+          tx.tfx_mannschaften.findFirst({
+            where: { var_riege: squadName, tfx_wettkaempfe: { int_veranstaltungenid: eventId } },
+            select: { int_mannschaftenid: true }
+          })
+        ]);
+        if (!score && !assignedTeam) return 'squad-not-found' as const;
+      }
+
+      await tx.tfx_mannschaften.update({
+        where: { int_mannschaftenid: teamId },
+        data: { var_riege: squadName }
+      });
+      await tx.tfx_wertungen.updateMany({
+        where: { int_mannschaftenid: teamId },
+        data: { var_riege: squadName }
+      });
+      for (const member of team.tfx_man_x_teilnehmer) {
+        const round = member.int_runde ?? team.tfx_wettkaempfe.tfx_veranstaltungen.int_runde ?? 1;
+        const score = await tx.tfx_wertungen.findFirst({
+          where: {
+            int_mannschaftenid: teamId,
+            int_teilnehmerid: member.int_teilnehmerid,
+            int_wettkaempfeid: team.int_wettkaempfeid,
+            OR: [{ int_runde: round }, ...(round === 1 ? [{ int_runde: null }] : [])]
+          },
+          select: { int_wertungenid: true }
+        });
+        if (!score) {
+          await tx.tfx_wertungen.create({
+            data: {
+              int_mannschaftenid: teamId,
+              int_teilnehmerid: member.int_teilnehmerid,
+              int_wettkaempfeid: team.int_wettkaempfeid,
+              int_runde: round,
+              int_statusid: 1,
+              var_riege: squadName
+            }
+          });
+        }
+      }
+      return 'ok' as const;
+    });
+
+    if (result === 'team-not-found') return res.status(404).json({ message: 'Team not found in event' });
+    if (result === 'squad-not-found') return res.status(404).json({ message: 'Squad not found in event' });
+    if (virtualKey) virtualSquads.delete(virtualKey);
+    return res.json({ teamId, eventId, squadName });
+  } catch (error) {
+    if (error instanceof z.ZodError) return res.status(400).json({ message: 'Invalid data', errors: error.issues });
+    console.error('Error assigning team to squad:', error);
+    return res.status(500).json({ message: 'Failed to assign team to squad' });
+  }
+});
+
 // Create a new squad
 router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -41,7 +122,11 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
     `, validatedData.eventId, validatedData.name);
 
-    if ((existingSquad as any[])[0].count > 0) {
+    const existingTeam = await prisma.tfx_mannschaften.findFirst({
+      where: { var_riege: validatedData.name, tfx_wettkaempfe: { int_veranstaltungenid: validatedData.eventId } },
+      select: { int_mannschaftenid: true }
+    });
+    if ((existingSquad as any[])[0].count > 0 || existingTeam) {
       return res.status(400).json({ message: 'Squad name already exists for this event' });
     }
 
@@ -101,6 +186,7 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       WHERE w.int_teilnehmerid = $1 AND wk.int_veranstaltungenid = $2
+        AND w.int_mannschaftenid IS NULL
     `, validatedData.participantId, validatedData.eventId);
     
     const participantExists = (participantCheck as any[])[0].count > 0;
@@ -118,6 +204,7 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
       UPDATE tfx_wertungen 
       SET var_riege = $3
       WHERE int_teilnehmerid = $1 
+        AND int_mannschaftenid IS NULL
         AND int_wettkaempfeid IN (
           SELECT int_wettkaempfeid 
           FROM tfx_wettkaempfe 
@@ -133,6 +220,7 @@ router.post('/assign', authenticateToken, async (req: AuthRequest, res) => {
       FROM tfx_wertungen w
       INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
       WHERE w.int_teilnehmerid = $1 AND wk.int_veranstaltungenid = $2
+        AND w.int_mannschaftenid IS NULL
       GROUP BY w.var_riege
     `, validatedData.participantId, validatedData.eventId);
     
@@ -211,6 +299,7 @@ router.delete('/unassign', authenticateToken, async (req: AuthRequest, res) => {
       UPDATE tfx_wertungen 
       SET var_riege = NULL
       WHERE int_teilnehmerid = $1 
+        AND int_mannschaftenid IS NULL
         AND int_wettkaempfeid IN (
           SELECT int_wettkaempfeid 
           FROM tfx_wettkaempfe 
@@ -245,21 +334,31 @@ router.put('/update', authenticateToken, async (req: AuthRequest, res) => {
       WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
     `, validatedData.eventId, validatedData.newSquadName);
 
-    if ((existingSquad as any[])[0].count > 0 && validatedData.oldSquadName !== validatedData.newSquadName) {
+    const existingTeam = await prisma.tfx_mannschaften.findFirst({
+      where: { var_riege: validatedData.newSquadName, tfx_wettkaempfe: { int_veranstaltungenid: validatedData.eventId } },
+      select: { int_mannschaftenid: true }
+    });
+    const newVirtualKey = `${validatedData.eventId}-${validatedData.newSquadName}`;
+    if (((existingSquad as any[])[0].count > 0 || existingTeam || virtualSquads.has(newVirtualKey)) && validatedData.oldSquadName !== validatedData.newSquadName) {
       return res.status(400).json({ message: 'New squad name already exists for this event' });
     }
 
-    // Update all wertungen entries with the old squad name to the new squad name
-    const updateResult = await prisma.$queryRawUnsafe(`
-      UPDATE tfx_wertungen 
-      SET var_riege = $3
-      WHERE var_riege = $1 
-        AND int_wettkaempfeid IN (
-          SELECT int_wettkaempfeid 
-          FROM tfx_wettkaempfe 
-          WHERE int_veranstaltungenid = $2
-        )
-    `, validatedData.oldSquadName, validatedData.eventId, validatedData.newSquadName);
+    await prisma.$transaction([
+      prisma.tfx_wertungen.updateMany({
+        where: { var_riege: validatedData.oldSquadName, tfx_wettkaempfe: { int_veranstaltungenid: validatedData.eventId } },
+        data: { var_riege: validatedData.newSquadName }
+      }),
+      prisma.tfx_mannschaften.updateMany({
+        where: { var_riege: validatedData.oldSquadName, tfx_wettkaempfe: { int_veranstaltungenid: validatedData.eventId } },
+        data: { var_riege: validatedData.newSquadName }
+      })
+    ]);
+    const oldVirtualKey = `${validatedData.eventId}-${validatedData.oldSquadName}`;
+    const virtual = virtualSquads.get(oldVirtualKey);
+    if (virtual && oldVirtualKey !== newVirtualKey) {
+      virtualSquads.delete(oldVirtualKey);
+      virtualSquads.set(newVirtualKey, { ...virtual, name: validatedData.newSquadName });
+    }
 
     console.log(`Updated squad name from "${validatedData.oldSquadName}" to "${validatedData.newSquadName}" for event ${validatedData.eventId}`);
 
@@ -296,17 +395,18 @@ router.delete('/delete', authenticateToken, async (req: AuthRequest, res) => {
       WHERE wk.int_veranstaltungenid = $1 AND w.var_riege = $2
     `, parseInt(eventId as string), squadName);
 
-    // Update all wertungen entries for this squad to unassigned (NULL)
-    const updateResult = await prisma.$queryRawUnsafe(`
-      UPDATE tfx_wertungen 
-      SET var_riege = NULL
-      WHERE var_riege = $1 
-        AND int_wettkaempfeid IN (
-          SELECT int_wettkaempfeid 
-          FROM tfx_wettkaempfe 
-          WHERE int_veranstaltungenid = $2
-        )
-    `, squadName, parseInt(eventId as string));
+    const parsedEventId = parseInt(eventId as string);
+    await prisma.$transaction([
+      prisma.tfx_wertungen.updateMany({
+        where: { var_riege: String(squadName), tfx_wettkaempfe: { int_veranstaltungenid: parsedEventId } },
+        data: { var_riege: null }
+      }),
+      prisma.tfx_mannschaften.updateMany({
+        where: { var_riege: String(squadName), tfx_wettkaempfe: { int_veranstaltungenid: parsedEventId } },
+        data: { var_riege: null }
+      })
+    ]);
+    virtualSquads.delete(`${parsedEventId}-${squadName}`);
 
     console.log(`Deleted squad "${squadName}" for event ${eventId}, unassigned ${(participantCount as any[])[0].count} participants`);
 

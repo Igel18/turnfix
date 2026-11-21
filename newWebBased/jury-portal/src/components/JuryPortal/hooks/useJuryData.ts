@@ -10,7 +10,7 @@ import { getDisciplineIcon } from '../../../utils/iconUtils';
 import { isEventOnDate } from '../../../utils/eventUtils';
 import { normalizeScoreInput } from '../../../utils/scoreFormatter';
 import { getScoreForParticipant, shouldClearJuryResults } from '../../../utils/navigationHelper';
-import { getBuiltInFormulaInitialValues } from '@turnfix/shared';
+import { getBuiltInFormulaInitialValues, selectEvaluation, type EvaluationReference } from '@turnfix/shared';
 import { computeEffectiveParticipantScore } from '../../../utils/effectiveParticipantScore';
 import { computeEffectiveJuryResults } from '../../../utils/effectiveJuryResults';
 import { excludeNonStartingParticipants } from '../../../utils/participantVisibility';
@@ -338,6 +338,7 @@ export function useJuryData(): UseJuryDataReturn {
 
   // Fetch participants when squad and device are selected
   useEffect(() => {
+    let active = true;
     const fetchParticipants = async () => {
       if (!selectedEvent || !selectedSquad || !selectedDevice) return;
 
@@ -364,7 +365,7 @@ export function useJuryData(): UseJuryDataReturn {
 
         let scores: any[] = [];
         try {
-          const scoresResponse = await fetch(`${API_BASE_URL}/scores?eventId=${selectedEvent}&limit=1000`);
+          const scoresResponse = await fetch(`${API_BASE_URL}/scores?eventId=${selectedEvent}&squadName=${encodeURIComponent(selectedSquad.name)}&limit=1000`);
           if (scoresResponse.ok) {
             const scoresData = await scoresResponse.json();
             scores = scoresData?.results || [];
@@ -376,16 +377,26 @@ export function useJuryData(): UseJuryDataReturn {
         // Format participants for scoring and fetch existing scores
         const formattedParticipantsPromises = uniqueSquadParticipants.map(async (participant: any, index: number) => {
           let existingScore: number | undefined = undefined;
-          let wertungenId = null;
+          const disciplineCompetitionIds = competitions.filter(comp =>
+            comp.disciplines?.some(d => d.disciplineId === selectedDevice.disciplineId || d.int_disziplinid === selectedDevice.disciplineId || d.id === selectedDevice.disciplineId)
+          ).map(comp => comp.id).filter(id => !selectedBahn || selectedBahn.competitionIds.includes(id));
+          const selection = Array.isArray(participant.evaluations)
+            ? selectEvaluation(participant.evaluations as EvaluationReference[], {
+                squadName: selectedSquad.name,
+                competitionIds: disciplineCompetitionIds
+              })
+            : null;
+          let wertungenId = selection?.kind === 'found' ? selection.evaluation.id : undefined;
           try {
             console.log(`🔍 JURY: Checking existing scores for participant ${participant.id} and discipline ${selectedDevice?.disciplineId}`);
             const existingScoreRecord = scores.find((s: any) => {
-              return s.participantId === participant.id && s.disciplineId === selectedDevice?.disciplineId;
+              return s.participantId === participant.id && s.disciplineId === selectedDevice?.disciplineId &&
+                (!selection || (selection.kind === 'found' && s.id === selection.evaluation.id));
             });
             if (existingScoreRecord) {
                 const effectiveScore = computeEffectiveParticipantScore(existingScoreRecord);
                 existingScore = effectiveScore === null ? undefined : effectiveScore;
-              wertungenId = existingScoreRecord.id;
+              if (!selection) wertungenId = existingScoreRecord.id;
               console.log(`✅ JURY: Found existing score for participant ${participant.id}:`, existingScore, 'wertungenId:', wertungenId);
             }
           } catch (error) {
@@ -408,6 +419,8 @@ export function useJuryData(): UseJuryDataReturn {
             status: (existingScore !== null && existingScore !== undefined) ? 'completed' : (index === 0 ? 'current' : 'pending') as 'completed' | 'current' | 'pending',
             currentScore: existingScore,
             wertungenId: wertungenId,
+            evaluationCompetitionId: selection?.kind === 'found' ? selection.evaluation.competitionId : undefined,
+            evaluationIssue: selection && selection.kind !== 'found' ? selection.kind : undefined,
             statusId: null as number | null,
             statusName: null as string | null,
             statusColor: null as string | null,
@@ -445,6 +458,7 @@ export function useJuryData(): UseJuryDataReturn {
           }
         } catch {/* status load failure is non-fatal */}
 
+        if (!active) return;
         console.log('🟢 JURY: Formatted participants for scoring with scores:', formattedParticipants);
         setParticipants(formattedParticipants);
 
@@ -457,14 +471,15 @@ export function useJuryData(): UseJuryDataReturn {
         setCurrentParticipantIndex(selectedIndex);
       } catch (error) {
         console.error('Error processing participants:', error);
-        setParticipants([]);
+        if (active) setParticipants([]);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchParticipants();
-  }, [selectedEvent, selectedSquad, selectedDevice, selectedBahn]);
+    return () => { active = false; };
+  }, [selectedEvent, selectedSquad, selectedDevice, selectedBahn, competitions]);
 
   // Load discipline fields when device is selected
   useEffect(() => {
@@ -577,7 +592,7 @@ export function useJuryData(): UseJuryDataReturn {
       try {
         console.log('🔵 JURY: Loading jury results for wertungenId', currentParticipant.wertungenId, 'discipline', selectedDevice.disciplineId);
         const response = await fetch(
-          `${API_BASE_URL}/jury-results?participantId=${currentParticipant.wertungenId}&disciplineId=${selectedDevice.disciplineId}`
+          `${API_BASE_URL}/jury-results?wertungenId=${currentParticipant.wertungenId}&disciplineId=${selectedDevice.disciplineId}`
         );
         const data = await response.json();
 

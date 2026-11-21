@@ -6,8 +6,10 @@
  */
 
 import { apiPost } from '@/utils/api';
+import { useTranslation } from 'react-i18next';
 import { parseScoreInput } from '@/utils/scoreFormatter';
 import { fieldScoreKey } from '../utils/scoreKeys';
+import { evaluationForDiscipline } from '../utils/evaluation';
 import type { 
   Competition, 
   Participant, 
@@ -18,7 +20,9 @@ import type {
 type ScoreMatrix = {[key: string]: string | number};
 
 interface UseScoreActionsProps {
+  eventId?: string | null;
   competitionId: string | undefined;
+  activeSquad?: string;
   competitions: Competition[];
   participants: Participant[];
   disciplines: Discipline[];
@@ -37,7 +41,9 @@ interface UseScoreActionsReturn {
 }
 
 export function useScoreActions({
+  eventId,
   competitionId,
+  activeSquad,
   competitions,
   participants,
   disciplines,
@@ -47,6 +53,7 @@ export function useScoreActions({
   selectedCompetition,
   evaluateFormula
 }: UseScoreActionsProps): UseScoreActionsReturn {
+  const { t } = useTranslation();
 
   const saveScore = async (participantId: number, disciplineId: number | string, overrideScoreValue?: string | number): Promise<number | null> => {
     // For now, we'll use the original competitionId from URL params or context
@@ -96,8 +103,18 @@ export function useScoreActions({
     }
 
     try {
+      const selectedEvaluation = evaluationForDiscipline(
+        participants.find(participant => participant.id === participantId),
+        activeSquad, numericDisciplineId, competitions, competitionId
+      );
+      if (selectedEvaluation && selectedEvaluation.kind !== 'found') {
+        alert(t(selectedEvaluation.kind === 'ambiguous' ? 'scoreCapture.evaluationAmbiguous' : 'scoreCapture.evaluationMissing'));
+        return null;
+      }
       // Find the correct competition ID for this discipline
-      let actualCompetitionId = competitionId ? parseInt(competitionId) : null;
+      let actualCompetitionId = selectedEvaluation?.kind === 'found'
+        ? selectedEvaluation.evaluation.competitionId
+        : competitionId ? parseInt(competitionId) : null;
       
       console.log('🔍 Determining competition ID...')
       console.log('🔍 Current competitionId from context/URL:', actualCompetitionId)
@@ -156,7 +173,8 @@ export function useScoreActions({
         competitionId: actualCompetitionId,
         participantId: participantId,
         disciplineId: numericDisciplineId,
-        score: typeof scoreValue === 'string' ? parseScoreInput(scoreValue) : scoreValue
+        score: typeof scoreValue === 'string' ? parseScoreInput(scoreValue) : scoreValue,
+        ...(selectedEvaluation?.kind === 'found' ? { wertungenId: selectedEvaluation.evaluation.id } : {})
       }
       
       console.log('🟢 Sending score data to API:', scoreData)
@@ -201,14 +219,24 @@ export function useScoreActions({
     console.log(`Saving field score for participant ${participantId}, field "${field.name}" (ID: ${field.id}), value: ${numericValue}`)
     
     try {
+      const selectedEvaluation = evaluationForDiscipline(
+        participants.find(participant => participant.id === participantId),
+        activeSquad, field.disciplineId, competitions, competitionId
+      );
+      if (selectedEvaluation && selectedEvaluation.kind !== 'found') {
+        alert(t(selectedEvaluation.kind === 'ambiguous' ? 'scoreCapture.evaluationAmbiguous' : 'scoreCapture.evaluationMissing'));
+        return;
+      }
       const scoreData = {
         participantId: participantId,
         disciplineFieldId: field.id,
         attempt: 1, // Default attempt
         performance: numericValue,
         type: 0, // Default type (0=Pflicht, 1=Kür) - TODO: determine from context
-        eventId: selectedEvent?.int_eventid,
-        competitionId: selectedCompetition?.id
+        eventId: selectedEvent?.int_eventid ?? (eventId ? Number(eventId) : undefined),
+        competitionId: selectedEvaluation?.kind === 'found'
+          ? selectedEvaluation.evaluation.competitionId : selectedCompetition?.id,
+        ...(selectedEvaluation?.kind === 'found' ? { wertungenId: selectedEvaluation.evaluation.id } : {})
       }
       
       console.log('Sending to API:', scoreData)

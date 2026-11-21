@@ -15,13 +15,19 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GenderBadge } from '@/components/GenderBadge'
 import { ScoreInputCell } from './ScoreInputCell'
-import type { Participant, Discipline, DisciplineField } from '@/types/ScoreCapture.types'
+import { evaluationForDiscipline } from '../utils/evaluation'
+import type { Participant, Discipline, DisciplineField, Competition } from '@/types/ScoreCapture.types'
 
 const INITIAL_VISIBLE_ROWS = 40
 const LOAD_MORE_STEP = 40
+const EVALUATION_FOUND = 'found'
+const EVALUATION_AMBIGUOUS = 'ambiguous'
 
 interface ScoreTableProps {
   eventId?: string | null
+  competitionId?: string
+  activeSquad?: string
+  competitions?: Competition[]
   filteredParticipants: Participant[]
   displayDisciplines: Discipline[]
   disciplineFields: DisciplineField[]
@@ -45,6 +51,9 @@ interface ScoreTableProps {
 
 export const ScoreTable = ({
   eventId,
+  competitionId,
+  activeSquad,
+  competitions = [],
   filteredParticipants,
   displayDisciplines,
   disciplineFields: _disciplineFields, // intentionally unused for now
@@ -197,16 +206,20 @@ export const ScoreTable = ({
                   const key = `${participant.id}-${disciplineId}`
                   const score = scoreMatrix[key] ?? ''
                   const validation = getScoreValidation(disciplineId, score)
+                  const evaluation = evaluationForDiscipline(participant, activeSquad, disciplineId, competitions, competitionId)
                   
                   return (
                     <td key={`cell-${participant.id}-${disciplineId}`} className="px-6 py-4 whitespace-nowrap text-center">
+                      {evaluation && evaluation.kind !== EVALUATION_FOUND ? (
+                        <span className="text-xs text-red-700">{t(evaluation.kind === EVALUATION_AMBIGUOUS ? 'scoreCapture.evaluationAmbiguous' : 'scoreCapture.evaluationMissing')}</span>
+                      ) : (
                       <ScoreInputCell
                         participantId={participant.id}
                         eventId={eventId || undefined}
                         discipline={discipline}
                         disciplineFields={enabledFields}
                         scoreValue={score}
-                        wertungenId={(participant as any).wertungenId || participant.id}
+                        wertungenId={evaluation?.kind === EVALUATION_FOUND ? evaluation.evaluation.id : participant.wertungenId || participant.id}
                         onScoreChange={handleScoreChange}
                         onSave={saveScore}
                         onFieldSave={async (participantId, field, value) => {
@@ -217,6 +230,7 @@ export const ScoreTable = ({
                         getScorePlaceholder={getScorePlaceholder}
                         validation={validation}
                       />
+                      )}
                     </td>
                   )
                 })}

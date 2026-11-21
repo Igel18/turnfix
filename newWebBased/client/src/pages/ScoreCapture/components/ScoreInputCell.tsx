@@ -49,7 +49,7 @@ async function fetchJuryResultsByEventAndDiscipline(eventId: string | number, di
       const pageResults = Array.isArray(data?.results) ? data.results : [];
 
       for (const result of pageResults) {
-        const participantId = Number(result?.participantId);
+        const participantId = Number(result?.wertungenId);
         const fieldId = Number(result?.disciplineFieldId);
         if (!participantId || !fieldId) continue;
 
@@ -206,17 +206,19 @@ export const ScoreInputCell = memo(({
       return;
     }
 
+    let active = true;
     setLoadingValues(true);
+    setInitialFieldValues({});
     
     const loadResults = eventId
       ? fetchJuryResultsByEventAndDiscipline(eventId, disciplineId)
-      : fetch(`/api/jury-results?participantId=${wertungenId}&disciplineId=${disciplineId}`)
+      : fetch(`/api/jury-results?wertungenId=${wertungenId}&disciplineId=${disciplineId}`)
           .then(res => res.json())
           .then(data => {
             const results = Array.isArray(data?.results) ? data.results : [];
             const byParticipant: JuryResultsByParticipant = {};
             for (const result of results) {
-              const participantId = Number(result?.participantId);
+              const participantId = Number(result?.wertungenId);
               const fieldId = Number(result?.disciplineFieldId);
               if (!participantId || !fieldId) continue;
 
@@ -231,14 +233,15 @@ export const ScoreInputCell = memo(({
     loadResults
       .then((byParticipant) => {
         const values = byParticipant[Number(wertungenId)] || {};
-        setInitialFieldValues(values);
+        if (active) setInitialFieldValues(values);
       })
       .catch(error => {
         console.error('❌ Error loading jury results:', error);
       })
       .finally(() => {
-        setLoadingValues(false);
+        if (active) setLoadingValues(false);
       });
+    return () => { active = false; };
   }, [isLinkedFormulaMode, wertungenId, disciplineId, enabledFields.length, eventId]);
 
   // Detect built-in formula (lowercase variable like "x" in "20-x", "(((1000/x)-2,158)/0,006)/49")

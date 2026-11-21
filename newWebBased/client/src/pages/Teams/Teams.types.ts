@@ -11,6 +11,8 @@ export interface Club {
 export interface Competition {
   id: number;
   name: string;
+  number?: string | null;
+  competitionType: number;
 }
 
 // Original Team type from database

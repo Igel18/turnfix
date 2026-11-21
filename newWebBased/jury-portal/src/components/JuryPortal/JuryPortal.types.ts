@@ -19,6 +19,8 @@ export interface Participant {
   lastname?: string;  // API sometimes uses this format
   clubName: string;
   wertungenId?: number;
+  evaluationCompetitionId?: number;
+  evaluationIssue?: 'missing' | 'ambiguous';
   assignedCompetitions?: number[];
   /** Participant status fields */
   statusId?: number | null;
@@ -48,6 +50,7 @@ export interface Device {
   icon: string; // Can be emoji or icon path
   iconPath?: string | null; // Optional: database icon path (web-accessible URL)
   disciplineId: number;
+  int_disziplinid?: number;
   maxScore?: number; // Maximum allowed score for this discipline
   int_berechnung?: number; // Number of decimal places (0-3)
   var_maske?: string; // Format pattern (e.g., "0.00", "0,000", "0:00:00")

@@ -108,13 +108,7 @@ export const useTeams = (
       // The API returns competitions directly as an array, not wrapped in a competitions property
       const allCompetitions = Array.isArray(data) ? data : (data.competitions || []);
       
-      // Filter for team competitions only (competitionType === 1)
-      const teamCompetitions = allCompetitions.filter(
-        (comp: any) => comp.competitionType === 1
-      );
-      
-      console.log('🏆 DEBUG: Filtered team competitions:', teamCompetitions);
-      setCompetitions(teamCompetitions);
+      setCompetitions(allCompetitions);
     } catch (error) {
       console.error('Error fetching competitions:', error);
       setCompetitions([]);
@@ -137,7 +131,7 @@ export const useTeams = (
         clubId: parseInt(formData.clubId),
         competitionId: parseInt(formData.competitionId),
         number: parseInt(formData.number),
-        riege: formData.riege || null,
+        riege: editingTeam ? undefined : null,
         startNumber: formData.startNumber ? parseInt(formData.startNumber) : null
       };
 

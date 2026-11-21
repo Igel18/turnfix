@@ -11,6 +11,8 @@ interface Club {
 interface Competition {
   id: number;
   name: string;
+  number?: string | null;
+  competitionType: number;
 }
 
 interface FormData {
@@ -43,6 +45,8 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({
   isEditing
 }) => {
   const { t } = useTranslation();
+  const hasTeamCompetition = competitions.some(comp => comp.competitionType === 1);
+  const hasExistingCompetition = isEditing && competitions.some(comp => String(comp.id) === formData.competitionId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,12 +104,13 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({
           >
             <option value="">{t('teams.form.competitionPlaceholder')}</option>
             {Array.isArray(competitions) && competitions.map(comp => (
-              <option key={comp.id} value={comp.id}>
-                {comp.name}
+              <option key={comp.id} value={comp.id} disabled={comp.competitionType !== 1 && !(isEditing && String(comp.id) === formData.competitionId)}>
+                {comp.number ? `${comp.number} – ${comp.name}` : comp.name}
+                {comp.competitionType !== 1 ? ` (${t('teams.form.notTeamCompetition')})` : ''}
               </option>
             ))}
           </select>
-          {competitions.length === 0 && (
+          {!hasTeamCompetition && (
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
               ⚠️ {t('teams.form.noCompetitionsAvailable')}
             </p>
@@ -130,25 +135,8 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({
           />
         </div>
 
-        {/* Optional Fields Row */}
+        <p className="text-sm text-gray-500">{t('teams.form.assignSquadInManagement')}</p>
         <div className="grid grid-cols-2 gap-4">
-          {/* Riege (optional) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('teams.form.squad')}
-            </label>
-            <input
-              type="text"
-              value={formData.riege || ''}
-              onChange={(e) => setFormData({...formData, riege: e.target.value || null})}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
-                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={t('teams.form.squadPlaceholder')}
-            />
-          </div>
-
-          {/* Start Number (optional) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t('teams.form.startNumber')}
@@ -178,7 +166,7 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({
           </button>
           <button
             type="submit"
-            disabled={clubs.length === 0 || competitions.length === 0}
+            disabled={clubs.length === 0 || (!hasTeamCompetition && !hasExistingCompetition)}
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
                      disabled:bg-gray-400 disabled:cursor-not-allowed"
           >

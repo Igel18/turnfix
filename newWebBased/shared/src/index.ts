@@ -19,6 +19,7 @@ export * from './effectiveScore';
 export * from './socketConfig';
 export * from './eventDateUtils';
 export * from './scoringInputMode';
+export * from './evaluationSelection';
 export { formatTotalScore, getTotalScoreDecimalPlaces, normalizeTotalScore } from './scoreFormatter';
 
 // React components (separate export to avoid bundler issues)

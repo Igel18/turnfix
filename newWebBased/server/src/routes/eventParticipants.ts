@@ -132,6 +132,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
             new Date().getFullYear() - new Date(participant.dat_geburtstag).getFullYear() : null,
           registrationDate: new Date().toISOString().split('T')[0],
           competitions: [],
+          evaluations: [],
           squad: null,
           startNumber: null,
           assigned: false
@@ -159,7 +160,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     const participantsWithAssignments = await Promise.all(
       (eventParticipants as any[]).map(async (participant) => {
         const assignedCompetitionsQuery = `
-          SELECT DISTINCT wk.int_wettkaempfeid, wk.var_name
+          SELECT wk.int_wettkaempfeid, wk.var_name, w.int_wertungenid, w.var_riege,
+                 w.int_mannschaftenid, w.int_runde, w.bol_startet_nicht
           FROM tfx_wertungen w
           INNER JOIN tfx_wettkaempfe wk ON w.int_wettkaempfeid = wk.int_wettkaempfeid
           WHERE w.int_teilnehmerid = $1 AND wk.int_veranstaltungenid = $2
@@ -188,7 +190,15 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
           wertungenId: participant.int_wertungenid ? Number(participant.int_wertungenid) : null,
           statusId: participant.status_id ? Number(participant.status_id) : 1,
           isInEvent: true,
-          assignedCompetitions: (assignments as any[]).map(a => Number(a.int_wettkaempfeid)),
+          assignedCompetitions: [...new Set((assignments as any[]).map(a => Number(a.int_wettkaempfeid)))],
+          evaluations: (assignments as any[]).map(a => ({
+            id: Number(a.int_wertungenid),
+            competitionId: Number(a.int_wettkaempfeid),
+            squadName: a.var_riege,
+            teamId: a.int_mannschaftenid,
+            round: a.int_runde,
+            startetNicht: Boolean(a.bol_startet_nicht)
+          })),
           registrationDate: participant.registration_date
         };
       })
@@ -246,6 +256,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
         statusId: 1, // Default status for available participants
         isInEvent: false,
         assignedCompetitions: [],
+        evaluations: [],
         registrationDate: undefined
       }));
 

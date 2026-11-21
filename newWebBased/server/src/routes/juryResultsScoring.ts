@@ -5,6 +5,7 @@ import { authenticateToken, AuthRequest } from '../middleware/authBypass';
 import { ScoreSynchronizer } from '../utils/scoreSynchronizer';
 import { calculateFormula, buildFieldSymbolsMap } from '../utils/formulaUtils';
 import { fetchFormulaFieldRows } from '../utils/formulaFieldRows';
+import { resolveEvaluation } from '../utils/resolveEvaluation';
 import {
   getEventScoringModeByCompetitionId,
   getEventScoringModeByWertungenId,
@@ -21,7 +22,8 @@ const juryResultCreateSchema = z.object({
   performance: z.number(),
   type: z.number().int().min(0).max(1).default(0).describe('0=Pflicht, 1=Kür'),
   eventId: z.number().int().positive().optional(),
-  competitionId: z.number().int().positive().optional()
+  competitionId: z.number().int().positive().optional(),
+  wertungenId: z.number().int().positive().optional()
 });
 
 // Create new jury result
@@ -346,28 +348,29 @@ router.post('/save-field-score', authenticateToken, async (req: AuthRequest, res
       WHERE w.int_teilnehmerid = $1
         AND wk.int_veranstaltungenid = $2
         AND w.int_wettkaempfeid = $3
-      ORDER BY w.int_wertungenid DESC
-      LIMIT 1
     `;
 
     const queryParams = [validatedData.participantId, validatedData.eventId, actualCompetitionId];
     console.log('DEBUG: Final query:', wertungenQuery);
     console.log('DEBUG: Query params:', queryParams);
 
-    const wertungenResult = await prisma.$queryRawUnsafe(
+    const wertungenResult = await prisma.$queryRawUnsafe<{ int_wertungenid: number }[]>(
       wertungenQuery,
       ...queryParams
-    ) as any[];
+    );
 
     console.log('DEBUG: Query result:', wertungenResult);
 
-    if (!wertungenResult || wertungenResult.length === 0) {
+    const resolution = resolveEvaluation(wertungenResult, validatedData.wertungenId);
+    if (resolution.kind === 'ambiguous') return res.status(409).json({ error: 'Multiple evaluations found; select an evaluation explicitly' });
+    if (resolution.kind === 'invalid') return res.status(400).json({ error: 'Evaluation does not match participant and competition' });
+    if (resolution.kind === 'missing') {
       return res.status(400).json({ 
         error: 'No evaluation record found for this participant in this competition and event. Participant must be registered for the correct competition.' 
       });
     }
 
-    const wertungenId = wertungenResult[0].int_wertungenid;
+    const wertungenId = resolution.id;
     console.log(`Found wertungenid ${wertungenId} for participant ${validatedData.participantId}, event ${validatedData.eventId}, competition ${actualCompetitionId}`);
 
     // Ensure there's a corresponding entry in tfx_wertungen_details for Qt compatibility

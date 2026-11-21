@@ -68,7 +68,7 @@ export function createSquadConfig({
                   key={participant.id}
                   participant={toParticipantCardData(participant)}
                   isHighlighted={isHighlighted}
-                  actionButton={
+                  actionButton={!participant.teamOnly ?
                     <button
                       onClick={() => onRemoveParticipant(participant.id)}
                       className="p-1 text-red-600 hover:bg-red-50 rounded"
@@ -76,7 +76,7 @@ export function createSquadConfig({
                     >
                       <ArrowLeft className="w-4 h-4" />
                     </button>
-                  }
+                  : undefined}
                 />
               );
             })}

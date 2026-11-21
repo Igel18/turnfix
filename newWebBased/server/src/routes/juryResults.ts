@@ -23,6 +23,7 @@ const juryResultUpdateSchema = z.object({
 
 const juryResultQuerySchema = z.object({
   participantId: z.string().transform(Number).optional(),
+  wertungenId: z.string().transform(Number).optional(),
   disciplineFieldId: z.string().transform(Number).optional(),
   eventId: z.string().transform(Number).optional(),
   competitionId: z.string().transform(Number).optional(),
@@ -51,6 +52,12 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       // - legacy:   wertungen ID (tfx_wertungen.int_wertungenid)
       whereClause += ` AND (w.int_teilnehmerid = $${paramIndex} OR jr.int_wertungenid = $${paramIndex})`;
       queryParams.push(query.participantId);
+      paramIndex++;
+    }
+
+    if (query.wertungenId) {
+      whereClause += ` AND jr.int_wertungenid = $${paramIndex}`;
+      queryParams.push(query.wertungenId);
       paramIndex++;
     }
     

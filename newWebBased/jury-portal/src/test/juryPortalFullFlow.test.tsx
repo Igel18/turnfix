@@ -81,6 +81,65 @@ const saveButton = () => screen.getByRole('button', { name: /Bewertung speichern
 const saveCalls = (calls: ReturnType<typeof mockApi>['calls']) =>
   calls.filter(c => c.method === 'POST' && c.url.includes('/scores/save-value'));
 
+describe('Jury Portal — evaluation identity', () => {
+  beforeEach(() => {
+    localStorage.setItem('juryPortal_filterToday', 'false');
+    vi.stubGlobal('alert', vi.fn());
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it('loads and saves the evaluation belonging to the selected squad', async () => {
+    const { calls } = mockApi((url) => {
+      if (url.includes('/squad-management?')) {
+        return { body: { squads: [
+          { ...squadManagement.squads[0], participants: [
+            { ...participant(1, 'Anna', 'Alt'), evaluations: [{ id: 55, competitionId: 10, squadName: 'Riege 1', teamId: 7 }] },
+            participant(2, 'Berta', 'Bunt')
+          ] },
+          squadManagement.squads[1]
+        ] } };
+      }
+      if (url.includes('/scores?')) return { body: { results: [
+        { id: 44, participantId: 1, disciplineId: 100, competitionId: 10, score: 3 },
+        { id: 55, participantId: 1, disciplineId: 100, competitionId: 10, score: 8 }
+      ] } };
+      return undefined;
+    });
+    await openScoring();
+    const list = screen.getByRole('heading', { name: 'Teilnehmer (2)' }).closest('div.flex-col') as HTMLElement;
+    fireEvent.click(within(list).getByText('Anna Alt'));
+    await waitFor(() => expect(scoreInput()).toHaveValue('8.00'));
+    fireEvent.change(scoreInput(), { target: { value: '9' } });
+    fireEvent.click(saveButton());
+    await waitFor(() => expect(saveCalls(calls)).toHaveLength(1));
+    expect(saveCalls(calls)[0].body).toMatchObject({ participantId: 1, competitionId: 10, wertungenId: 55 });
+  });
+
+  it('refuses to save when two evaluations in the same squad are ambiguous', async () => {
+    const { calls } = mockApi((url) => {
+      if (url.includes('/squad-management?')) return { body: { squads: [
+        { ...squadManagement.squads[0], participants: [
+          { ...participant(1, 'Anna', 'Alt'), evaluations: [
+            { id: 44, competitionId: 10, squadName: 'Riege 1', teamId: null },
+            { id: 55, competitionId: 10, squadName: 'Riege 1', teamId: 7 }
+          ] },
+          participant(2, 'Berta', 'Bunt')
+        ] },
+        squadManagement.squads[1]
+      ] } };
+      return undefined;
+    });
+    await openScoring();
+    fireEvent.change(scoreInput(), { target: { value: '9' } });
+    fireEvent.click(saveButton());
+    expect(saveCalls(calls)).toHaveLength(0);
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('nicht eindeutig'));
+  });
+});
+
 describe('Jury Portal — scoring with a linked formula (A + B)', () => {
   beforeEach(() => {
     localStorage.setItem('juryPortal_filterToday', 'false');

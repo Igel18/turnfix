@@ -199,20 +199,7 @@ test.describe.serial('Setup: Create Team Event', () => {
     console.log(`✓ Team Competition: ${state.competitionId} (${state.competitionName})`);
   });
 
-  // ─── Step 5: Assign Participants to Event ──────────────────────
-
-  test('11. Add participants to event and assign to competition', async ({ request }) => {
-    for (const pid of state.participantIds) {
-      const r = await apiPost(request, '/event-participants/add', {
-        eventId: state.eventId,
-        participantId: pid,
-      });
-      expect(r.status).toBe(201);
-    }
-    console.log(`✓ Added ${state.participantIds.length} participants to event`);
-  });
-
-  // ─── Step 6: Create Teams ──────────────────────────────────────
+  // ─── Step 5: Create Teams and register their members ───────────
 
   test('12. Create 3 teams and assign members', async ({ request }) => {
     for (let t = 0; t < NUM_TEAMS; t++) {
@@ -245,16 +232,16 @@ test.describe.serial('Setup: Create Team Event', () => {
 
   // ─── Step 7: Squads ────────────────────────────────────────────
 
-  test('13. Create squad and assign participants', async ({ request }) => {
-    await apiPost(request, '/squad-management/create', { eventId: state.eventId, name: 'RT' });
-    for (const pid of state.participantIds) {
-      await apiPost(request, '/squad-management/assign', {
-        participantId: pid,
-        squadName: 'RT',
-        eventId: state.eventId,
+  test('13. Create squad and assign teams', async ({ request }) => {
+    const squad = await apiPost(request, '/squad-management/create', { eventId: state.eventId, name: 'RT' });
+    expect(squad.status).toBe(201);
+    for (const teamId of state.teamIds) {
+      const response = await request.put(`${API_BASE}/squad-management/team`, {
+        data: { teamId, squadName: 'RT', eventId: state.eventId }
       });
+      expect(response.status()).toBe(200);
     }
-    console.log(`✓ Squad RT: ${state.participantIds.length} participants assigned`);
+    console.log(`✓ Squad RT: ${state.teamIds.length} teams assigned`);
   });
 
   // ─── Step 8: Enter Individual Scores ───────────────────────────
