@@ -4,6 +4,7 @@ export interface RotationSections {
   completed: RotationDevice[];
   current: RotationDevice | null;
   upcoming: RotationDevice[];
+  earlierOpen: RotationDevice[];
 }
 
 /** Keeps the header rotation limited to devices available in the selection step. */
@@ -21,15 +22,21 @@ export function getRotationSections(
   completedDisciplineIds: number[]
 ): RotationSections {
   const completedIds = new Set(completedDisciplineIds);
-  const current = rotation.find(device => device.disciplineId === currentDisciplineId) ?? null;
+  const currentIndex = rotation.findIndex(device => device.disciplineId === currentDisciplineId);
+  const current = rotation[currentIndex] ?? null;
   const completed = rotation.filter(device =>
     device.disciplineId !== currentDisciplineId && completedIds.has(device.disciplineId)
   );
-  const upcoming = rotation.filter(device =>
-    device.disciplineId !== currentDisciplineId && !completedIds.has(device.disciplineId)
+  const earlierOpen = rotation.filter((device, index) =>
+    currentIndex >= 0 && index < currentIndex && !completedIds.has(device.disciplineId)
+  );
+  const upcoming = rotation.filter((device, index) =>
+    device.disciplineId !== currentDisciplineId &&
+    !completedIds.has(device.disciplineId) &&
+    (currentIndex < 0 || index > currentIndex)
   );
 
-  return { completed, current, upcoming };
+  return { completed, current, upcoming, earlierOpen };
 }
 
 export function getNextDevice(rotation: RotationDevice[], disciplineId: number | null): RotationDevice | null {

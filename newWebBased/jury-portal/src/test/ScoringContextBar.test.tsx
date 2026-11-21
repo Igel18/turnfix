@@ -60,6 +60,47 @@ describe('DeviceRotationProgress', () => {
 
     expect(screen.getByTestId('rotation-device-1')).toHaveAttribute('data-state', 'upcoming');
     expect(screen.getByTestId('rotation-device-3')).toHaveAttribute('data-state', 'upcoming');
+    expect(screen.getByText('Vorherige Geräte noch offen')).toBeInTheDocument();
+    expect(screen.getByTestId('rotation-device-1')).toHaveTextContent('Runde 1');
+    expect(screen.getByTestId('rotation-device-3')).toHaveTextContent('Als Nächstes · Runde 3');
+  });
+
+  it('displays the remaining devices in rotation order with their planned rounds', () => {
+    const reordered = [
+      { ...device(2, 'Pferd'), round: 1 },
+      { ...device(3, 'Ringe'), round: 3 },
+      { ...device(1, 'Boden'), round: 7 },
+    ];
+    render(
+      <DeviceRotationProgress
+        rotation={reordered}
+        completedDisciplineIds={[]}
+        currentDevice={{ id: 2, name: 'Pferd', disciplineId: 2, icon: '' }}
+        currentDisciplineId={2}
+      />
+    );
+
+    const list = screen.getByRole('list', { name: 'Geplante nächste Geräte' });
+    const items = within(list).getAllByRole('listitem');
+    expect(items.map(item => item.getAttribute('data-testid'))).toEqual([
+      'rotation-device-3', 'rotation-device-1',
+    ]);
+    expect(items[0]).toHaveTextContent('RingeAls Nächstes · Runde 3');
+    expect(items[1]).toHaveTextContent('BodenRunde 7');
+  });
+
+  it('does not invent a planned next round when rotation data has no round', () => {
+    render(
+      <DeviceRotationProgress
+        rotation={[device(1, 'Boden'), { ...device(2, 'Pferd'), round: null }]}
+        completedDisciplineIds={[]}
+        currentDevice={{ id: 1, name: 'Boden', disciplineId: 1, icon: '' }}
+        currentDisciplineId={1}
+      />
+    );
+
+    expect(screen.getByTestId('rotation-device-2')).toHaveTextContent('Reihenfolge offen');
+    expect(screen.getByTestId('rotation-device-2')).not.toHaveTextContent('Als Nächstes');
   });
 
   it('shows the selected device when no rotation is planned', () => {

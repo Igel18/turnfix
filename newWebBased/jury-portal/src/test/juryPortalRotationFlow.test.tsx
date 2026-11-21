@@ -123,7 +123,10 @@ describe('Jury Portal — device rotation of the squad', () => {
 
     await screen.findByTestId('rotation-device-100');
     const order = screen.getAllByTestId(/^rotation-device-/).map(el => el.getAttribute('data-testid'));
-    expect(order).toEqual(['rotation-device-100', 'rotation-device-300', 'rotation-device-200']);
+    expect(order).toEqual(['rotation-device-100', 'rotation-device-200', 'rotation-device-300']);
+    expect(screen.getByTestId('rotation-device-200')).toHaveTextContent('Als Nächstes · Runde 3');
+    expect(screen.getByTestId('rotation-device-300')).toHaveTextContent('Runde 1');
+    expect(screen.getByText('Vorherige Geräte noch offen')).toBeInTheDocument();
     expect(stateOf(300)).toBe('upcoming');
   });
 

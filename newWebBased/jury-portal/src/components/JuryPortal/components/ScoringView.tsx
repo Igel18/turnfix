@@ -207,7 +207,7 @@ export const DeviceRotationProgress: React.FC<DeviceRotationProgressProps> = ({
   currentDevice,
   currentDisciplineId,
 }) => {
-  const { completed, current, upcoming } = getRotationSections(
+  const { completed, current, upcoming, earlierOpen } = getRotationSections(
     rotation,
     currentDisciplineId,
     completedDisciplineIds
@@ -215,14 +215,14 @@ export const DeviceRotationProgress: React.FC<DeviceRotationProgressProps> = ({
   const currentName = currentDevice?.name ?? current?.name;
 
   return (
-    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3" data-testid="rotation-status">
+    <div className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-3 sm:gap-2" data-testid="rotation-status">
       <RotationSection label="Abgeschlossen" emptyText="Noch keine Geräte abgeschlossen">
         {completed.map(device => (
           <span
             key={device.disciplineId}
             data-testid={`rotation-device-${device.disciplineId}`}
             data-state="done"
-            className="inline-flex items-center gap-1.5 rounded-full bg-blue-800/60 px-3 py-1 text-xs text-blue-100 line-through decoration-blue-200"
+            className="inline-flex items-center gap-1 rounded-full bg-blue-800/60 px-2 py-0.5 text-xs text-blue-100 line-through decoration-blue-200"
           >
             <Check aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
             {device.name}
@@ -236,14 +236,14 @@ export const DeviceRotationProgress: React.FC<DeviceRotationProgressProps> = ({
             data-testid={currentDisciplineId !== null ? `rotation-device-${currentDisciplineId}` : undefined}
             data-state="current"
             aria-current="step"
-            className="flex min-h-14 items-center justify-center gap-3 rounded-xl border-2 border-yellow-300 bg-white px-4 py-2 text-blue-900 shadow-lg sm:min-h-20"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-lg border-2 border-yellow-300 bg-white px-2 py-1 text-blue-900 shadow-sm sm:min-h-12"
           >
             {currentDevice?.iconPath ? (
-              <img src={currentDevice.iconPath} alt={`${currentName} icon`} className="h-10 w-10 object-contain sm:h-14 sm:w-14" />
+              <img src={currentDevice.iconPath} alt={`${currentName} icon`} className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
             ) : (
-              <span aria-hidden="true" className="text-3xl sm:text-4xl">{MISSING_ICON_EMOJI}</span>
+              <span aria-hidden="true" className="text-xl sm:text-2xl">{MISSING_ICON_EMOJI}</span>
             )}
-            <h1 className="text-base font-bold sm:text-xl">{currentName}</h1>
+            <h1 className="text-sm font-bold sm:text-base">{currentName}</h1>
           </div>
         ) : (
           <p className="rounded-lg bg-blue-500/60 px-3 py-2 text-center text-xs text-blue-100">
@@ -252,18 +252,55 @@ export const DeviceRotationProgress: React.FC<DeviceRotationProgressProps> = ({
         )}
       </RotationSection>
 
-      <RotationSection label="Nächste Geräte" emptyText="Keine weiteren Geräte">
-        {upcoming.map(device => (
-          <span
-            key={device.disciplineId}
-            data-testid={`rotation-device-${device.disciplineId}`}
-            data-state="upcoming"
-            className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/70 px-3 py-1 text-xs text-blue-50"
-          >
-            <Hourglass aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-            {device.name}
-          </span>
-        ))}
+      <RotationSection label="Nächste Geräte">
+        <div className="max-h-20 w-full space-y-1 overflow-y-auto">
+          {upcoming.length > 0 ? (
+            <ol aria-label={current ? 'Geplante nächste Geräte' : 'Offene Geräte in geplanter Reihenfolge'} className="space-y-0.5">
+              {upcoming.map((device, index) => (
+                <li
+                  key={device.disciplineId}
+                  data-testid={`rotation-device-${device.disciplineId}`}
+                  data-state="upcoming"
+                  className={`flex items-center gap-2 rounded-lg px-2 py-0.5 text-xs ${
+                    current && index === 0 && device.round !== null
+                      ? 'bg-orange-400 font-semibold text-blue-950'
+                      : 'bg-blue-500/70 text-blue-50'
+                  }`}
+                >
+                  <Hourglass aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+                  <span className="min-w-0 flex-1">{device.name}</span>
+                  <span className="shrink-0">
+                    {current && index === 0 && device.round !== null && 'Als Nächstes · '}
+                    {device.round !== null ? `Runde ${device.round}` : 'Reihenfolge offen'}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <span className="text-xs text-blue-200">Keine weiteren Geräte</span>
+          )}
+          {earlierOpen.length > 0 && (
+            <div>
+              <p className="mb-1 text-xs text-blue-200">Vorherige Geräte noch offen</p>
+              <ul className="space-y-0.5">
+                {earlierOpen.map(device => (
+                  <li
+                    key={device.disciplineId}
+                    data-testid={`rotation-device-${device.disciplineId}`}
+                    data-state="upcoming"
+                    className="flex items-center gap-2 rounded-lg bg-blue-500/70 px-2 py-0.5 text-xs text-blue-50"
+                  >
+                    <Hourglass aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 flex-1">{device.name}</span>
+                    <span className="shrink-0">
+                      {device.round !== null ? `Runde ${device.round}` : 'Reihenfolge offen'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </RotationSection>
     </div>
   );
@@ -276,9 +313,9 @@ interface RotationSectionProps {
 }
 
 const RotationSection: React.FC<RotationSectionProps> = ({ label, emptyText, children }) => (
-  <section className="min-w-0 rounded-lg bg-blue-700/40 p-2 sm:p-3">
-    <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-blue-100 sm:text-xs">{label}</h2>
-    <div className="flex min-h-9 flex-wrap items-center gap-1.5">
+  <section className="min-w-0 rounded-lg bg-blue-700/40 p-1.5 sm:p-2">
+    <h2 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-blue-100">{label}</h2>
+    <div className="flex min-h-7 flex-wrap items-center gap-1">
       {React.Children.count(children) > 0
         ? children
         : <span className="text-xs text-blue-200">{emptyText}</span>}
