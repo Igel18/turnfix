@@ -1,58 +1,32 @@
 # Disziplinfelder verwalten
 
-## Übersicht
+Disziplinfelder beschreiben die einzelnen Eingaben einer Disziplin, etwa D-Note, E-Note und Abzug, sowie gegebenenfalls den Endwert. Sie gehören zu einer **Disziplin**, nicht zu einem einzelnen Wettkampf. Unter **Stammdaten → Disziplinfelder** können sie angelegt und bearbeitet werden.
 
-Disziplinfelder definieren die Wertungskomponenten einer Disziplin (z.B. E-Note, D-Note, Abzüge). Sie bestimmen, welche Noten erfasst werden müssen.
+## Felder im Formular
 
-## Zugriff
+| Einstellung | Bedeutung |
+|---|---|
+| **Disziplin** | Zuordnung des Feldes; beim späteren Bearbeiten kann sie nicht geändert werden. |
+| **Feldname** | Beschriftung für die Eingabe, z. B. `D-Note` (maximal 15 Zeichen). |
+| **Sortierreihenfolge** | Bestimmt die Reihenfolge der Felder. Bei Buchstabenformeln ist die Reihenfolge für die Zuordnung zu `A`, `B`, `C` wichtig. Eindeutige Werte verwenden. |
+| **Gruppe** | Nummer zur Gruppierung der Felder. |
+| **Endwert** | Kennzeichnet das Feld für das berechnete Endergebnis; es ist kein zusätzlicher Summand der Formel. |
+| **Ausgangswert** | Kennzeichnet ein Feld als Ausgangswert. |
+| **Aktiviert** | Kennzeichnet, ob das Feld in der Wertungserfassung angezeigt wird. |
 
-**URL**: `http://localhost:5173/discipline-fields`
+Das Formular weist weder Min-/Max-Grenzen noch eine Formel einem einzelnen Feld zu. Die Formel wird bei der **Disziplin** ausgewählt; Höchstpunkte werden für die Disziplin im **Wettkampf** eingestellt.
 
-## Funktionen
+## Beispiel für eine Detailwertung
 
-### Feld erstellen
+| Reihenfolge | Feld | Rolle |
+|---|---|---|
+| 0 | D-Note | Eingabe `A` |
+| 1 | E-Note | Eingabe `B` |
+| 2 | Abzug | Eingabe `C` |
+| 3 | Endwert | Als Endwert markieren |
 
-**Formular**:
-- **Name**: Feldbezeichnung (z.B. "E-Note", "D-Note")
-- **Disziplin**: Zugeordnete Disziplin
-- **Typ**: Eingabetyp (Dezimalzahl, Ganzzahl, etc.)
-- **Min/Max**: Wertebereich
-- **Formel**: Berechnungsformel (optional)
+Für diese Felder kann die verknüpfte Formel `A+B-C` verwendet werden. Bei `A=5`, `B=8` und `C=0,5` ergibt sich `12,5`. Ein Minuszeichen im Feldnamen allein zieht nichts ab – der Abzug muss in der Formel stehen.
 
-## Beispiele
+Fehlt ein benötigtes Feld, kann in der Eingabemaske ein deaktivierter Platzhalter erscheinen; damit ist das Feld noch nicht gespeichert. Lege die benötigten Felder tatsächlich an und prüfe die Eingabe nach dem Speichern. Nach Änderungen an Sortierung oder Feldrollen die Formel erneut mit bekannten Werten testen.
 
-**Gerätturnen (E/D-System)**:
-- E-Note (Execution): 0.0 - 10.0
-- D-Note (Difficulty): 0.0 - unbegrenzt
-- Abzüge: 0.0 - 10.0
-- **Gesamtnote** = E + D - Abzüge
-
-**Gerätturnen (Gesamtnote)**:
-- Gesamtnote: 0.0 - 20.0 (direkte Eingabe)
-
-## Feldtypen
-
-- **Dezimalzahl**: Für Noten (0.0 - 20.0)
-- **Ganzzahl**: Für Punkte
-- **Berechnet**: Aus anderen Feldern
-
-## Formeln
-
-Felder können über Formeln automatisch berechnet werden:
-```
-E_NOTE + D_NOTE - ABZUEGE
-```
-
-Siehe [Formeln verwalten](formulas.md).
-
-## Technische Details
-
-**Datenbank-Tabelle**: `tfx_disziplinfelder`
-
-**API**: `/api/discipline-fields`
-
-## Siehe auch
-
-- [Disziplinen verwalten](disciplines.md)
-- [Formeln verwalten](formulas.md)
-- [Score Capture](../score-capture.md)
+Weiter: [Formeln und Zuordnung](formulas.md) · [Disziplinen](disciplines.md)

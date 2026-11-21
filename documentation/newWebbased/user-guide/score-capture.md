@@ -15,7 +15,7 @@ Das **Kampfrichter-Portal** und die **Wertungserfassung** ermöglichen:
 - ✅ **Live-Synchronisation** - alle sehen sofort die aktuellen Ergebnisse
 - ✅ **Flexible Erfassung** - Gesamtnote oder Detailnoten (E/D-Note)
 - ✅ **Validierung** - System prüft Eingaben auf Plausibilität
-- ✅ **Offline-Modus** - Erfassung funktioniert auch ohne Internet (lokal)
+- ✅ **Lokaler Netzwerkbetrieb** - Geräte können den TurnFix-Server im lokalen Netzwerk erreichen; der Server und die Verbindung müssen verfügbar sein.
 
 **Zwei Einstiege**:
 1. **Kampfrichter-Portal** (`/jury-portal`) - Vereinfachte Oberfläche für Wettkampftag
@@ -78,7 +78,7 @@ socket.on('score-updated', (data) => {
 - **Formel**: `Endnote = E + D - Abzüge`
 - Für Leistungssport
 
-**Umschalten**: Checkbox "Kampfrichter-Noten anzeigen"
+Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem Wertungsmodus der Veranstaltung ab. Siehe [Disziplinformeln](master-data/formulas.md).
 
 ---
 

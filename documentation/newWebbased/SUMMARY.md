@@ -15,6 +15,7 @@
 
 ### Stammdaten (Vorbereitung)
 
+* [Stammdaten und Veranstaltungsdaten](user-guide/stammdaten-und-veranstaltung.md)
 * [Regionen verwalten](user-guide/master-data/regions.md)
 * [Verbände verwalten](user-guide/master-data/associations.md)
 * [Vereine verwalten](user-guide/master-data/clubs.md)
@@ -36,7 +37,7 @@
 
 #### 2. Wettkämpfe anlegen
 
-* [Wettkämpfe konfigurieren](user-guide/event-management/competitions.md)
+* [Wettkämpfe konfigurieren](user-guide/wettkampf-einstellungen.md)
 * [Disziplinen zuweisen](user-guide/event-management/disciplines.md)
 
 #### 3. Teilnehmer hinzufügen

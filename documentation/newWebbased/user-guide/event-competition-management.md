@@ -1,5 +1,7 @@
 # Wettkämpfe erstellen und verwalten
 
+> Für die aktuelle Web-Oberfläche und die Bedeutung der einzelnen Optionen siehe [Wettkämpfe konfigurieren](wettkampf-einstellungen.md). Die nachfolgende ältere Schritt-für-Schritt-Anleitung kann in Aufbau und Details abweichen.
+
 **Zielgruppe**: Turnverein-Mitarbeiter, Event-Manager, Wettkampfleiter  
 **Schwierigkeit**: ⭐⭐ Mittel  
 **Zeitaufwand**: 10-15 Minuten pro Wettkampf

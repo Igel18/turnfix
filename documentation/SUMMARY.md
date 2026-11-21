@@ -18,6 +18,11 @@
 
 ## Turn Fix verwenden
 
+* [Web-Version: Stammdaten und Veranstaltungsdaten](newWebbased/user-guide/stammdaten-und-veranstaltung.md)
+  * [Disziplinen einstellen](newWebbased/user-guide/master-data/disciplines.md)
+  * [Disziplinfelder](newWebbased/user-guide/master-data/discipline-fields.md)
+  * [Disziplinformeln](newWebbased/user-guide/master-data/formulas.md)
+  * [Wettkämpfe konfigurieren](newWebbased/user-guide/wettkampf-einstellungen.md)
 * [TurnFix verwenden](turn-fix-verwenden/turnfix-verwenden/README.md)
   * [Voraussetzungen](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/README.md)
     * [Firewall einstellen](turn-fix-verwenden/turnfix-verwenden/voraussetzungen/firewall-einstellen.md)

@@ -47,9 +47,9 @@ Athlet "Max Müller" (TV Musterhausen, *2012)
 
 ### 2. Altersberechnung
 
-**Automatisch berechnet** aus Geburtsdatum:
-- **Wettkampfjahr**: Jahr des Events
-- **Stichtag**: Meist 31.12. des Wettkampfjahres (konfigurierbar)
+**Jahrgangsprinzip** für die Wettkampfzuordnung:
+- Das Geburtsjahr wird mit dem Jahr der Veranstaltung verglichen; Monat und Tag bleiben grundsätzlich unberücksichtigt.
+- Die entsprechende Option im Wettkampfformular ist derzeit nicht umstellbar. Einzelne Zuordnungswege können unterschiedlich prüfen, daher die Zuordnung vorab kontrollieren.
 
 **Beispiel**:
 ```
@@ -59,23 +59,7 @@ Wettkampf: 05.11.2025
 → Altersklasse: AK 12-13 ✓
 ```
 
-**Code-Hintergrund**:
-```typescript
-// Altersberechnung
-const calculateAge = (birthdate: string, competitionDate: string): number => {
-  const birth = new Date(birthdate);
-  const competition = new Date(competitionDate);
-  let age = competition.getFullYear() - birth.getFullYear();
-  
-  // Korrektur falls Geburtstag im Wettkampfjahr noch nicht war
-  const monthDiff = competition.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && competition.getDate() < birth.getDate())) {
-    age--;
-  }
-  
-  return age;
-};
-```
+Siehe auch [Wettkämpfe konfigurieren](wettkampf-einstellungen.md).
 
 ### 3. Geschlecht-System
 
