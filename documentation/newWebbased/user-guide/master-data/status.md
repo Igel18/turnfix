@@ -54,5 +54,5 @@ Status werden automatisch in verschiedenen Bereichen verwendet:
 
 ## Siehe auch
 
-- [Wettkampfstatus verwalten](../results/competition-status.md)
-- [Riegen verwalten](../event-management/squads.md)
+- [Wettkämpfe verwalten](../event-competition-management.md)
+- [Zeitplanung und Riegen](../time-planning.md)

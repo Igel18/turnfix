@@ -18,23 +18,23 @@ TurnFix v2.0 ist eine moderne Webanwendung zur Verwaltung von Turnwettkämpfen. 
 |--------|-----------|
 | **Erste Installation** | [Installation Guide](installation.md) |
 | **Schneller Einstieg** | [Quickstart](quickstart.md) |
-| **System-Anforderungen** | [Requirements](requirements.md) |
-| **Netzwerk-Setup** | [Network Setup](network-setup.md) |
+| **System-Anforderungen** | [Installation und Voraussetzungen](installation.md) |
+| **Netzwerk-Setup** | [Netzwerk-Konfiguration](../deployment/network.md) |
 
 ## 📝 Typische Workflows
 
 ### Als Wettkampf-Veranstalter
 
-1. **Veranstaltung anlegen** → [Event Management](../user-guide/event-management/create-event.md)
-2. **Teilnehmer importieren** → [GymNet Import](../user-guide/workflows/gymnet-import.md)
-3. **Riegen zuordnen** → [Squad Management](../user-guide/event-management/squads.md)
-4. **Zeitplan erstellen** → [Time Planning](../user-guide/time-planning/sessions.md)
-5. **Wettkampf durchführen** → [Live Scoring](../user-guide/score-capture/overview.md)
-6. **Ergebnisse & Urkunden** → [Results & Export](../user-guide/results/certificates.md)
+1. **Stammdaten und Veranstaltung vorbereiten** → [Grundlagen](../user-guide/stammdaten-und-veranstaltung.md)
+2. **Wettkämpfe konfigurieren** → [Wettkampfverwaltung](../user-guide/event-competition-management.md)
+3. **Teilnehmer verwalten** → [Teilnehmerverwaltung](../user-guide/participant-management.md)
+4. **Zeitplan erstellen** → [Zeitplanung](../user-guide/time-planning.md)
+5. **Wettkampf durchführen** → [Wertungserfassung](../user-guide/score-capture.md)
+6. **Urkunden vorbereiten** → [Urkunden erstellen](../user-guide/certificate-creation.md)
 
 ### Als Kampfrichter
 
-1. **Jury-Portal öffnen** → [Jury Portal Guide](../user-guide/score-capture/jury-portal.md)
+1. **Jury-Portal öffnen** → [Wertungserfassung und Kampfrichter-Portal](../user-guide/score-capture.md)
 2. **Wettkampf auswählen**
 3. **Wertungen eingeben**
 4. **Live-Synchronisation** beobachten
@@ -42,9 +42,8 @@ TurnFix v2.0 ist eine moderne Webanwendung zur Verwaltung von Turnwettkämpfen. 
 ### Als System-Administrator
 
 1. **Server installieren** → [Production Deployment](../deployment/production.md)
-2. **Netzwerk konfigurieren** → [Network Setup](network-setup.md)
-3. **PM2 einrichten** → [PM2 Guide](../deployment/pm2.md)
-4. **Monitoring aktivieren** → [Monitoring](../deployment/monitoring.md)
+2. **Netzwerk konfigurieren** → [Netzwerk-Konfiguration](../deployment/network.md)
+3. **Produktivbetrieb einrichten** → [Deployment](../deployment/production.md)
 
 ## 🎯 Kernfunktionen
 
@@ -96,9 +95,9 @@ TurnFix v2.0 ist eine moderne Webanwendung zur Verwaltung von Turnwettkämpfen. 
 
 | Problem | Lösung |
 |---------|--------|
-| "Server nicht erreichbar" | Firewall-Einstellungen prüfen → [Troubleshooting](../deployment/troubleshooting.md) |
+| "Server nicht erreichbar" | Firewall-Einstellungen prüfen → [Firewall-Konfiguration](../deployment/firewall-platform.md) |
 | "Wertungen werden nicht gespeichert" | Browser-Cache leeren, neu laden |
-| "Gantt-Chart zeigt nicht alle Riegen" | Startgeräte festlegen → [Start Devices](../user-guide/time-planning/start-devices.md) |
+| "Gantt-Chart zeigt nicht alle Riegen" | Startgeräte und Riegen in der [Zeitplanung](../user-guide/time-planning.md) prüfen |
 
 ## 📞 Support
 
@@ -110,14 +109,14 @@ TurnFix v2.0 ist eine moderne Webanwendung zur Verwaltung von Turnwettkämpfen. 
 
 Wenn Sie von der alten Desktop-Version kommen:
 
-→ [Migrationsguide](../appendix/migration-guide.md)
+→ Die Desktop- und Web-Dokumentation unterscheiden sich; siehe [Dokumentationsübersicht](../SUMMARY.md).
 
 ## ⏭️ Nächste Schritte
 
 Je nach Ihrer Rolle:
 
 - **Neu hier?** → [Installation](installation.md)
-- **Erfahrener Nutzer?** → [Benutzerhandbuch](../user-guide/README.md)
+- **Erfahrener Nutzer?** → [Benutzerhandbuch](../SUMMARY.md)
 - **Entwickler?** → [Developer Guide](../developer-guide/README.md)
 - **Admin?** → [Deployment Guide](../deployment/production.md)
 

@@ -90,7 +90,7 @@ Bevor Sie die Zeitplanung nutzen:
 1. ✅ **Wettkämpfe erstellt** - Siehe [Wettkämpfe verwalten](./event-competition-management.md)
 2. ✅ **Disziplinen zugewiesen** - Jeder Wettkampf hat Disziplinen
 3. ✅ **Teilnehmer zugeordnet** - Wettkämpfe haben Teilnehmer
-4. ✅ **(Optional) Riegen gebildet** - Siehe [Riegen-Management](../reference/squad-management.md)
+4. ✅ **(Optional) Riegen gebildet** - Siehe [Wettkampfverwaltung](./event-competition-management.md)
 
 ---
 
@@ -121,7 +121,6 @@ Die Zeitplanung bietet **4 verschiedene Ansichten**:
 
 ### 2.1 Durchgang hinzufügen
 
-![Durchgänge Übersicht](../images/ui-screenshots/time-planning-sessions.png)
 
 **Klicken Sie auf**: **"+ Durchgang hinzufügen"** (Header-Bereich)
 
@@ -156,7 +155,6 @@ await apiPut(`/time-planning/competition/${compId}/round`, {
 
 ### 2.3 Startzeit festlegen
 
-![Startzeit bearbeiten](../images/ui-screenshots/time-planning-edit.png)
 
 **Für jeden Wettkampf**:
 
@@ -216,7 +214,6 @@ const competition = {
    - Wählen Sie **Startgerät** aus Dropdown (z.B. "Boden", "Reck")
 3. Speichern
 
-![Startgeräte Editor](../images/ui-screenshots/start-devices-editor.png)
 
 **Beispiel-Konfiguration**:
 ```
@@ -260,7 +257,6 @@ Klicken Sie auf **Zahnrad-Symbol** (⚙️) "Zeiteinstellungen"
 
 ### 4.2 Parameter anpassen
 
-![Zeiteinstellungen](../images/ui-screenshots/time-settings.png)
 
 | Parameter | Beschreibung | Standard | Empfehlung |
 |-----------|--------------|----------|------------|
@@ -312,7 +308,6 @@ const addMinutesToTime = (time: string, minutes: number): string => {
 
 ### 5.1 Durchgänge-Ansicht (Standard)
 
-![Durchgänge Ansicht](../images/ui-screenshots/time-planning-sessions.png)
 
 **Zeigt**:
 - Alle Durchgänge als Karten
@@ -324,7 +319,6 @@ const addMinutesToTime = (time: string, minutes: number): string => {
 
 ### 5.2 Gantt-Diagramm
 
-![Gantt-Ansicht](../images/ui-screenshots/time-planning-gantt.png)
 
 **Zeigt**:
 - Zeitliche Balken für jeden Wettkampf
@@ -340,7 +334,6 @@ const addMinutesToTime = (time: string, minutes: number): string => {
 
 ### 5.3 Rotationsplan
 
-![Rotationsplan](../images/ui-screenshots/time-planning-rotation.png)
 
 **Zeigt**:
 - Gerätewechsel für alle Riegen
@@ -451,7 +444,7 @@ const rotation = await apiGet(`/time-planning/rotation?eventId=${eventId}`);
 5. **Riegen optimal nutzen**
    - 4-8 Teilnehmer pro Riege (ideal)
    - Wettkämpfe mischen für bessere Auslastung
-   - Siehe [Riegen-Management](../reference/squad-management.md)
+   - Siehe [Wettkampfverwaltung](./event-competition-management.md)
 
 ### ❌ Don'ts
 
@@ -586,12 +579,12 @@ VALUES (1, 74, 1); -- Riege 1 startet an Boden (ID 74)
 
 Nach der Zeitplanung:
 
-1. **[Riegen-Management](../reference/squad-management.md)**
+1. Die Riegen- und Startgerätezuordnung in der Zeitplanung prüfen.
    - Riegen optimieren
    - Teilnehmer umverteilen
    - Startnummern anpassen
 
-2. **[Kampfrichter-Portal einrichten](./jury-setup.md)**
+2. **[Kampfrichter-Portal einrichten](./score-capture.md)**
    - Zugänge erstellen
    - Geräte zuweisen
    - Test-Wertungen durchführen
@@ -601,7 +594,7 @@ Nach der Zeitplanung:
    - Netzwerk testen
    - Offline-Modus aktivieren (falls nötig)
 
-4. **[Rotationsplan aushängen](./results-export.md)**
+4. Rotationsplan für die Teilnehmenden bereitstellen.
    - PDF exportieren
    - Drucken und anschlagen
    - QR-Code für digitale Ansicht (optional)
@@ -612,21 +605,16 @@ Nach der Zeitplanung:
 
 ### Benutzer-Guides
 - [Wettkämpfe verwalten](./event-competition-management.md)
-- [Riegen-Management](../reference/squad-management.md)
-- [Kampfrichter-Portal](./jury-setup.md)
+- [Kampfrichter-Portal](./score-capture.md)
 - [Wertungserfassung](./score-capture.md)
 
 ### Developer-Guides
-- [Point 109: Zeitplanung UI-Verbesserungen](../developer-guide/features/point-109-time-planning.md)
-- [Point 121: Bahn-Konzept](../developer-guide/features/point-121-rotation-bahn.md)
-- [Point 133: Startgeräte-System](../developer-guide/features/point-133-bahn-concept.md)
+- [Startgeräte-Verwaltung](../developer-guide/features/point-135-start-devices.md)
 - [Point 135: Startgeräte-Verwaltung](../developer-guide/features/point-135-start-devices.md)
-- [Time Planning API](../developer-guide/api/time-planning.md)
 
 ### Referenz
-- [Disziplinen-Übersicht](../reference/disciplines.md)
-- [Zeitzone-Handling](../developer-guide/best-practices/timezone-handling.md)
-- [Socket.io Real-time Updates](../developer-guide/architecture/socket-io.md)
+- [Disziplinen-Übersicht](master-data/disciplines.md)
+- [Live-Updates](../developer-guide/architecture/live-updates.md)
 
 ---
 

@@ -4,4 +4,4 @@ Kommt dieser Dialog, wurde noch keine PostgreSQL installiert, oder der Default P
 
 <figure><img src="../.gitbook/assets/grafik (5) (2).png" alt=""><figcaption></figcaption></figure>
 
-Hier weiter machen: [https://app.gitbook.com/o/lvHLmHW2c4HJCCsiyUel/s/k8DAQFZ8nqoThkk0LbhN/installation/postgresql-installieren](../installation/postgresql-installieren/)
+Die frühere bebilderte PostgreSQL-Installationsanleitung ist in diesem Dokumentationsstand nicht enthalten. Für die Web-Version siehe [Installation und Voraussetzungen](../newWebbased/getting-started/installation.md); diese Anleitung gilt nicht für die alte Desktop-Version.

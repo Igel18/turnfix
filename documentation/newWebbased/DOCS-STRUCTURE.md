@@ -95,7 +95,7 @@ gitbook serve
 
 - **Überschriften**: `#` für H1, `##` für H2, etc.
 - **Code-Blöcke**: Mit Syntax-Highlighting (```typescript, ```bash, etc.)
-- **Links**: Relative Pfade verwenden (`[Text](../path/file.md)`)
+- **Links**: Relative Pfade zu vorhandenen Zieldateien verwenden.
 - **Bilder**: In `images/` ablegen, relative Pfade nutzen
 
 ### Struktur-Regeln

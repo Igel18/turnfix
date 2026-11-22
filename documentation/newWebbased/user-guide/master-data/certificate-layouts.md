@@ -107,4 +107,4 @@ Layouts werden beim **PDF-Export** verwendet:
 ## Siehe auch
 
 - [Urkunden drucken](../certificate-creation.md)
-- [PDF-Export](../results/pdf-export.md)
+- [Urkunden erstellen und drucken](../certificate-creation.md)

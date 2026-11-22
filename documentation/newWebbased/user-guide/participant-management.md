@@ -17,9 +17,13 @@ Die **Teilnehmer-Verwaltung** ist das Herzstück der Wettkampf-Organisation. Hie
 - ✅ **Massen-Import** - GymNet XML oder CSV
 - ✅ **Daten exportieren** - CSV für weitere Verarbeitung
 
+Für den umgekehrten Weg – Wertungen aus TurnFix exportieren und in GymNet einlesen – siehe [Ergebnisse aus TurnFix in GymNet importieren](gymnet-results-import.md).
+
 **Wichtig**: 
 - **Athleten** = Personen-Stammdaten (wiederverwendbar)
 - **Teilnehmer** = Athleten + Wettkampf-Zuordnung + Startnummer
+
+![Beispiel einer Veranstaltungsteilnehmerliste mit Wettkampf- und Riegenzuordnung](../images/ui-screenshots/participants/event-participants.png)
 
 ---
 
@@ -108,8 +112,8 @@ PUT /api/events/{eventId}/generate-start-numbers
 ## ✅ Voraussetzungen
 
 1. ✅ **Stammdaten angelegt**:
-   - [Vereine](../images/ui-screenshots/Vereine.png)
-   - [Regionen/Verbände](../images/ui-screenshots/Region%20Management.png)
+   - [Vereine](master-data/clubs.md)
+   - [Regionen und Verbände](master-data/regions.md)
 
 2. ✅ **Event erstellt** - Siehe [Wettkämpfe verwalten](./event-competition-management.md)
 
@@ -125,7 +129,6 @@ PUT /api/events/{eventId}/generate-start-numbers
 
 ### 1.1 Übersicht öffnen
 
-![Teilnehmer Übersicht](../images/ui-screenshots/participants.png)
 
 **Navigation**: Hauptmenü → **"Teilnehmer"**
 
@@ -169,7 +172,6 @@ PUT /api/events/{eventId}/generate-start-numbers
 
 **Button**: **"+ Neuer Teilnehmer"** (oben rechts)
 
-![Teilnehmer bearbeiten](../images/ui-screenshots/participants_Edit.png)
 
 **Formular öffnet sich**
 
@@ -191,7 +193,7 @@ PUT /api/events/{eventId}/generate-start-numbers
 
 **Verein-Auswahl**:
 - Dropdown mit allen Vereinen
-- Falls Verein fehlt: [Verein anlegen](../reference/clubs.md)
+- Falls Verein fehlt: [Verein anlegen](master-data/clubs.md)
 
 ### 2.3 Startnummer
 
@@ -358,7 +360,6 @@ Bestehende Startnummern werden überschrieben!
 
 ### 6.1 Label-Ansicht öffnen
 
-![Startnummern-Labels](../images/ui-screenshots/participants_Labels.png)
 
 **Tab**: **"Labels"** (in Teilnehmer-Übersicht)
 
@@ -633,7 +634,7 @@ Nach Teilnehmer-Erfassung:
    - Teilnehmer zu Wettkämpfen zuordnen
    - Altersgruppen prüfen
 
-2. **[Riegen bilden](../reference/squad-management.md)**
+2. Riegen und Mannschaften für die Veranstaltung einteilen.
    - Teilnehmer in Riegen aufteilen
    - Rotation planen
 
@@ -651,17 +652,17 @@ Nach Teilnehmer-Erfassung:
 
 ### Benutzer-Guides
 - [Wettkämpfe verwalten](./event-competition-management.md)
-- [Riegen-Management](../reference/squad-management.md)
+- [Zeitplanung und Riegen](./time-planning.md)
 - [GymNet Import](../developer-guide/features/gymnet-import.md)
 
 ### Developer-Guides
-- [Participant Data Model](../developer-guide/architecture/database-schema.md)
-- [Age Calculation Logic](../developer-guide/best-practices/age-calculation.md)
-- [CSV Import Implementation](../developer-guide/features/csv-import.md)
+- [Datenbankschema](../DATABASE_SCHEMA.md)
+- [Altersprüfung](../age-check-modes.md)
+- [GymNet-Import](../developer-guide/features/gymnet-import.md)
 
 ### Referenz
-- [Vereine anlegen](../reference/clubs.md)
-- [Datenbank-Felder](../developer-guide/reference/database-fields.md)
+- [Vereine anlegen](master-data/clubs.md)
+- [Datenbank-Schema](../DATABASE_SCHEMA.md)
 - [Geschlecht-Mapping](../developer-guide/architecture/gender-helpers.md)
 
 ---

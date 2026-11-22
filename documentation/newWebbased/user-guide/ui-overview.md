@@ -1,9 +1,10 @@
 # TurnFix v2.0 - UI Screenshots & Feature-Übersicht
 
-**Aktualisiert**: 5. November 2025  
-**Screenshots**: 26 Bilder
+**Screenshot-Beispiele**: aufgenommen am 14. Oktober 2025
 
-Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshots.
+Die Bilder zeigen ausgewählte Ansichten der Web-Oberfläche mit Beispieldaten. Die Oberfläche kann sich seit der Aufnahme verändert haben; maßgeblich sind die aktuellen Beschriftungen in TurnFix. Die Screenshots sind nach Bereichen unter [images/ui-screenshots](../images/ui-screenshots/README.md) sortiert.
+
+![Verwaltungszentrale mit Datenverwaltung, Veranstaltungsverwaltung und Einstellungen](../images/ui-screenshots/overview/management-center.png)
 
 ---
 
@@ -11,14 +12,12 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Regionen & Verbände
 
-![Regionen Management](../images/ui-screenshots/Region%20Management.png)
 **Regionen-Verwaltung**
 - Übersicht aller Regionen (Bereiche)
 - CRUD-Operationen (Erstellen, Bearbeiten, Löschen)
 - Zuordnung zu Verbänden
 - Suchfunktion
 
-![Verbände](../images/ui-screenshots/Associations.png)
 **Verbände-Verwaltung**
 - Liste aller Verbände
 - Detaillierte Verbandsinformationen
@@ -26,7 +25,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Vereine & Personen
 
-![Vereinsverwaltung](../images/ui-screenshots/Clubs.png)
 **Vereinsverwaltung**
 - Umfassende Vereinsdatenbank
 - Adressverwaltung
@@ -34,7 +32,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Statistiken pro Verein
 - Export-Funktionen
 
-![Standorte](../images/ui-screenshots/Locations.png)
 **Wettkampforte/Standorte**
 - Verwaltung von Veranstaltungsorten
 - Adressdaten und Kontaktinformationen
@@ -46,7 +43,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Athleten-Datenbank
 
-![Athletenverwaltung](../images/ui-screenshots/Athletes.png)
 **Athleten-Verwaltung**
 - Zentrale Athleten-Datenbank
 - Geburtsdaten, Geschlecht
@@ -56,7 +52,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Event-Teilnehmer
 
-![Teilnehmerverwaltung](../images/ui-screenshots/participants.png)
 **Event-Teilnehmer**
 - Event-spezifische Teilnehmerliste
 - Startnummern-Verwaltung
@@ -64,7 +59,8 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Wettkampf-Zuordnungen
 - Massenoperationen
 
-![Teilnehmer bearbeiten](../images/ui-screenshots/participants_Edit.png)
+![Teilnehmerliste einer Veranstaltung](../images/ui-screenshots/participants/event-participants.png)
+
 **Teilnehmer-Details bearbeiten**
 - Detailansicht einzelner Teilnehmer
 - Wettkampf-Zuordnung
@@ -72,7 +68,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Status-Verwaltung
 - Außer-Konkurrenz-Kennzeichnung
 
-![Teilnehmer-Etiketten](../images/ui-screenshots/participants_Labels.png)
 **Teilnehmer-Etiketten**
 - PDF-Generierung für Namensschilder
 - Sortierung nach Gender/Riege/Verein
@@ -85,7 +80,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Veranstaltungen
 
-![Events](../images/ui-screenshots/Events.png)
 **Veranstaltungsverwaltung**
 - Übersicht aller Events
 - Event-Status tracking
@@ -93,16 +87,22 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Zeiträume
 - Schnellzugriff auf Event-Funktionen
 
-![Management Center](../images/ui-screenshots/Management.png)
 **Management Center**
 - Event-Auswahl
 - Zentrale Steuerung
 - Navigation zu Event-Funktionen
 - Event-Context für alle Operationen
 
+![Veranstaltungsworkflow mit den Bereichen Aufbau, Wettkampftag und Ergebnisse](../images/ui-screenshots/events/event-workflow.png)
+
+![Veranstaltungsdetails und Kennzahlen](../images/ui-screenshots/events/event-details.png)
+
+![Aktionen im Bereich Veranstaltungsaufbau](../images/ui-screenshots/events/setup-section.png)
+
+![Aktionen im Bereich Wettkampftag](../images/ui-screenshots/events/competition-day-section.png)
+
 ### Wettkämpfe
 
-![Wettkämpfe](../images/ui-screenshots/competitions.png)
 **Wettkampf-Übersicht**
 - Alle Wettkämpfe eines Events
 - Altersgruppen
@@ -110,7 +110,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Teilnehmerzahlen
 - Status-Übersicht
 
-![Wettkampf bearbeiten](../images/ui-screenshots/competitions_edit.png)
 **Wettkampf-Editor**
 - Detaillierte Wettkampf-Konfiguration
 - Disziplinen-Auswahl
@@ -118,9 +117,12 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Geschlechter-Zuordnung
 - Formel-Konfiguration
 
+![Wettkampfübersicht mit Disziplinen und Altersgruppen](../images/ui-screenshots/competitions/competition-list.png)
+
+![Alternative Ansicht der Wettkampfverwaltung](../images/ui-screenshots/competitions/competition-overview.png)
+
 ### Riegen
 
-![Riegenverwaltung](../images/ui-screenshots/Squads.png)
 **Riegen-Management**
 - Riegen-Übersicht
 - Wettkampf-Zuordnung
@@ -134,7 +136,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Disziplinen
 
-![Disziplinen](../images/ui-screenshots/Disciplines.png)
 **Disziplinen-Verwaltung**
 - Alle Disziplinen/Geräte
 - Icons für Geräte
@@ -142,7 +143,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Kategorie-Zuordnung
 - Feldkonfiguration
 
-![Disziplin bearbeiten](../images/ui-screenshots/Disciplines_Edit.png)
 **Disziplin-Editor**
 - Detaillierte Disziplin-Konfiguration
 - Feld-Zuordnung (A-Note, B-Note, etc.)
@@ -150,18 +150,22 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Icon-Auswahl
 - Geschlechter-Einstellungen
 
+![Disziplinformular mit Formel- und Eingabeeinstellungen](../images/ui-screenshots/Disciplines_Edit.png)
+
+## ⚙️ Systemeinstellungen
+
+![Einstieg in die Systemeinstellungen](../images/ui-screenshots/settings/settings-entry.png)
+
 ---
 
 ## 🎖️ Urkunden & Layouts
 
-![Urkunden-Layouts](../images/ui-screenshots/CertificateLayouts.png)
 **Urkunden-Layout-Verwaltung**
 - Vordefinierte Layouts
 - Layout-Vorschau
 - Layout-Auswahl pro Event
 - Bearbeitung
 
-![Layout-Editor](../images/ui-screenshots/CertificateLayouts_Editor.png)
 **Layout-Designer**
 - Visual Layout-Editor
 - Feld-Zuordnung
@@ -175,7 +179,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Score Capture
 
-![Wertungserfassung](../images/ui-screenshots/score-capture.png)
 **Score Capture - Hauptansicht**
 - Dynamisches Scoring-System
 - Generische Formel-Engine
@@ -183,7 +186,8 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Live-Updates
 - Filter nach Riege/Wettkampf/Gerät
 
-![Live Scores](../images/ui-screenshots/live-scores.png)
+![Wertungserfassung mit Riegen- und Geräteauswahl](../images/ui-screenshots/score-capture.png)
+
 **Live-Scoring Ansicht**
 - Echtzeit-Wertungsanzeige
 - Aktueller Stand
@@ -192,7 +196,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Ergebnisse
 
-![Ergebnisse](../images/ui-screenshots/results.png)
 **Ergebnis-Übersicht**
 - Vollständige Ergebnislisten
 - Ranglisten
@@ -200,7 +203,8 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Export-Funktionen
 - Filterung nach Wettkampf/Riege
 
-![Urkunden](../images/ui-screenshots/results_certificates.png)
+![Wettkampfergebnisse mit Rangliste und Gerätewertungen](../images/ui-screenshots/results/competition-results.png)
+
 **Urkunden-Druck**
 - PDF-Generierung
 - Layout-Auswahl
@@ -208,7 +212,6 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 - Vorschau
 - Filter nach Platzierung
 
-![Medaillenspiegel](../images/ui-screenshots/medallienspiegel.png)
 **Medaillenspiegel**
 - Vereinswertung
 - Gold/Silber/Bronze Zählung
@@ -220,9 +223,20 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ## ⚖️ Kampfrichter-Portal (Jury Portal)
 
+Der typische Ablauf im Jury-Portal führt von der Veranstaltungs- über die Riegen- und Geräteauswahl zur Wertungseingabe:
+
+![Veranstaltung im Jury-Portal auswählen](../images/ui-screenshots/jury/event-selection.png)
+
+![Riege im Jury-Portal auswählen](../images/ui-screenshots/jury/squad-selection.png)
+
+![Gerät im Jury-Portal auswählen](../images/ui-screenshots/jury/device-selection.png)
+
+![Wertung erfassen und den Fortschritt der Riege verfolgen](../images/ui-screenshots/jury/score-entry.png)
+
+![Weitere Ansicht der Wertungseingabe](../images/ui-screenshots/jury/score-entry-alternate.png)
+
 ### Hauptansicht
 
-![Jury Portal Übersicht](../images/ui-screenshots/jury0.png)
 **Jury Portal - Landing Page**
 - Wettkampf-Auswahl
 - Riegen-Auswahl
@@ -231,20 +245,17 @@ Diese Seite zeigt alle Hauptfunktionen von TurnFix v2.0 anhand von UI-Screenshot
 
 ### Wertungseingabe
 
-![Jury - Gerät-Auswahl](../images/ui-screenshots/jury1.png)
 **Gerät-Auswahl**
 - Visuelle Geräte-Icons
 - Schnellzugriff
 - Farbcodierung
 
-![Jury - Teilnehmer-Liste](../images/ui-screenshots/jury2.png)
 **Teilnehmer-Übersicht**
 - Alle Turner der Riege
 - Startnummern
 - Wertungs-Status
 - Schnellnavigation
 
-![Jury - Wertungseingabe](../images/ui-screenshots/jury3.png)
 **Wertungs-Erfassung**
 - Gerätespezifische Felder
 - Dynamische Formular-Generierung
@@ -306,12 +317,12 @@ Diese Screenshots zeigen den Fortschritt vom alten Qt/C++-Desktop zu einer moder
 ## 📖 Weitere Informationen
 
 Für detaillierte Anleitungen siehe:
-- [Benutzerhandbuch](../user-guide/README.md)
+- [Benutzerhandbuch](../SUMMARY.md)
 - [Entwicklerhandbuch](../developer-guide/README.md)
 - [Deployment Guide](../deployment/production.md)
 
 ---
 
-**Letzte Aktualisierung**: 5. November 2025  
-**Screenshots**: 26 Bilder  
+**Letzte Aktualisierung**: 22. November 2026
+**Screenshot-Beispiele**: 16 neu einsortierte Aufnahmen vom 14. Oktober 2025
 **Version**: TurnFix v2.0

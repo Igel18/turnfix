@@ -33,41 +33,29 @@ TurnFix v2.0 ist eine moderne Full-Stack-Webanwendung, die die Legacy Qt/C++-Des
 
 Verstehen Sie die System-Architektur:
 
-- [System-Übersicht](architecture/overview.md)
-- [Backend-Struktur](architecture/backend.md)
-- [Frontend-Struktur](architecture/frontend.md)
-- [Datenbank-Schema](architecture/database.md)
-- [Real-time Updates (Socket.IO)](architecture/live-updates.md)
+- [Feldzuordnung](architecture/field-mapping.md)
+- [Gruppen und Mannschaften](architecture/groups-teams.md)
+- [Jury-Portal](architecture/jury-portal.md)
+- [Live-Updates](architecture/live-updates.md)
+- [Jury-Vergleich](architecture/jury-comparison.md)
 
 ### Features & Implementation
 
 Detaillierte Feature-Dokumentationen:
 
 - [**Point 135**: Startgeräte-Verwaltung](features/point-135-start-devices.md) ⭐ NEU
-- [**Point 133**: Bahn-Konzept](features/point-133-bahn.md)
 - [Gender-Unification](features/gender-unification.md)
 - [PDF-Export-System](features/pdf-system.md)
 - [GymNet XML-Import](features/gymnet-import.md)
 - [Dynamic Field Mapping](architecture/field-mapping.md)
 
-### API-Referenz
-
-REST API Endpoints:
-
-- [API-Übersicht](api/overview.md)
-- [Events API](api/events.md)
-- [Participants API](api/participants.md)
-- [Competitions API](api/competitions.md)
-- [Scores API](api/scores.md)
-- [Time Planning API](api/time-planning.md)
+> Eine vollständige REST-API-Referenz ist in dieser Dokumentationsfassung nicht enthalten.
 
 ### Best Practices
 
 Code-Standards und Patterns:
 
-- [Code-Standards](best-practices/code-standards.md)
 - [TypeScript-Guidelines](best-practices/typescript.md)
-- [React-Patterns](best-practices/react-patterns.md)
 - [Database-Queries](best-practices/database.md)
 - [Template-System](best-practices/templates.md)
 
@@ -180,7 +168,7 @@ const mapped = {
 <td>{row.int_disziplinenid}</td>
 ```
 
-→ Vollständige Standards: [Code-Standards](best-practices/code-standards.md)
+→ Siehe die vorhandenen [TypeScript-](best-practices/typescript.md) und [Datenbankrichtlinien](best-practices/database.md).
 
 ## 🧩 Component-System
 
@@ -204,7 +192,7 @@ TurnFix nutzt ein **Point-System** für Feature-Tracking:
 
 Aktueller Stand: **135 Points** (86 erledigt, 38.9%)
 
-→ Vollständiger Status: [Development Status](../reference/development-status.md)
+→ Siehe [Build-, Test- und Release-Workflow](build-test-release.md)
 
 ## 🛠️ Tools & Utilities
 
@@ -284,7 +272,6 @@ Translation-Files:
 
 Möchten Sie zu TurnFix beitragen?
 
-→ [Contribution Guide](contributing.md)
 
 ### Pull Request Workflow
 
@@ -309,13 +296,11 @@ Files modified:
 - file2.tsx
 ```
 
-→ Details: [Commit Guidelines](commit-guidelines.md)
 
 ## 📚 Weitere Ressourcen
 
-- [Architektur-Übersicht](architecture/overview.md)
-- [API-Referenz](api/overview.md)
-- [Best Practices](best-practices/code-standards.md)
+- [Architektur: Gruppen und Mannschaften](architecture/groups-teams.md)
+- [Best Practices: Datenbank](best-practices/database.md)
 - [Testing-Guide](testing/strategy.md)
 
 ## 🐛 Troubleshooting
@@ -329,7 +314,7 @@ Häufige Entwickler-Probleme:
 | Prisma Schema Fehler | NIEMALS Schema ändern! Nur via Prisma CLI |
 | Socket.IO nicht verbunden | Server neu starten, Client Cache leeren |
 
-→ Vollständige Liste: [Troubleshooting](../deployment/troubleshooting.md)
+→ Siehe [Hard-Refresh-Hinweise](../deployment/troubleshooting/hard-refresh.md)
 
 ## 📞 Support für Entwickler
 

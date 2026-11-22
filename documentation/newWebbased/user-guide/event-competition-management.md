@@ -35,12 +35,12 @@ Dieser Guide zeigt Ihnen Schritt für Schritt, wie Sie:
 Bevor Sie einen Wettkampf erstellen, stellen Sie sicher, dass:
 
 - ✅ **Stammdaten angelegt sind**:
-  - [Regionen](../images/ui-screenshots/Region%20Management.png) (Verbände, Gaue)
-  - [Vereine](../images/ui-screenshots/Vereine.png)
-  - [Wettkampforte](../images/ui-screenshots/LocationsDebug.png)
+  - [Regionen](master-data/regions.md) und [Verbände](master-data/associations.md)
+  - [Vereine](master-data/clubs.md)
+  - [Wettkampforte](master-data/locations.md)
   
 - ✅ **Disziplinen konfiguriert sind**:
-  - Siehe [Disziplinen verwalten](../images/ui-screenshots/Disciplines.png)
+  - Siehe [Disziplinen verwalten](master-data/disciplines.md)
   
 - ✅ **Teilnehmer/Athleten erfasst sind**:
   - Siehe [Teilnehmer-Verwaltung](./participant-management.md)
@@ -51,7 +51,6 @@ Bevor Sie einen Wettkampf erstellen, stellen Sie sicher, dass:
 
 ### 1.1 Event-Übersicht öffnen
 
-![Events Übersicht](../images/ui-screenshots/events.png)
 
 1. Navigieren Sie im Hauptmenü zu **"Veranstaltungen"**
 2. Sie sehen die Liste aller Events mit:
@@ -91,7 +90,6 @@ Klicken Sie auf **"Speichern"** - das Event erscheint nun in der Übersicht.
 1. Klicken Sie in der Event-Liste auf das gewünschte Event
 2. Sie gelangen zur **Event-Management-Ansicht**
 
-![Event Management](../images/ui-screenshots/competitions.png)
 
 ### 2.2 Neuer Wettkampf
 
@@ -99,7 +97,6 @@ Klicken Sie auf **"+ Neuer Wettkampf"**
 
 ### 2.3 Wettkampf-Grunddaten
 
-![Wettkampf bearbeiten](../images/ui-screenshots/competitions_edit.png)
 
 **Tab 1: Grunddaten**
 
@@ -127,7 +124,6 @@ Klicken Sie auf **"+ Neuer Wettkampf"**
    - Standard: 10.0 oder 20.0 Punkte
    - **Massenänderung**: Alle Disziplinen gleichzeitig ändern mit dem Feld "Maximalpunktzahl für alle"
 
-![Disziplinen auswählen](../images/ui-screenshots/Disciplines.png)
 
 **Code-Hintergrund** (für Interessierte):
 ```typescript
@@ -187,7 +183,6 @@ const competitionSettings = {
 1. Wählen Sie den Wettkampf in der Liste
 2. Klicken Sie auf **"Teilnehmer verwalten"**
 
-![Teilnehmer verwalten](../images/ui-screenshots/participants.png)
 
 ### 3.2 Teilnehmer hinzufügen
 
@@ -213,7 +208,6 @@ PUT /api/events/{eventId}/generate-start-numbers
 // 3. Fortlaufende Startnummern vergeben (1, 2, 3, ...)
 ```
 
-![Teilnehmer bearbeiten](../images/ui-screenshots/participants_Edit.png)
 
 ### 3.3 Teilnehmer-Details prüfen
 
@@ -342,7 +336,6 @@ Nach dem Anlegen des Wettkampfs können Sie die Zeitplanung verfeinern:
 2. Bearbeiten Sie die Disziplin
 3. Aktivieren Sie "Männlich erlaubt" oder "Weiblich erlaubt"
 
-![Disziplin bearbeiten](../images/ui-screenshots/disciplines_edit.png)
 
 ### Problem 3: "Wettkampf kann nicht gelöscht werden"
 
@@ -410,7 +403,7 @@ Nach dem Erstellen des Wettkampfs:
    - Vorlagen anpassen
    - Test-Druck durchführen
 
-4. **[Ergebnisse veröffentlichen](./results-export.md)**
+4. Ergebnisse veröffentlichen und die Ergebnisliste prüfen.
    - Live-Ergebnisse aktivieren
    - Export-Formate wählen
    - Medaillenspiegel erstellen
@@ -426,14 +419,13 @@ Nach dem Erstellen des Wettkampfs:
 - [Urkunden erstellen](./certificate-creation.md)
 
 ### Developer-Guides
-- [Event Management API](../developer-guide/architecture/event-management-api.md)
-- [Competition Data Model](../developer-guide/architecture/database-schema.md)
+- [Datenbankschema](../DATABASE_SCHEMA.md)
 - [GymNet Import Implementation](../developer-guide/features/gymnet-import.md)
 
 ### Stammdaten
-- [Disziplinen verwalten](../reference/disciplines.md)
-- [Vereine anlegen](../reference/clubs.md)
-- [Wettkampforte konfigurieren](../reference/venues.md)
+- [Disziplinen verwalten](master-data/disciplines.md)
+- [Vereine anlegen](master-data/clubs.md)
+- [Wettkampforte konfigurieren](master-data/locations.md)
 
 ---
 

@@ -70,4 +70,4 @@ Athleten können über **GymNet XML-Import** importiert werden:
 ## Siehe auch
 
 - [Teilnehmer verwalten](../participant-management.md)
-- [GymNet Import](../workflows/gymnet-import.md)
+- [GymNet Import](../../developer-guide/features/gymnet-import.md)

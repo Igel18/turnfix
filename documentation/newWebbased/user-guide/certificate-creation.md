@@ -128,7 +128,6 @@ export const DATABASE_FIELD_DESCRIPTIONS: { [key: number]: string } = {
 
 ### 1.1 Layouts-Übersicht öffnen
 
-![Urkunden-Layouts Übersicht](../images/ui-screenshots/CertificateLayouts.png)
 
 **Navigation**: Hauptmenü → **"Urkunden-Layouts"**
 
@@ -166,7 +165,6 @@ export const DATABASE_FIELD_DESCRIPTIONS: { [key: number]: string } = {
 
 ### 2.1 Editor-Oberfläche
 
-![Layout-Editor](../images/ui-screenshots/CertificateLayouts_Editor.png)
 
 **Bereiche**:
 1. **Toolbar** (oben): Tools zum Hinzufügen von Elementen
@@ -281,7 +279,6 @@ Ausrichtung: Zentriert
 
 ### 3.1 Ergebnisse öffnen
 
-![Ergebnisse Übersicht](../images/ui-screenshots/results.png)
 
 **Navigation**: Hauptmenü → **"Ergebnisse"**
 
@@ -292,7 +289,6 @@ Ausrichtung: Zentriert
 
 ### 3.2 Urkunden-Modus aktivieren
 
-![Urkunden-Druck](../images/ui-screenshots/results_certificates.png)
 
 **Tab "Urkunden"** anklicken
 
@@ -380,7 +376,7 @@ Ausrichtung: Zentriert
 **Für größere Events**:
 - **Zentral-Drucker**: Ein Drucker für alle Kampfrichter-Tablets
 - **Drucker-Server**: Windows-Freigabe oder CUPS (Linux)
-- **Konfiguration**: Siehe [Netzwerk-Setup](../deployment/network-setup.md)
+- **Konfiguration**: Siehe [Netzwerk-Konfiguration](../deployment/network.md)
 
 **Workflow**:
 1. Urkunden auf Server generieren
@@ -598,17 +594,17 @@ const generateQR = async (participantId: number) => {
 
 Nach dem Urkunden-Druck:
 
-1. **[Ergebnisse veröffentlichen](./results-export.md)**
+1. Ergebnisse veröffentlichen und die Ergebnisliste prüfen.
    - Online-Ergebnislisten
    - Medaillenspiegel
    - Statistiken
 
-2. **[Daten archivieren](../reference/data-backup.md)**
+2. Daten gemäß dem lokalen Sicherungskonzept archivieren.
    - Datenbank-Backup
    - PDF-Archiv
    - Export für Verband
 
-3. **[Event abschließen](../reference/event-completion.md)**
+3. Veranstaltung nach Abschluss der Wertung organisatorisch abschließen.
    - Status auf "Abgeschlossen" setzen
    - Aufräumen
    - Feedback sammeln
@@ -619,18 +615,12 @@ Nach dem Urkunden-Druck:
 
 ### Benutzer-Guides
 - [Wertungserfassung](./score-capture.md)
-- [Ergebnisse exportieren](./results-export.md)
 - [Wettkämpfe verwalten](./event-competition-management.md)
 
 ### Developer-Guides
-- [PDF-Generierung (pdfUtils)](../developer-guide/best-practices/pdf-generation.md)
-- [Layout-System Architektur](../developer-guide/architecture/layout-system.md)
-- [Datenbank-Felder Mapping](../developer-guide/reference/database-fields.md)
+- [PDF-Export-System](../developer-guide/features/pdf-system.md)
 
 ### Referenz
-- [Urkunden-Papier Empfehlungen](../reference/certificate-paper.md)
-- [Drucker-Konfiguration](../reference/printer-setup.md)
-- [Legacy-Kompatibilität](../developer-guide/features/legacy-certificate-import.md)
 
 ---
 

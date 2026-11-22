@@ -4,6 +4,8 @@ Eine Disziplin ist eine wiederverwendbare Definition f체r ein Ger채t oder eine �
 
 ## Einstellungen im Disziplinformular
 
+![Disziplinformular mit Eingabemaske, Formel, Einheit und Geschlechtsfreigabe](../../images/ui-screenshots/Disciplines_Edit.png)
+
 | Einstellung | Bedeutung |
 |---|---|
 | **Name**, **Kurzname**, **Anzeigename** | Vollst채ndige Bezeichnung, kurze Kennzeichnung und optionaler l채ngerer Anzeigename. Der Kurzname ist auf f체nf Zeichen begrenzt. |

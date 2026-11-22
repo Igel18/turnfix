@@ -178,7 +178,7 @@ git commit -m "..."
    - Frontend: http://192.168.1.X:5173
    - Jury Portal: http://192.168.1.X:5174
 
-3. Firewall konfigurieren (siehe [FIREWALL_SETUP.md](FIREWALL_SETUP.md))
+3. Firewall konfigurieren (siehe [Firewall-Konfiguration](../deployment/firewall-platform.md))
 
 ## 🎨 Fenster-Farben
 
@@ -246,9 +246,9 @@ npm install
 
 ## 🔗 Weitere Dokumentation
 
-- [FIREWALL_SETUP.md](FIREWALL_SETUP.md) - Windows Firewall Konfiguration für Netzwerkzugriff
-- [GETTING_STARTED.md](GETTING_STARTED.md) - Erste Schritte und Setup-Anleitung
-- [README.md](README.md) - Haupt-Dokumentation
+- [Erste Schritte](../getting-started/README.md) - Setup und typische Abläufe
+- [Netzwerk-Konfiguration](../deployment/network.md) - Zugriff im lokalen Netzwerk
+- [Dokumentationsübersicht](../SUMMARY.md) - Vorhandene Anleitungen
 
 ## ⚡ Schnellreferenz
 

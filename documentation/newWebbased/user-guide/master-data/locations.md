@@ -75,4 +75,4 @@ Exportiert alle Locations mit vollständigen Adressdaten.
 
 ## Siehe auch
 
-- [Events erstellen](../event-management/create-event.md)
+- [Veranstaltungen und Wettkämpfe verwalten](../event-competition-management.md)

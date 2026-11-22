@@ -1,188 +1,103 @@
-# Summary
+# Web-Dokumentation
 
 [Einleitung](README.md)
 
-## 🚀 Erste Schritte
+## Benutzerhandbuch
 
+### Einstieg
+
+* [Erste Schritte](getting-started/README.md)
 * [Installation](getting-started/installation.md)
 * [Schnellstart](getting-started/quickstart.md)
-* [Systemanforderungen](getting-started/requirements.md)
 
-## 👥 Benutzerhandbuch
+### Grundlagen und Stammdaten
 
-* [Übersicht](user-guide/README.md)
-* [UI-Übersicht & Screenshots](user-guide/ui-overview.md)
+* [Stammdaten und veranstaltungsspezifische Daten](user-guide/stammdaten-und-veranstaltung.md)
+* [Regionen](user-guide/master-data/regions.md)
+* [Verbände](user-guide/master-data/associations.md)
+* [Vereine](user-guide/master-data/clubs.md)
+* [Wettkampforte](user-guide/master-data/locations.md)
+* [Athleten](user-guide/master-data/athletes.md)
+* [Sportarten](user-guide/master-data/sports.md)
+* [Disziplinen](user-guide/master-data/disciplines.md)
+* [Disziplinfelder](user-guide/master-data/discipline-fields.md)
+* [Disziplingruppen](user-guide/master-data/discipline-groups.md)
+* [Formeln](user-guide/master-data/formulas.md)
+* [Status](user-guide/master-data/status.md)
+* [Urkundenlayouts](user-guide/master-data/certificate-layouts.md)
 
-### Stammdaten (Vorbereitung)
+### Veranstaltung durchführen
 
-* [Stammdaten und Veranstaltungsdaten](user-guide/stammdaten-und-veranstaltung.md)
-* [Regionen verwalten](user-guide/master-data/regions.md)
-* [Verbände verwalten](user-guide/master-data/associations.md)
-* [Vereine verwalten](user-guide/master-data/clubs.md)
-* [Wettkampforte verwalten](user-guide/master-data/locations.md)
-* [Athleten verwalten](user-guide/master-data/athletes.md)
-* [Sportarten verwalten](user-guide/master-data/sports.md)
-* [Disziplinen verwalten](user-guide/master-data/disciplines.md)
-* [Disziplingruppen verwalten](user-guide/master-data/discipline-groups.md)
-* [Disziplinfelder verwalten](user-guide/master-data/discipline-fields.md)
-* [Formeln verwalten](user-guide/master-data/formulas.md)
-* [Status verwalten](user-guide/master-data/status.md)
-* [Urkundenlayouts verwalten](user-guide/master-data/certificate-layouts.md)
-
-### Workflow: Veranstaltung durchführen
-
-#### 1. Event anlegen
-
-* [Event erstellen](user-guide/event-management/create-event.md)
-
-#### 2. Wettkämpfe anlegen
-
-* [Wettkämpfe konfigurieren](user-guide/wettkampf-einstellungen.md)
-* [Disziplinen zuweisen](user-guide/event-management/disciplines.md)
-
-#### 3. Teilnehmer hinzufügen
-
-* [Teilnehmer verwalten](user-guide/event-management/participants.md)
-* [GymNet Import](user-guide/workflows/gymnet-import.md)
-* [Startnummern generieren](user-guide/event-management/start-numbers.md)
-
-#### 4. Riegen einteilen
-
-* [Riegen zuordnen](user-guide/event-management/squads.md)
-
-#### 5. Zeitplanung
-
-* [Durchgänge planen](user-guide/time-planning/sessions.md)
-* [Startgeräte festlegen](user-guide/time-planning/start-devices.md)
-* [Gantt-Chart](user-guide/time-planning/gantt.md)
-* [Rotations-Übersicht](user-guide/time-planning/rotation.md)
-
-#### 6. Wertungen erfassen
-
-* [Score Capture](user-guide/score-capture/overview.md)
-* [Kampfrichter-Portal](user-guide/score-capture/jury-portal.md)
-* [Jury-Setup](user-guide/workflows/jury-setup.md)
-* [Live-Updates](user-guide/score-capture/live-updates.md)
-
-#### 7. Urkunden & Siegerlisten drucken
-
-* [Urkunden drucken](user-guide/results/certificates.md)
-* [Wettkampfstatus](user-guide/results/competition-status.md)
-* [PDF-Export](user-guide/results/pdf-export.md)
-* [CSV-Export](user-guide/results/csv-export.md)
-
-### Feature-Guides (Detaillierte Anleitungen)
-
-* [Wettkämpfe erstellen & verwalten](user-guide/event-competition-management.md)
+* [Wettkämpfe verwalten](user-guide/event-competition-management.md)
+* [Wettkampfeinstellungen im Detail](user-guide/wettkampf-einstellungen.md)
 * [Teilnehmer verwalten](user-guide/participant-management.md)
-* [Zeitplanung für Wettkämpfe](user-guide/time-planning.md)
-* [Wertungserfassung & Kampfrichter-Portal](user-guide/score-capture.md)
-* [Urkunden erstellen & drucken](user-guide/certificate-creation.md)
+* [Zeitplanung](user-guide/time-planning.md)
+* [Wertungen erfassen und Kampfrichter-Portal](user-guide/score-capture.md)
+* [Ergebnisse aus TurnFix in GymNet importieren](user-guide/gymnet-results-import.md)
+* [Tray-App und Windows-Netzwerkprofil](user-guide/tray-und-netzwerkprofil.md)
+* [Urkunden erstellen und drucken](user-guide/certificate-creation.md)
+* [Benutzeroberfläche im Überblick](user-guide/ui-overview.md)
 
-### Komplette Workflows
-
-* [Komplette Veranstaltung A-Z](user-guide/workflows/complete-event.md)
-
-## 👨‍💻 Entwicklerhandbuch
+## Entwicklerhandbuch
 
 * [Übersicht](developer-guide/README.md)
+* [Shared-Paket](developer-guide/SHARED_PACKAGE.md)
+* [Architektur: Feldzuordnung](developer-guide/architecture/field-mapping.md)
+* [Architektur: Geschlechtszuordnung](developer-guide/architecture/gender-helpers.md)
+* [Architektur: Gruppen und Mannschaften](developer-guide/architecture/groups-teams.md)
+* [Architektur: Jury-Vergleich](developer-guide/architecture/jury-comparison.md)
+* [Architektur: Jury-Portal](developer-guide/architecture/jury-portal.md)
+* [Architektur: Live-Updates](developer-guide/architecture/live-updates.md)
+* [Feature: API-Routen](developer-guide/features/api-route-fixes.md)
+* [Feature: Lokalisierung der Konfiguration](developer-guide/features/configuration-localization.md)
+* [Feature: Standardansichten](developer-guide/features/default-views.md)
+* [Feature: Disziplin-Icons](developer-guide/features/discipline-icons.md)
+* [Feature: Disziplinvalidierung](developer-guide/features/discipline-validation-fix.md)
+* [Feature: Veranstaltungslokalisierung](developer-guide/features/events-localization.md)
+* [Feature: Geschlechtszuordnung](developer-guide/features/gender-unification.md)
+* [Feature: GymNet-Import](developer-guide/features/gymnet-import.md)
+* [Feature: Jury-Portal-Produktion](developer-guide/features/jury-production.md)
+* [Feature: Jury-Wertungen](developer-guide/features/jury-scores.md)
+* [Feature: Teilnehmerlokalisierung](developer-guide/features/participants-localization.md)
+* [Feature: PDF-System](developer-guide/features/pdf-system.md)
+* [Feature: Datumsunterstützung](developer-guide/features/point-114b-date-support.md)
+* [Feature: Modale Dialoge](developer-guide/features/point-131-modal.md)
+* [Feature: Startgeräte](developer-guide/features/point-135-start-devices.md)
+* [Feature: Wertungsspeicherung und Ranglisten](developer-guide/features/score-storage-and-ranking.md)
+* [Feature: Setup-Automatisierung](developer-guide/features/setup-automation.md)
+* [Feature: Startnummern](developer-guide/features/start-numbers-fix.md)
+* [Feature: Tabellenlokalisierung](developer-guide/features/table-localization.md)
+* [Feature: Tabellen-Scrolling](developer-guide/features/table-scrolling.md)
+* [Feature: Tabellensortierung](developer-guide/features/table-sorting.md)
+* [Feature: GymNet-Hotfixes](developer-guide/features/gymnet-hotfix.md)
+* [Feature: Jury-Icons](developer-guide/features/jury-icons.md)
+* [Datenbankabfragen: Best Practices](developer-guide/best-practices/database.md)
+* [Templates: Best Practices](developer-guide/best-practices/templates.md)
+* [TypeScript: Best Practices](developer-guide/best-practices/typescript.md)
+* [Build-, Test- und Release-Workflow](developer-guide/build-test-release.md)
+* [Teststrategie](developer-guide/testing/strategy.md)
+* [Test-Setup](developer-guide/testing/setup.md)
+* [GymNet-Testfälle](developer-guide/testing/gymnet-test-cases.md)
 
-### Architektur
+## Betrieb und Referenz
 
-* [System-Architektur](developer-guide/architecture/overview.md)
-* [Backend-Struktur](developer-guide/architecture/backend.md)
-* [Frontend-Struktur](developer-guide/architecture/frontend.md)
-* [Shared-Paket (@turnfix/shared)](developer-guide/SHARED_PACKAGE.md)
-* [Datenbank-Schema](developer-guide/architecture/database.md)
-* [Real-time Updates](developer-guide/architecture/socket-io.md)
-* [Gender Helpers System](developer-guide/architecture/gender-helpers.md)
-* [Groups & Teams Analysis](developer-guide/architecture/groups-teams.md)
-
-### API-Referenz
-
-* [REST API Übersicht](developer-guide/api/overview.md)
-* [Events API](developer-guide/api/events.md)
-* [Participants API](developer-guide/api/participants.md)
-* [Competitions API](developer-guide/api/competitions.md)
-* [Scores API](developer-guide/api/scores.md)
-* [Time Planning API](developer-guide/api/time-planning.md)
-
-### UI-Komponenten
-
-* [Component Library](developer-guide/ui-components/overview.md)
-* [Templates](developer-guide/ui-components/templates.md)
-* [Design System](developer-guide/ui-components/design-system.md)
-* [Lokalisierung](developer-guide/ui-components/localization.md)
-
-### Features & Implementation
-
-* [Point 135: Startgeräte-Verwaltung](developer-guide/features/point-135-start-devices.md)
-* [Point 133: Bahn-Konzept](developer-guide/features/point-133-bahn.md)
-* [Point 131: Modal Integration](developer-guide/features/point-131-modal.md)
-* [Point 114B: Date Support](developer-guide/features/point-114b-date-support.md)
-* [Gender-Unification](developer-guide/features/gender-unification.md)
-* [PDF-Export-System](developer-guide/features/pdf-system.md)
-* [GymNet XML-Import](developer-guide/features/gymnet-import.md)
-* [API Route Fixes](developer-guide/features/api-route-fixes.md)
-* [Discipline Validation Fix](developer-guide/features/discipline-validation-fix.md)
-* [Start Numbers Localization](developer-guide/features/start-numbers-fix.md)
-
-### Best Practices
-
-* [Code-Standards](developer-guide/best-practices/code-standards.md)
-* [TypeScript](developer-guide/best-practices/typescript.md)
-* [React Patterns](developer-guide/best-practices/react-patterns.md)
-* [Database Queries](developer-guide/best-practices/database.md)
-* [Error Handling](developer-guide/best-practices/error-handling.md)
-
-### Testing
-
-* [Test-Strategie](developer-guide/testing/strategy.md)
-* [Unit Tests](developer-guide/testing/unit-tests.md)
-* [Integration Tests](developer-guide/testing/integration-tests.md)
-* [Test-Abdeckung](test-coverage-overview.md)
-
-### Build & Release
-
-* [Build → Test → Release Workflow](developer-guide/build-test-release.md)
-
-### Contributing
-
-* [Contribution Guide](developer-guide/contributing.md)
-* [Development Workflow](developer-guide/workflow.md)
-* [Point-System](developer-guide/point-system.md)
-* [Commit Guidelines](developer-guide/commit-guidelines.md)
-
-## 🚀 Deployment
-
-* [Installer erstellen (Build-Anleitung)](deployment/installer-build.md)
 * [Produktiv-Deployment](deployment/production.md)
 * [Netzwerk-Konfiguration](deployment/network.md)
-* [PM2 Setup](deployment/pm2.md)
-* [Frontend Serving](deployment/frontend-serving.md)
 * [Firewall-Konfiguration](deployment/firewall-platform.md)
-* [Firewall GUI](deployment/firewall-gui.md)
-* [Admin Rights Detection](deployment/admin-rights.md)
-* [Jury Portal Access](deployment/jury-portal-access.md)
-* [Backup & Recovery](deployment/backup.md)
-* [Monitoring](deployment/monitoring.md)
-* [Troubleshooting](deployment/troubleshooting.md)
-  * [Node Modules Fix](deployment/troubleshooting/node-modules-fix.md)
-  * [Hard Refresh](deployment/troubleshooting/hard-refresh.md)
-
-## 📚 Referenz
-
-* [Entwicklungsstatus](reference/development-status.md)
-* [Feature-Liste](reference/features.md)
+* [Firewall-GUI](deployment/firewall-gui.md)
+* [Frontend bereitstellen](deployment/frontend-serving.md)
+* [Installer erstellen](deployment/installer-build.md)
+* [Jury-Portal-Zugriff](deployment/jury-portal-access.md)
+* [Netzwerk-Fixes](deployment/network-fixes.md)
+* [Administratorrechte erkennen](deployment/admin-rights.md)
+* [Troubleshooting: Hard Refresh](deployment/troubleshooting/hard-refresh.md)
+* [Troubleshooting: Node Modules](deployment/troubleshooting/node-modules-fix.md)
 * [Changelog](reference/changelog.md)
-* [Project README](reference/project-readme.md)
-* [Update v2.0](reference/update-v2.md)
-* [FAQ](reference/faq.md)
-* [Glossar](reference/glossary.md)
+* [Projekt-README](reference/project-readme.md)
+* [Skriptreferenz](reference/scripts.md)
+* [Update auf v2](reference/update-v2.md)
+* [Testabdeckung](test-coverage-overview.md)
+* [Backup- und Wiederherstellungshinweise](backup-restore.md)
+* [Datenbanksicherung einrichten](setup-datenbanksicherung.md)
 
-## 📎 Anhang
-
-* [Migrationsguide (Qt → Web)](appendix/migration-guide.md)
-* [Legacy-Kompatibilität](appendix/legacy-compatibility.md)
-* [Keyboard Shortcuts](appendix/keyboard-shortcuts.md)
-* [Screenshots](appendix/screenshots.md)
+> Dieses Inhaltsverzeichnis führt nur auf derzeit vorhandene Dokumente. Weitere, früher geplante Kapitel sind noch nicht verfügbar.

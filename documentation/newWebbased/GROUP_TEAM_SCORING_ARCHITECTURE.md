@@ -552,9 +552,7 @@ scores.forEach(score => {
 
 ## 📚 Related Documentation
 
-- [API_ROUTE_MISMATCHES.md](../../_archive_root_docs/API_ROUTE_MISMATCHES.md) - Field mapping patterns
-- [PRIORITY_FIXES_LOG.md](../../_archive_root_docs/PRIORITY_FIXES_LOG.md) - Implementation history
-- [Instructions.md](../../newWebBased/Instructions.md) - Detailed feature tracking
+- [Gruppen- und Mannschaftsarchitektur](developer-guide/architecture/groups-teams.md) - aktuelle Architekturübersicht
 
 ---
 

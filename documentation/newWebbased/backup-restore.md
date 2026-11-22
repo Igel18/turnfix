@@ -1,5 +1,17 @@
 # Sicherung und Wiederherstellung
 
+## Schnelleinstieg für Veranstalter
+
+### Automatische Sicherung einrichten
+
+Unter **Einstellungen > Sicherung** die automatische Sicherung aktivieren, ein Intervall, ein Zielverzeichnis und die Anzahl aufzubewahrender Sicherungen einstellen. Bevorzugt ein externes Laufwerk oder ein Netzlaufwerk verwenden und sicherstellen, dass das Konto des TurnFix-Servers darauf schreiben darf. In diesem Bereich zeigt **Serverstatus** an, ob gerade gesichert wird, wann und wohin die letzte erfolgreiche Sicherung geschrieben wurde und ob ein Fehler aufgetreten ist. Das Speichern der Einstellungen allein bestätigt noch keine erfolgreiche Sicherung; eine Sicherung und eine Wiederherstellung auf einem Ersatzsystem testen.
+
+### Wiederherstellen
+
+Die Wiederherstellung ist kein Zurück-Knopf: Sie erstellt eine **neue** Datenbank und legt die zugehörigen Dateien zunächst in einem Staging-Verzeichnis ab. Die bisher aktive Datenbank wird weder überschrieben noch automatisch gewechselt. Den Assistenten über **Einstellungen > Datenbank** und den Datenbank-Setup-Assistenten öffnen. Danach sind eine manuelle Prüfung und Übernahme erforderlich; die Wiederherstellung deshalb nicht während eines laufenden Wettkampfs oder ohne verantwortliche Betreuung durchführen.
+
+Vor einem Update erstellt das Windows-Setup gegebenenfalls eine zusätzliche Sicherung. Details dazu stehen unter [Datenbanksicherung beim Setup](setup-datenbanksicherung.md). Die nachfolgenden Abschnitte enthalten die ausführlichen Voraussetzungen, Abläufe und Sicherheitsgrenzen für Sicherung und Wiederherstellung.
+
 ## Automatische Sicherung
 
 Unter Einstellungen > Sicherung lassen sich die automatische Sicherung, das Intervall, ein absolutes Zielverzeichnis und die Anzahl der aufzubewahrenden Sicherungen konfigurieren. Die Funktion ist zunächst ausgeschaltet; die Vorgaben sind 30 Minuten und 20 Sicherungen. Das Speichern der allgemeinen Konfiguration kann einen PM2-Neustart auslösen und den Betrieb vorübergehend unterbrechen. Sobald der Server wieder läuft, beginnt er innerhalb von 30 Sekunden mit der ersten Sicherung. Danach wird das Intervall ab dem letzten erfolgreichen Abschluss gemessen. Der Server muss laufen; im ausgeschalteten Zustand finden keine Sicherungen statt. Bei einem Serverneustart wird erneut eine Sicherung gestartet.

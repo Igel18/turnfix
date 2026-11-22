@@ -106,6 +106,7 @@ setup/installer/output/TurnFix-Setup-{Version}-build{BuildNumber}-{GitHash}.exe
 - Die TurnFix Tray-App wird beim Build mit einem eingebetteten Manifest (requestedExecutionLevel=requireAdministrator) erstellt.
 - Damit kann die Tray-App Dienste lokal zuverlässig starten/stoppen.
 - Das Verhalten wird durch das Setup sichergestellt, da genau diese kompilierte EXE installiert wird.
+- Die Tray-App enthält außerdem den Dialog **Netzwerkprofile verwalten...**. Zur Bedienung und zur sicheren Verwendung der Windows-Profile siehe [Tray-App und Windows-Netzwerkprofil](../user-guide/tray-und-netzwerkprofil.md).
 
 ### Installationstypen
 

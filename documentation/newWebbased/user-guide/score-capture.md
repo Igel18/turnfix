@@ -21,6 +21,8 @@ Das **Kampfrichter-Portal** und die **Wertungserfassung** ermöglichen:
 1. **Kampfrichter-Portal** (`/jury-portal`) - Vereinfachte Oberfläche für Wettkampftag
 2. **Wertungserfassung** (`/score-capture`) - Volle Funktionalität mit Admin-Zugriff
 
+Der Ablauf im Kampfrichter-Portal ist in der [UI-Übersicht](ui-overview.md) dargestellt.
+
 ---
 
 ## 🎯 Kernkonzepte
@@ -87,12 +89,12 @@ Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem W
 1. ✅ **Event erstellt** - Siehe [Wettkämpfe verwalten](./event-competition-management.md)
 2. ✅ **Wettkämpfe angelegt** mit Disziplinen
 3. ✅ **Teilnehmer zugeordnet** und Startnummern vergeben
-4. ✅ **Riegen gebildet** (empfohlen) - Siehe [Riegen-Management](../reference/squad-management.md)
+4. ✅ **Riegen gebildet** (empfohlen) - Siehe [Zeitplanung](./time-planning.md)
 5. ✅ **Zeitplanung** abgeschlossen - Siehe [Zeitplanung](./time-planning.md)
 
 **Optional**:
 - 📱 **Tablets/Laptops** für Kampfrichter (einer pro Gerät)
-- 🌐 **Netzwerk** konfiguriert - Siehe [Netzwerk-Setup](../deployment/network-setup.md)
+- 🌐 **Netzwerk** konfiguriert - Siehe [Netzwerk-Konfiguration](../deployment/network.md)
 - 🖨️ **Drucker** für Ergebnislisten (optional)
 
 ---
@@ -101,7 +103,6 @@ Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem W
 
 ### 1.1 Für Kampfrichter (vereinfachte Ansicht)
 
-![Kampfrichter-Portal Start](../images/ui-screenshots/jury0.png)
 
 **URL**: `http://[server-ip]:3001/jury-portal`
 
@@ -131,7 +132,6 @@ Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem W
 
 ### 2.1 Event auswählen (Kampfrichter-Portal)
 
-![Event-Auswahl](../images/ui-screenshots/jury1.png)
 
 1. Liste aller **aktiven Events** wird angezeigt
 2. Klicken Sie auf **Ihr Event** (z.B. "Bezirksmeisterschaften 2025")
@@ -141,7 +141,6 @@ Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem W
 
 ### 2.2 Gerät (Disziplin) wählen
 
-![Geräte-Auswahl](../images/ui-screenshots/jury2.png)
 
 **Dropdown "Disziplin"**:
 - Wählen Sie **Ihr Gerät** (z.B. "Boden", "Reck", "Sprung")
@@ -154,7 +153,6 @@ Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem W
 
 ### 2.3 Riege wählen (optional, empfohlen)
 
-![Riegen-Auswahl](../images/ui-screenshots/jury3.png)
 
 **Dropdown "Riege"**:
 - Wählen Sie **Ihre aktuelle Riege** (z.B. "Riege A")
@@ -176,7 +174,6 @@ Welche Eingabe verfügbar ist, hängt von der Disziplin und gegebenenfalls dem W
 
 ### 3.1 Tabellen-Übersicht
 
-![Wertungserfassung Tabelle](../images/ui-screenshots/score-capture.png)
 
 **Spalten**:
 | Spalte | Inhalt |
@@ -237,7 +234,6 @@ const saveScore = async (participantId, disciplineId) => {
 
 **Erweiterte Ansicht** (Checkbox "Kampfrichter-Noten" **EIN**):
 
-![Detailnoten](../images/ui-screenshots/score-capture-detail.png)
 
 **Zusätzliche Felder** (pro Disziplin):
 - **E-Note** (Execution): Ausführungsnote
@@ -307,7 +303,6 @@ const evaluateFormula = (formula: string, fieldValues: {[fieldId: number]: strin
 
 ### 4.1 Live-Scores für Zuschauer
 
-![Live-Ergebnisse](../images/ui-screenshots/live-scores.png)
 
 **URL**: `http://[server-ip]:3001/live-scores`
 
@@ -372,7 +367,6 @@ Siehe separater Guide: [Urkunden erstellen](./certificate-creation.md)
 
 ### 5.3 Medaillenspiegel
 
-![Medaillenspiegel](../images/ui-screenshots/medallienspiegel.png)
 
 **URL**: `http://[server-ip]:3001/medallienspiegel`
 
@@ -476,7 +470,7 @@ Siehe separater Guide: [Urkunden erstellen](./certificate-creation.md)
 1. **Seite neu laden** (F5)
 2. **Browser-Cache leeren** (Strg+Shift+R)
 3. **Firewall prüfen**: Port 3001 offen?
-   - Siehe [Netzwerk-Setup](../deployment/network-setup.md)
+   - Siehe [Netzwerk-Konfiguration](../deployment/network.md)
 4. **Fallback**: Manuelle Aktualisierung (F5 alle 30 Sek.)
 
 ### Problem 4: "Endnote falsch berechnet"
@@ -566,22 +560,19 @@ Durchschnitt: ({KR1} + {KR2} + {KR3}) / 3
 
 Nach der Wertungserfassung:
 
-1. **[Ergebnisse veröffentlichen](./results-export.md)**
-   - Live-Scores für Zuschauer
-   - Medaillenspiegel
-   - Ranglisten
+1. Ergebnisse prüfen und, falls benötigt, Live-Scores und Ranglisten anzeigen.
 
 2. **[Urkunden drucken](./certificate-creation.md)**
    - Layouts auswählen
    - Massen-Export
    - PDF generieren
 
-3. **[Daten exportieren](./results-export.md)**
+3. **Daten exportieren**
    - CSV-Export
    - Excel-Analysen
    - Archivierung
 
-4. **[Statistiken erstellen](../reference/statistics.md)**
+4. Statistiken bei Bedarf über die verfügbaren Ergebnisansichten erstellen.
    - Teilnehmer-Statistiken
    - Vereins-Vergleiche
    - Leistungs-Entwicklung
@@ -594,22 +585,20 @@ Nach der Wertungserfassung:
 - [Wettkämpfe verwalten](./event-competition-management.md)
 - [Zeitplanung](./time-planning.md)
 - [Urkunden erstellen](./certificate-creation.md)
-- [Ergebnisse exportieren](./results-export.md)
 
 ### Developer-Guides
-- [Point 123: ScoreCapture Refactoring](../developer-guide/features/point-123-score-capture.md)
-- [Socket.io Real-time Updates](../developer-guide/architecture/socket-io.md)
-- [Score Validation System](../developer-guide/best-practices/score-validation.md)
-- [Formula Engine](../developer-guide/features/formula-calculation.md)
+- [Score-Speicherung und Ranglisten](../developer-guide/features/score-storage-and-ranking.md)
+- [Live-Updates](../developer-guide/architecture/live-updates.md)
+- [Formelsystem](../FORMULA_SYSTEM.md)
 
 ### Deployment
-- [Netzwerk-Setup](../deployment/network-setup.md)
-- [Firewall-Konfiguration](../deployment/firewall-platform-info.md)
+- [Netzwerk-Konfiguration](../deployment/network.md)
+- [Firewall-Konfiguration](../deployment/firewall-platform.md)
 - [Jury-Portal-Zugang](../deployment/jury-portal-access.md)
 
 ### Referenz
-- [Disziplin-Felder](../reference/discipline-fields.md)
-- [Kampfrichter-Verwaltung](../reference/jury-management.md)
+- [Disziplin-Felder](master-data/discipline-fields.md)
+- [Jury-Portal-Zugriff](../deployment/jury-portal-access.md)
 
 ---
 

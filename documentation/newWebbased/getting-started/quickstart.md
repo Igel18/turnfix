@@ -14,7 +14,7 @@ TurnFix includes enterprise-grade hardening for production deployments:
 - ✅ **Database Resilience** - Auto-reconnect with health checks
 - ✅ **Graceful Shutdown** - No data loss on server stop
 
-See [`HARDENING-PLAN.md`](HARDENING-PLAN.md) for details.
+See the [production deployment guide](../deployment/production.md) for deployment guidance.
 
 ## Database Setup
 
@@ -128,7 +128,7 @@ The server is configured with:
 - ✅ **Health Checks**: Database connection monitoring every 60s
 - ✅ **Graceful Shutdown**: Clean exit on SIGTERM/SIGINT
 
-**Configuration File**: [`server/ecosystem.config.js`](server/ecosystem.config.js)
+**Configuration File**: [`ecosystem.config.js`](../../../newWebBased/ecosystem.config.js)
 
 ### Environment Variables
 
